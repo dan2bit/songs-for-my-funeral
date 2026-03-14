@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Songs for my Funeral Liner Notes</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Karla:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1714;
+    --paper: #f5f0e8;
+    --aged: #e8dfc8;
+    --rust: #8b4a2a;
+    --fade: #706860;
+    --rule: #c8bfaa;
+    --body: #3a3530;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #e8e0d0;
+      --paper: #1c1713;
+      --aged: #2a2420;
+      --rust: #c47a4a;
+      --fade: #9a9088;
+      --rule: #3a332c;
+      --body: #ccc4b4;
+    }
+
+    .track-art {
+      opacity: 0.75;
+    }
+
+    .lyric-pull {
+      background: rgba(196, 122, 74, 0.07);
+    }
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Karla', sans-serif;
+    font-weight: 300;
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  .page {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 80px 40px 120px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 80px;
+    padding-bottom: 48px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  header h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 17px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--fade);
+    margin-bottom: 20px;
+  }
+
+  header p {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 15px;
+    color: var(--fade);
+    max-width: 480px;
+    margin: 0 auto;
+    line-height: 1.8;
+  }
+
+
+  .track {
+    margin-bottom: 56px;
+    padding-bottom: 56px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .track:last-child {
+    border-bottom: none;
+  }
+
+  .track-header {
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    gap: 0 20px;
+    align-items: baseline;
+    margin-bottom: 16px;
+  }
+
+  .track-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 22px;
+    color: var(--ink);
+    opacity: 0.55;
+    text-align: right;
+    padding-top: 2px;
+    letter-spacing: -0.01em;
+  }
+
+  .track-num.hat-signer {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+  }
+
+  .track-num.hat-signer img {
+    width: 24px;
+    height: 24px;
+    opacity: 0.7;
+  }
+
+  .track-info {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .track-info-text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .track-art {
+    flex-shrink: 0;
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    opacity: 0.85;
+    border: 1px solid var(--rule);
+  }
+
+  .track-info h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    font-size: 22px;
+    line-height: 1.2;
+    margin-bottom: 4px;
+  }
+
+  .track-info .performer {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 16px;
+    color: var(--fade);
+    margin-bottom: 8px;
+  }
+
+  .track-info .credits {
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    color: var(--fade);
+    margin-bottom: 16px;
+  }
+
+  .track-info .credits a {
+    color: var(--rust);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s;
+  }
+
+  .track-info .credits a:hover {
+    border-color: var(--rust);
+  }
+
+
+  .lyric-pull {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 18px;
+    line-height: 1.75;
+    color: var(--ink);
+    opacity: 0.85;
+    margin-top: 14px;
+    margin-bottom: 0;
+    padding: 10px 16px;
+    border-left: 3px solid var(--rust);
+    background: rgba(139,90,60,0.04);
+  }
+  .track-body {
+    grid-column: 2;
+    padding-left: 60px;
+  }
+
+  .track-body p {
+    color: var(--body);
+    font-size: 14.5px;
+    line-height: 1.8;
+    margin-bottom: 10px;
+  }
+
+  .track-body p:last-child {
+    margin-bottom: 0;
+  }
+
+  .tag {
+    display: inline-block;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--rust);
+    border: 1px solid var(--rust);
+    padding: 2px 7px;
+    margin-right: 6px;
+    margin-bottom: 4px;
+    opacity: 0.7;
+  }
+
+  .tags {
+    margin-bottom: 14px;
+  }
+
+  .tag.alleluia {
+    color: #5a4a6a;
+    border-color: #5a4a6a;
+  }
+
+  .provenance {
+    font-size: 13px;
+    font-style: italic;
+    color: var(--fade);
+    border-left: 2px solid var(--rule);
+    padding-left: 12px;
+    margin-top: 8px;
+    line-height: 1.7;
+  }
+
+  .posthumous {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--fade);
+    margin-top: 10px;
+    font-style: normal;
+  }
+
+
+  footer {
+    text-align: center;
+    margin-top: 80px;
+    padding-top: 40px;
+    border-top: 1px solid var(--rule);
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--fade);
+    line-height: 2;
+  }
+
+  .colophon {
+    margin-top: 60px;
+    margin-bottom: 0;
+    padding: 32px 0 28px;
+    border-top: 1px solid var(--rule);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 48px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 13px;
+    color: var(--fade);
+    line-height: 1.8;
+  }
+
+  .colophon-stat {
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+  }
+
+  .colophon-label {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--fade);
+    opacity: 0.7;
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding-top: 2px;
+  }
+
+  .colophon-value {
+    font-size: 14px;
+    color: var(--ink);
+    opacity: 0.75;
+  }
+
+  .colophon-value em {
+    font-style: italic;
+  }
+
+  .colophon-full {
+    grid-column: 1 / -1;
+  }
+
+  .colophon-coda {
+    grid-column: 1 / -1;
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid var(--rule);
+    font-style: italic;
+    font-size: 14px;
+    color: var(--fade);
+    text-align: center;
+    letter-spacing: 0.02em;
+  }
+
+
+  .chapter-break--first {
+    margin-top: 0;
+    padding-top: 56px;
+  }
+
+  .chapter-break {
+    margin: 72px 0 64px;
+    padding: 0;
+    text-align: center;
+  }
+
+  .chapter-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 15px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: 22px;
+  }
+
+  .chapter-rule {
+    width: 48px;
+    height: 1px;
+    background: var(--rule);
+    margin: 0 auto 22px;
+  }
+
+  .chapter-epigraph {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 22px;
+    line-height: 1.65;
+    color: var(--body);
+    max-width: 440px;
+    margin: 0 auto;
+  }
+
+
+  header .subtitle {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 16px;
+    color: var(--fade);
+    letter-spacing: 0.04em;
+    margin-top: 8px;
+    margin-bottom: 0;
+  }
+
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <img src="red_hat_icon.png" alt="red trilby hat" style="width:72px;height:72px;display:block;margin:0 auto 24px;">
+    <h1>Songs for my Funeral<br>Liner Notes</h1>
+    <p class="subtitle">a liturgy from the church of music</p>
+    <p>26 tracks &nbsp;·&nbsp; 1:57:48 &nbsp;·&nbsp; assembled with love</p>
+  </header>
+
+  <div class="chapter-break chapter-break--first">
+    <div class="chapter-title">I Am Where I'm Meant to Be</div>
+    <div class="chapter-rule"></div>
+    <div class="chapter-epigraph">kneel and say an Ave there for me</div>
+  </div>
+
+  <div class="track">
+    <div class="track-header">
+      <div class="track-num">01</div>
+      <div class="track-info"><div class="track-info-text">
+        <h2>Ain't No Grave</h2>
+        <div class="performer">Jamie Wilson</div>
+        <div class="credits">
+          Written by Claude Ely (1934) &nbsp;·&nbsp; from <em>Southern Gospel Revival 1</em>, The Modern Trade (2012) &nbsp;·&nbsp;
+          <span style="white-space:nowrap"><a href="https://genius.com/Johnny-cash-aint-no-grave-gonna-hold-this-body-down-lyrics" target="_blank">Lyrics</a> &nbsp;·&nbsp; <a href="https://www.youtube.com/watch?v=YU9BObi1GVw" target="_blank">Watch</a></span>
+        </div>
+        <div class="tags"><span class="tag">live</span><span class="tag">live in concert</span><span class="tag">traditional</span><span class="tag alleluia">alleluia</span></div>
+      </div><img class="track-art" src="covers/01-aint-no-grave.jpg" alt="album art"></div>
+    </div>
+    <div class="track-body">
+      <p>Brother Claude Ely wrote this in 1934 at age twelve, sick with tuberculosis, after his family prayed over him. 
+      He was a Pentecostal preacher from Virginia's coal country, and the song became an Appalachian standard long before Johnny Cash recorded it as the title track of his final album. The defiance here is theological but also physical. "High hosanna" surfaces in Jamie Wilson's rendition as a fighting "holler" - confident in reaching the promised land.</p>
+      <p class="provenance">Recorded live at Schneider Hall, Columbus, Texas, March 2013. Released on <em>Southern Gospel Revival 1</em>, a four-track EP produced by The Modern Trade. Artwork by Chris King.</p>
+      <p class="lyric-pull">Gabriel don't you blow that trumpet<br>until you hear from me.</p>
+    </div>
+  </div>
+
+  <div class="track">
+    <div class="track-header">
+      <div class="track-num">02</div>
+      <div class="track-info"><div class="track-info-text">
+        <h2>Danny Boy</h2>
+        <div class="performer">Sinéad O'Connor</div>
+        <div class="credits">
+          Lyric by Frederick Weatherly (1913), set to "Londonderry Air" (trad.) &nbsp;·&nbsp;
+          <span style="white-space:nowrap"><a href="https://genius.com/Sinead-oconnor-danny-boy-lyrics" target="_blank">Lyrics</a> &nbsp;·&nbsp; <a href="https://www.youtube.com/watch?v=PweUGhCZNiM" target="_blank">Watch</a></span>
+        </div>
+        <div class="tags"><span class="tag">live</span><span class="tag">live in concert</span><span class="tag">a cappella</span><span class="tag">Celtic</span><span class="tag">traditional</span></div>
+        <div class="posthumous">† Sinéad O'Connor, 1966–2023</div>
+      </div><img class="track-art" src="covers/02-danny-boy.jpg" alt="album art"></div>
+    </div>
+    <div class="track-body">
+      <p> As any good American mom with Irish ancestors would, mine sang this as a lullaby to her baby Daniel. The ache and sadness and war despair
+      that Sinéad cracks open in this stripped down <em>a capella</em> version was always there, but the lamentation is subtext in my soul's hearing of
+      this song. Love and thank you, Mom! </p>
+      <p class="provenance">Recorded in the TV studio for the Christmas Eve 1993 edition of <em>The Late Late Show</em>, RTÉ. O'Connor had appeared the week before and contributed this haunting rendition. Intro trimmed.</p>
+      <p class="lyric-pull">And I shall hear, though soft you tread above me<br>And all my grave will warmer, sweeter be</p>
+    </div>
+  </div>
+
+  <div class="track">
+    <div class="track-header">
+      <div class="track-num">03</div>
+      <div class="track-info"><div class="track-info-text">
+        <h2>I'll Fly Away</h2>
+        <div class="performer">Alison Krauss</div>
+        <div class="credits">
+          Written by Albert E. Brumley (1929) &nbsp;·&nbsp;
+          <span style="white-space:nowrap"><a href="https://www.bluegrasslyrics.com/song/ill-fly-away/" target="_blank">Lyrics</a> &nbsp;·&nbsp; <a href="https://www.youtube.com/watch?v=1BPoMIQHwpo" target="_blank">Watch</a></span>
+        </div>
+        <div class="tags"><span class="tag">studio</span><span class="tag">traditional</span></div>
+      </div><img class="track-art" src="covers/03-ill-fly-away.jpg" alt="album art"></div>
+    </div>
+    <div class="track-body">
+      <p>Brumley wrote this in 1929, inspired by the old folk song <em>If I Had the Wings of an Angel</em>. One of the most recorded gospel songs in American history. Krauss's version, from the <em>O Brother, Where Art Thou?</em> movie's retelling of Homer's Odyssey (2000), is spare, almost weightless — just voice and a thread of acoustic guitar. </p>
+      <p class="lyric-pull">No more cold iron shackles on my feet<br>I'll fly away.</p>
+    </div>
+  </div>
+
+  <div class="chapter-break">
+    <div class="chapter-title">You'll Be Okay (Grief Sucks)</div>
+    <div class="chapter-rule"></div>
+    <div class="chapter-epigraph">I don't know how to pray<br>I say 'Alleluia' anyway</div>
+  </div>
+
+    <div class="track">
+    <div class="track-header">
+      <div class="track-num hat-signer">04<img src="red_hat_icon.png" alt="hat signer"></div>
+      <div class="track-info"><div class="track-info-text">
+        <h2>Ain't Gonna Cry</h2>
+        <div class="performer">Larkin Poe</div>
+        <div class="credits">
+          Written by Rebecca Lovell &nbsp;·&nbsp; from <em>Venom &amp; Faith</em> (2018) &nbsp;·&nbsp;
+          <span style="white-space:nowrap"><a href="https://genius.com/Larkin-poe-aint-gonna-cry-lyrics" target="_blank">Lyrics</a> &nbsp;·&nbsp; <a href="https://www.youtube.com/watch?v=UN20shzRLdg" target="_blank">Watch</a></span>
+        </div>
+        <div class="tags"><span class="tag">live</span><span class="tag">live in concert</span><span class="tag alleluia">alleluia</span></div>
+      </div><img class="track-art" src="covers/04-aint-gonna-cry.jpg" alt="album art"></div>
+    </div>
+    <div class="track-body">
+      <p>Larkin Poe remain one of my all-time favorite bands - I credit them with being the spark of a revival of my love of live music in my middle age. Rebecca Lovell wrote this for <em>Venom &amp; Faith</em> in 2018. Georgia-bred, roots rock and roll, sisters Rebecca and Megan Lovell finding the blues inside a crisis of faith.</p>
+      <p class="provenance">Recorded live for Cerys Matthews' Blues Show on BBC Radio 2, December 2018.</p>
+      <p class="lyric-pull">I don't know how to pray<br>I sing hallelujah anyway.</p>
+    </div>
+  </div>
+
+  <div class="track">
+    <div class="track-header">
+      <div class="track-num">05</div>
+      <div class="track-info"><div class="track-info-text">
+        <h2>Wade in the Water</h2>
+        <div class="performer">Sweet Honey in the Rock</div>
+        <div class="credits">
+          Traditional spiritual (pre-Civil War) &nbsp;·&nbsp;
+          <span style="white-space:nowrap"><a href="https://genius.com/The-staple-singers-wade-in-the-water-lyrics" target="_blank">Lyrics</a> &nbsp;·&nbsp; <a href="https://www.youtube.com/watch?v=RRpzEnq14Hs" target="_blank">Watch</a></span>
+        </div>
+        <div class="tags"><span class="tag">live</span><span class="tag">live in concert</span><span class="tag">a cappella</span><span class="tag">traditional</span></div>
+        <div class="posthumous">† Shirley Childress Saxton, 1951–2017 &nbsp;·&nbsp; ASL interpreter (video only)</div>
+      </div><img class="track-art" src="covers/05-wade-in-the-water.jpg" alt="album art"></div>
+    </div>
+    <div class="track-body">
+      <p>A pre-Civil War spiritual used as a coded instruction along the Underground Railroad — wade in the water to throw off the dogs. Sweet Honey in the Rock's a cappella arrangement strips it to pure communal voice. No instruments. Just bodies, just breath. The call-and-response structure is the oldest form of collective grief and solidarity in American music.</p>
+      <p class="provenance">Recorded during sound check at Koerner Hall, Toronto, for an episode of <em>God's Greatest Hits</em> on Vision TV. Source: Riddle Films.</p>
+      <p class="lyric-pull">See those people dressed in black<br>They come a long way and they ain't turning back</p>
+    </div>
+  </div>
+
+  <div class="track">
+    <div class="track-header">
+      <div class="track-num">06</div>
+      <div class="track-info"><div class="track-info-text">
+        <h2>One More Day</h2>
+        <div class="performer">The Wood Brothers</div>
+        <div class="credits">
+          Written by Oliver Wood &nbsp;·&nbsp; from <em>Live Volume 1: Sky High</em> (2012) &nbsp;·&nbsp;
+          <span style="white-space:nowrap"><a href="https://genius.com/The-wood-brothers-one-more-day-lyrics" target="_blank">Lyrics</a> &nbsp;·&nbsp; <a href="https://www.youtube.com/watch?v=oVZYCtuFVf8" target="_blank">Watch</a></span>
+        </div>
+        <div class="tags"><span class="tag">live</span><span class="tag">live in concert</span></div>
+      </div><img class="track-art" src="covers/06-one-more-day.jpg" alt="album art"></div>
+    </div>
+    <div class="track-body">
+      <p>Another band of authentic musicians and storytellers that I love. The song is full of stubborn, practical tenderness - no sugar coating, but this too shall passe.</p>
+      <p class="provenance">It is possible this track was recorded at The Barns at Wolf Trap, but the album credits do not assign individual tracks to specific venues.</p>
+      <p class="lyric-pull">I heard you say<br>the world don't owe you a thing.</p>
+    </div>
+  </div>
+
+  <div class="track">
+    <div class="track-header">
+      <div class="track-num hat-signer">07<img src="red_hat_icon.png" alt="hat signer"></div>
+      <div class="track-info"><div class="track-info-text">
+        <h2>You're Not Alone</h2>
+        <div class="performer">Allison Russell ft. Brandi Carlile</div>
+        <div class="credits">
+          Written by Allison Russell, Amelia Meath, Nick Sanborn &nbsp;·&nbsp; from <em>Outside Child</em> (2021) &nbsp;·&nbsp;
+          <span style="white-space:nowrap"><a href="https://genius.com/Allison-russell-youre-not-alone-lyrics" target="_blank">Lyrics</a> &nbsp;·&nbsp; <a href="https://www.youtube.com/watch?v=YHzPT6bCGoQ" target="_blank">Watch</a></span>
+        </div>
+        <div class="tags"><span class="tag">studio</span></div>
+      </div><img class="track-art" src="covers/07-youre-not-alone.jpg" alt="album art"></div>
+    </div>
+    <div class="track-body">
+      <p>Allison Russell is a flat out alchemist. I've never seen anyone so intentionally transmute the trauma of surviving incestuous abuse into so much shareable joy - direct reassurance, stated without metaphor. Carlile's presence on this track and her allyship in Russell's career ascendance is part of the not being alone.</p>
+      <p class="lyric-pull">All the ones who came before you, Their strength is yours now<br>You're not alone</p>
+    </div>
+  </div>
+
+  <div class="track">
+    <div class="track-header">
+      <div class="track-num">08</div>
+      <div class="track-info"><div class="track-info-text">
+        <h2>Everlasting Arms</h2>
+        <div class="performer">Playing for Change ft. Dr. John</div>
+        <div class="credits">
+          Luke Winslow-King, 2014 &nbsp;·&nbsp; arr. Playing for Change &nbsp;·&nbsp;
+          <span style="white-space:nowrap"><a href="https://genius.com/Luke-winslow-king-everlasting-arms-lyrics" target="_blank">Lyrics</a> &nbsp;·&nbsp; <a href="https://www.youtube.com/watch?v=i9YvB9FmR3E" target="_blank">Watch</a></span>
+        </div>
+        <div class="tags"><span class="tag">studio</span></div>
+        <div class="posthumous">† Dr. John (Mac Rebennack), 1941–2019</div>
+      </div><img class="track-art" src="covers/08-everlasting-arms.jpg" alt="album art"></div>
+    </div>
+    <div class="track-body">
+      <p>Luke Winslow-King wrote this in 2014 — a New Orleans songwriter working in the old tradition. Playing for Change then did what they do: layered musicians from across the world into a single recording, turning a song about being held up into an act of exactly that. Dr. John is the emotional anchor — his voice, his piano, his city's long tradition of turning grief into music that insists on moving forward.</p>
+      <p class="provenance">Playing for Change records musicians separately, each in their own space — a porch in New Orleans, a studio in Cape Town, a living room in Mumbai. The video is edited so they appear to be playing together in the same room. They never are, but somehow it works.</p>
+      <p class="lyric-pull">You can lean on me stranger, I believe you’ve carried too long<br>It’s such a long, long way, back home</p>
+    </div>
+  </div>
+
+  <div class="track">
+    <div class="track-header">
+      <div class="track-num">09</div>
+      <div class="track-info"><div class="track-info-text">
+        <h2>Hold On</h2>
+        <div class="performer">Alabama Shakes</div>
+        <div class="credits">
+          Written by Brittany Howard &nbsp;·&nbsp; from <em>Boys &amp; Girls</em> (2012) &nbsp;·&nbsp;
+          <span style="white-space:nowrap"><a href="https://genius.com/Alabama-shakes-hold-on-lyrics" target="_blank">Lyrics</a> &nbsp;·&nbsp; <a href="https://www.youtube.com/watch?v=Le-3MIBxQTw" target="_blank">Watch</a></span>
+        </div>
+        <div class="tags"><span class="tag">live</span><span class="tag">live in studio</span></div>
+      </div><img class="track-art" src="covers/09-hold-on.jpg" alt="album art"></div>
+    </div>
+    <div class="track-body">
+      <p>Brittany Howard's voice gives me cathartic goosebumps. This live-in-studio performance is everything — the band locked in, Howard giving everything. Another queer alchemist.</p>
+      <p class="lyric-pull">So, bless my heart and bless my mind<br>I got so much to do, I ain't got much time</p>
+    </div>
+  </div>
+
+  <div class="chapter-break">
+    <div class="chapter-title">Don't Worry About Me</div>
+    <div class="chapter-rule"></div>
+    <div class="chapter-epigraph">…straight to the light,<br>holding the love I've known in my life</div>
+  </div>
+
+    <div class="track">
+    <div class="track-header">
+      <div class="track-num">10</div>
+      <div class="track-info"><div class="track-info-text">
+        <h2>When I Go</h2>
+        <div class="performer">Dave Carter &amp; Tracy Grammer</div>
+        <div class="credits">
+          Written by Dave Carter (1997) &nbsp;·&nbsp; from <em>When I Go</em> (1998) &nbsp;·&nbsp;
+          <span style="white-space:nowrap"><a href="https://www.tracygrammer.com/when-i-go.html" target="_blank">Lyrics</a> &nbsp;·&nbsp; <a href="https://www.youtube.com/watch?v=Imf2GYV0xNo" target="_blank">Watch</a></span>
+        </div>
+        <div class="tags"><span class="tag">live</span><span class="tag">live in concert</span></div>
+        <div class="posthumous">† Dave Carter, 1952–2002</div>
+      </div><img class="track-art" src="covers/10-when-i-go.jpg" alt="album art"></div>
+    </div>
+    <div class="track-body">
+      <p>Carter wrote this in 1997 while his mother was entering the final stages of Alzheimer's disease. He finished it before she died, but never got to play it for her. He died suddenly at age 49, while on tour.</p>
+      <p>Death as a series of becomings. The live performance at the St. John Pub in Portland, December 2001, was filmed less than a year before his death.</p>
+      <p class="lyric-pull">when I go, I will go like water<br>when I go, I will go like fire</p>
+ 
+    </div>
+  </div>
+
+  <div class="track">
+    <div class="track-header">
+      <div class="track-num">11</div>
+      <div class="track-info"><div class="track-info-text">
+        <h2>No Hard Feelings</h2>
+        <div class="performer">The Avett Brothers</div>
+        <div class="credits">
+          Written by Scott &amp; Seth Avett &nbsp;·&nbsp; from <em>True Sadness</em> (2016) &nbsp;·&nbsp;
+          <span style="white-space:nowrap"><a href="https://genius.com/The-avett-brothers-no-hard-feelings-lyrics" target="_blank">Lyrics</a> &nbsp;·&nbsp; <a href="https://www.youtube.com/watch?v=tFGs7HP15d4" target="_blank">Watch</a></span>
+        </div>
+        <div class="tags"><span class="tag">studio</span><span class="tag alleluia">alleluia</span></div>
+      </div><img class="track-art" src="covers/11-no-hard-feelings.jpg" alt="album art"></div>
+    </div>
+    <div class="track-body">
+      <p>This track never fails to gobsmack me. A lump in the throat from the gracious acceptance of the real. Not resignation, not defeat, but genuine letting go.</p>
+      <p class="lyric-pull">and it's ash and dust for cash and lust, and it's just hallelujah<br>and love in thoughts and love in the words</p>
+    </div>
+  </div>
+
+  <div class="chapter-break">
+    <div class="chapter-title">You're Still in the Pink</div>
+    <div class="chapter-rule"></div>
+    <div class="chapter-epigraph">so fire up that fiddle boy,<br>and give me one last drink</div>
+  </div>
+
+    <div class="track">
+    <div class="track-header">
+      <div class="track-num">12</div>
+      <div class="track-info"><div class="track-info-text">
+        <h2>Sleeping in the Ground</h2>
+        <div class="performer">Eric Clapton &amp; Steve Winwood</div>
+        <div class="credits">
+          Written by Sam Myers &nbsp;·&nbsp; from <em>Live from Madison Square Garden</em> (2009) &nbsp;·&nbsp;
+          <span style="white-space:nowrap"><a href="https://genius.com/Eric-clapton-sleeping-in-the-ground-lyrics" target="_blank">Lyrics</a> &nbsp;·&nbsp; <a href="https://www.youtube.com/watch?v=29d5ATUk1oU" target="_blank">Watch</a></span>
+        </div>
+        <div class="tags"><span class="tag">live</span><span class="tag">live in concert</span><span class="tag">blues</span></div>
+      </div><img class="track-art" src="covers/12-sleeping-in-the-ground.jpg" alt="album art"></div>
+    </div>
+    <div class="track-body">
+      <p><em>"The blues is the roots; everything else is the fruits."</em> - attributed to Willie Dixon. This is a Blind Faith song that didn't make the original LP, played live by two master musicians.
+      A little sinister, but the raw expression of devotion is as ancient as the <em>memento mori</em> in the rest of this playlist.</p>
+      <p class="lyric-pull">The things you do to hurt me<br>don't seem to matter to me anymore</p>
+    </div>
+  </div>
+
+  <div class="track">
+    <div class="track-header">
+      <div class="track-num">13</div>
+      <div class="track-info"><div class="track-info-text">
+        <h2>Up Above My Head</h2>
+        <div class="performer">Sister Rosetta Tharpe &amp; Marie Knight</div>
+        <div class="credits">
+          Traditional (first recorded 1941) &nbsp;·&nbsp; Decca Records, New York, November 24, 1947 &nbsp;·&nbsp;
+          <span style="white-space:nowrap"><a href="https://genius.com/Sister-rosetta-tharpe-up-above-my-head-lyrics" target="_blank">Lyrics</a> &nbsp;·&nbsp; <a href="https://www.youtube.com/watch?v=fFe-B2v_Yk8" target="_blank">Watch</a></span>
+        </div>
+        <div class="tags"><span class="tag">studio</span></div>
+        <div class="posthumous">† Sister Rosetta Tharpe, 1915–1973 &nbsp;·&nbsp; † Marie Knight, 1920–2009</div>
+      </div><img class="track-art" src="covers/13-up-above-my-head.jpg" alt="album art"></div>
+    </div>
+    <div class="track-body">
+      <p>Tharpe, a gospel singer who stepped out from church music, but arguably not too far, really did invent rock and roll. She just didn't get the credit. This track reached number 6 on the (segregated) Billboard Race Records chart in 1948. I love the call-and-response, trading the same ecstatic line back and forth until it becomes incantation.</p>
+      <p class="lyric-pull">You know all in my heart, music everywhere<br>All in my soul, it makes me whole.</p>
+      <p></p>
+    </div>
+  </div>
+
+  <div class="track">
+    <div class="track-header">
+      <div class="track-num">14</div>
+      <div class="track-info"><div class="track-info-text">
+        <h2>Gone at Last</h2>
+        <div class="performer">Paul Simon &amp; Phoebe Snow</div>
+        <div class="credits">
+          Written by Paul Simon &nbsp;·&nbsp; from <em>Still Crazy After All These Years</em> (1975) &nbsp;·&nbsp;
+          <span style="white-space:nowrap"><a href="https://genius.com/Paul-simon-gone-at-last-lyrics" target="_blank">Lyrics</a> &nbsp;·&nbsp; <a href="https://www.youtube.com/watch?v=kDp9yeSypp8" target="_blank">Watch</a></span>
+        </div>
+        <div class="tags"><span class="tag">studio</span></div>
+        <div class="posthumous">† Phoebe Snow, 1950–2011</div>
+      </div><img class="track-art" src="covers/14-gone-at-last.jpg" alt="album art"></div>
+    </div>
+    <div class="track-body">
+      <p>Phoebe Snow's debut single in 1974 was a massive hit. In 1975, the same year this was recorded, her daughter Valerie was born disabled. Snow largely stepped back from performing for decades to care for her. This duet, full of hope that a long streak of bad luck is gone at last, charts a course for all of us.</p>
+      <p class="lyric-pull">Somebody will come and lift you higher<br>and your burdens will be shared</p>
+    </div>
+  </div>
+
+  <div class="track">
+    <div class="track-header">
+      <div class="track-num">15</div>
+      <div class="track-info"><div class="track-info-text">
+        <h2>Before I'm Old</h2>
+        <div class="performer">Christone "Kingfish" Ingram</div>
+        <div class="credits">
+          Written by Christone Ingram &nbsp;·&nbsp; from <em>Kingfish</em> (2019) &nbsp;·&nbsp;
+          <span style="white-space:nowrap"><a href="https://genius.com/Christone-kingfish-ingram-before-im-old-lyrics" target="_blank">Lyrics</a> &nbsp;·&nbsp; <a href="https://www.youtube.com/watch?v=6KWBJkv-8kM" target="_blank">Watch</a></span>
+        </div>
+        <div class="tags"><span class="tag">studio</span><span class="tag">blues</span></div>
+      </div><img class="track-art" src="covers/15-before-im-old.jpg" alt="album art"></div>
+    </div>
+    <div class="track-body">
+      <p>Ingram, from the literal and legendary birthplace of the blues, Clarksdale, Mississippi, was barely out of his teens when this song was
+      released. His collaborators on his debut album are some of the living legends of the genre - it's very clear that Kingfish is comfortable inhabiting an old form, and becoming the post-millennial torchbearer of the blues.</p>
+      <p class="lyric-pull">People say I got an old soul<br>and I ain’t even twenty-one</p>
+    </div>
+  </div>
+
+  <div class="track">
+    <div class="track-header">
+      <div class="track-num">16</div>
+      <div class="track-info"><div class="track-info-text">
+        <h2>Enjoy Yourself</h2>
+        <div class="performer">The Specials</div>
+        <div class="credits">
+          Written by Carl Sigman &amp; Herb Magidson (1948) &nbsp;·&nbsp; from <em>More Specials</em> (2 Tone/Chrysalis, 1980) &nbsp;·&nbsp;
+          <span style="white-space:nowrap"><a href="https://genius.com/The-specials-enjoy-yourself-its-later-than-you-think-lyrics" target="_blank">Lyrics</a> &nbsp;·&nbsp; <a href="https://www.youtube.com/watch?v=rA2-6ZlOXeg" target="_blank">Watch</a></span>
+        </div>
+        <div class="tags"><span class="tag">live</span><span class="tag">live in concert</span></div>
+      </div><img class="track-art" src="covers/16-enjoy-yourself.jpg" alt="album art"></div>
+    </div>
+    <div class="track-body">
+      <p>Archival fan footage from floor-level in a tiny, unnamed, packed ska club, probably early 1980s? The original, written in 1948, has been some of the most honest possible funeral instruction ever since.</p>
+      <p class="lyric-pull">Enjoy yourself, enjoy yourself, it's later than you think.</p>
+    </div>
+  </div>
+
+  <div class="track">
+    <div class="track-header">
+      <div class="track-num hat-signer">17<img src="red_hat_icon.png" alt="hat signer"></div>
+      <div class="track-info"><div class="track-info-text">
+        <h2>One Last Drink</h2>
+        <div class="performer">Enter the Haggis</div>
+        <div class="credits">
+          Written by Mark Abraham, Brian Buchanan, James Campbell, Craig Downie &amp; Trevor Lewington &nbsp;·&nbsp; from <em>Soapbox Heroes</em> (2006) &nbsp;·&nbsp;
+          <span style="white-space:nowrap"><a href="https://enterthehaggis.bandcamp.com/track/one-last-drink-2" target="_blank">Lyrics</a> &nbsp;·&nbsp; <a href="https://www.youtube.com/watch?v=YgHQZGHzEIs" target="_blank">Watch</a></span>
+        </div>
+        <div class="tags"><span class="tag">studio</span><span class="tag">Celtic</span></div>
+      </div><img class="track-art" src="covers/17-one-last-drink.jpg" alt="album art"></div>
+    </div>
+    <div class="track-body">
+      <p>This is the signature anthem of the now-defunct Toronto Celtic rock band. Old John on his deathbed refuses to go until the sun goes down and he's danced with Molly and raised a glass.</p>
+      <p class="lyric-pull">I've had a life that's full, everyone's been good to me<br>so fire up that fiddle boy, and give me one last drink.</p>
+    </div>
+  </div>
+
+  <div class="track">
+    <div class="track-header">
+      <div class="track-num">18</div>
+      <div class="track-info"><div class="track-info-text">
+        <h2>Five More Minutes</h2>
+        <div class="performer">The War &amp; Treaty</div>
+        <div class="credits">
+          Written by Michael Trotter Jr. &amp; Tanya Trotter &nbsp;·&nbsp; from <em>Hearts Town</em> (2020) &nbsp;·&nbsp;
+          recorded live at the Greek Theatre, Berkeley, CA, September 15, 2021 &nbsp;·&nbsp;
+          <span style="white-space:nowrap"><a href="https://genius.com/The-war-and-treaty-five-more-minutes-lyrics" target="_blank">Lyrics</a> &nbsp;·&nbsp; <a href="https://www.youtube.com/watch?v=vpjRfuhBdpM" target="_blank">Watch</a></span>
+        </div>
+        <div class="tags"><span class="tag">live</span><span class="tag">live in concert</span></div>
+      </div><img class="track-art" src="covers/18-five-more-minutes.jpg" alt="album art"></div>
+    </div>
+    <div class="track-body">
+      <p>Michael and Tanya Trotter may have had a long road to being a successful band, but they're damn good at it. This husband and wife pulled each other through poverty, PTSD, and the edge of suicide. The song is literally about choosing to stay, and what's most important when you do: &#8220;If I have five more minutes to love you, it's going to be the best damn five minutes of my life.&#8221;</p>
+      <p class="provenance">Fan video recorded live in September 2021 outdoors at the Greek Theatre in Berkeley, CA. Intro trimmed.</p>
+      <p class="lyric-pull">We've got all night, so please forget<br>about tomorrow</p>
+    </div>
+  </div>
+
+  <div class="chapter-break">
+    <div class="chapter-title">But Before We Part</div>
+    <div class="chapter-rule"></div>
+    <div class="chapter-epigraph">preacher says he wants some more of that<br>alleluia</div>
+  </div>
+
+    <div class="track">
+    <div class="track-header">
+      <div class="track-num">19</div>
+      <div class="track-info"><div class="track-info-text">
+        <h2>I'll Fly Away</h2>
+        <div class="performer">Preservation Hall Jazz Band &amp; The Del McCoury Band</div>
+        <div class="credits">
+          Written by Albert E. Brumley (1929) &nbsp;·&nbsp; from <em>American Legacies</em> (2011) &nbsp;·&nbsp;
+          <span style="white-space:nowrap"><a href="https://www.bluegrasslyrics.com/song/ill-fly-away/" target="_blank">Lyrics</a> &nbsp;·&nbsp; <a href="https://www.youtube.com/watch?v=hBd0FdBt0jk" target="_blank">Watch</a></span>
+        </div>
+        <div class="tags"><span class="tag">live</span><span class="tag">live in studio</span><span class="tag">traditional</span></div>
+      </div><img class="track-art" src="covers/19-ill-fly-away-phjb.jpg" alt="album art"></div>
+    </div>
+    <div class="track-body">
+      <p>New Orleans brass and Appalachian bluegrass colliding on late-night television. The Del McCoury Band and Preservation Hall Jazz Band had no business sounding this good together, yet they do. Brumley's 1929 gospel standard, transformed into something communal and propulsive — a room full of people who know exactly where they're going.</p>
+      <p class="provenance">Recorded for <em>Late Show with David Letterman</em>, aired July 19, 2011. Intro trimmed.</p>
+    </div>
+  </div>
+
+  <div class="track">
+    <div class="track-header">
+      <div class="track-num hat-signer">20<img src="red_hat_icon.png" alt="hat signer"></div>
+      <div class="track-info"><div class="track-info-text">
+        <h2>Lips As Cold As Diamond</h2>
+        <div class="performer">Larkin Poe</div>
+        <div class="credits">
+          Written by Rebecca Lovell &nbsp;·&nbsp; from <em>Blood Harmony</em> (2022) &nbsp;·&nbsp;
+          <span style="white-space:nowrap"><a href="https://genius.com/Larkin-poe-lips-as-cold-as-diamond-lyrics" target="_blank">Lyrics</a> &nbsp;·&nbsp; <a href="https://www.youtube.com/watch?v=3dLAnJHiB0A" target="_blank">Watch</a></span>
+        </div>
+        <div class="tags"><span class="tag">studio</span></div>
+      </div><img class="track-art" src="covers/20-lips-as-cold.jpg" alt="album art"></div>
+    </div>
+    <div class="track-body">
+      <p>Another track from "the little Sisters of the Allman Brothers" - surrender as devotion. Megan Lovell's lap steel gives the track its unearthly quality — devotional, slightly out of time. From the sisters' sixth studio album.</p>
+      <p class="lyric-pull">tonight I go to meet my maker<br>her sweet love will be my undertaker.</p>
+    </div>
+  </div>
+
+  <div class="track">
+    <div class="track-header">
+      <div class="track-num">21</div>
+      <div class="track-info"><div class="track-info-text">
+        <h2>Hallelujah</h2>
+        <div class="performer">Sarah Rogo</div>
+        <div class="credits">
+          Written by Leonard Cohen (1984) &nbsp;·&nbsp;
+          <span style="white-space:nowrap"><a href="https://genius.com/Leonard-cohen-hallelujah-lyrics" target="_blank">Lyrics</a> &nbsp;·&nbsp; <a href="https://www.youtube.com/watch?v=VJB29vBmbZ8" target="_blank">Watch</a></span>
+        </div>
+        <div class="tags"><span class="tag">live</span><span class="tag">live in studio</span><span class="tag alleluia">alleluia</span></div>
+      </div><img class="track-art" src="covers/21-hallelujah.jpg" alt="album art"></div>
+    </div>
+    <div class="track-body">
+      <p>Cohen's iconic lyric cycles through sacred and erotic and broken and still arrives at the same word every time. Rogo's version, recorded early in the pandemic lockdown, gives this an intimate, private vibe.</p>
+      <p class="provenance">Sarah Rogo is a blues rock slide guitarist who has shared stages with Joe Bonamassa, Jimmie Vaughan, and Larkin Poe.</p>
+      <p class="lyric-pull">I'll stand before the Lord of song<br>with nothing on my tongue but hallelujah</p>
+
+    </div>
+  </div>
+
+  <div class="track">
+    <div class="track-header">
+      <div class="track-num">22</div>
+      <div class="track-info"><div class="track-info-text">
+        <h2>Since the Last Time</h2>
+        <div class="performer">Lyle Lovett and his Large Band</div>
+        <div class="credits">
+          Written by Lyle Lovett &nbsp;·&nbsp; from <em>Joshua Judges Ruth</em> (1992) &nbsp;·&nbsp;
+          filmed live at SWR Studio 5, Baden-Baden, for <em>Ohne Filter – Musik pur</em>, November 28, 1992 &nbsp;·&nbsp;
+          <span style="white-space:nowrap"><a href="https://genius.com/Lyle-lovett-since-the-last-time-lyrics" target="_blank">Lyrics</a> &nbsp;·&nbsp; <a href="https://www.youtube.com/watch?v=l-FFN7Y4-nY" target="_blank">Watch</a></span>
+        </div>
+        <div class="tags"><span class="tag">live</span><span class="tag">live in studio</span><span class="tag alleluia">alleluia</span></div>
+      </div><img class="track-art" src="covers/22-since-the-last-time.jpg" alt="album art"></div>
+    </div>
+    <div class="track-body">
+      <p>The Large Band arrangement has some New Orleans funeral procession energy —  music as the thing that carries you through the community of grief. It takes its time, but we all get there.</p>
+      <p class="lyric-pull">I went to a funeral, Lord it made me happy<br>Seeing all those people I ain’t seen since the last time somebody died.</p>
+    </div>
+  </div>
+
+  <div class="track">
+    <div class="track-header">
+      <div class="track-num">23</div>
+      <div class="track-info"><div class="track-info-text">
+        <h2>Bright Blue Rose</h2>
+        <div class="performer">Mary Black</div>
+        <div class="credits">
+          Written by Jimmy MacCarthy &nbsp;·&nbsp; from <em>Babes in the Wood</em> (1991) &nbsp;·&nbsp;
+          <span style="white-space:nowrap"><a href="https://www.mary-black.net/song.php?id=224" target="_blank">Lyrics</a> &nbsp;·&nbsp; <a href="https://www.youtube.com/watch?v=ZSw0nfJhKvI" target="_blank">Watch</a></span>
+        </div>
+        <div class="tags"><span class="tag">live</span><span class="tag">live in studio</span><span class="tag">Celtic</span></div>
+      </div><img class="track-art" src="covers/23-bright-blue-rose.jpg" alt="album art"></div>
+    </div>
+    <div class="track-body">
+      <p>MacCarthy is a Cork songwriter better known for writing other people's hits — Christy Moore, Mary Black, others. He has said he is famous for not being famous. Bright Blue Rose is his most mysterious song; he prefers not to explain it.</p>
+      <p class="provenance">Filmed for RTÉ <em>The Late Late Show</em> (1991), released on <em>Twenty-five Years – Twenty-five Songs</em> DVD.</p>
+      <p class="lyric-pull">One bright blue rose outlives all those, two thousand years and still it goes<br>to ponder his death and his life eternally.</p>
+    </div>
+  </div>
+
+  <div class="chapter-break">
+    <div class="chapter-title">Go in Good Graces</div>
+    <div class="chapter-rule"></div>
+    <div class="chapter-epigraph">Good night and joy be to you all</div>
+  </div>
+
+    <div class="track">
+    <div class="track-header">
+      <div class="track-num">24</div>
+      <div class="track-info"><div class="track-info-text">
+        <h2>Take This Body Home</h2>
+        <div class="performer">Rose Betts</div>
+        <div class="credits">
+          Written by Rose Betts &nbsp;·&nbsp; from <em>In The Wake – Live Sessions</em> (2024) &nbsp;·&nbsp;
+          <span style="white-space:nowrap"><a href="https://genius.com/Rose-betts-take-this-body-home-lyrics" target="_blank">Lyrics</a> &nbsp;·&nbsp; <a href="https://www.youtube.com/watch?v=ePe0ftecG04" target="_blank">Watch</a></span>
+        </div>
+        <div class="tags"><span class="tag">live</span><span class="tag">live in concert</span></div>
+      </div><img class="track-art" src="covers/24-take-this-body-home.jpg" alt="album art"></div>
+    </div>
+    <div class="track-body">
+      <p>London-born singer-songwriter with Irish roots, as the opening blessing shows. But the song's heel turn to the body itself, held with tenderness toward what is left behind, gets me right in the feels.</p>
+      <p class="lyric-pull">May all your wounds find their healing<br>In the last and enduring sleep.</p>
+    </div>
+  </div>
+
+  <div class="track">
+    <div class="track-header">
+      <div class="track-num hat-signer">25<img src="red_hat_icon.png" alt="hat signer"></div>
+      <div class="track-info"><div class="track-info-text">
+        <h2>First There Is Goodbye</h2>
+        <div class="performer">Talia Segal</div>
+        <div class="credits">
+          Written by Talia Segal &nbsp;·&nbsp; from <em>The Thing Itself</em> (self-produced, 2012) &nbsp;·&nbsp;
+          <span style="white-space:nowrap"><a href="talia-segal-first-there-is-goodbye-lyrics.html" target="_blank">Lyrics</a> &nbsp;·&nbsp; <a href="https://www.youtube.com/watch?v=Hy3gHPyLYBc" target="_blank">Watch</a></span>
+        </div>
+        <div class="tags"><span class="tag">studio</span></div>
+        <div class="posthumous">† Talia Segal, 1975–2025</div>
+      </div><img class="track-art" src="covers/25-first-there-is-goodbye.jpg" alt="album art"></div>
+    </div>
+    <div class="track-body">
+      <p>Talia was a friend. A singer-songwriter of real gifts, who battled ovarian cancer for years, the disease derailing what might have been. <em>The Thing Itself</em> was self-produced, and noticed largely by friends and family. No less authentic for that.</p>
+      <p class="lyric-pull">we'll fill the empty spaces<br>with the ghost of you and I</p>
+    </div>
+  </div>
+
+  <div class="track">
+    <div class="track-header">
+      <div class="track-num">26</div>
+      <div class="track-info"><div class="track-info-text">
+        <h2>The Parting Glass</h2>
+        <div class="performer">boygenius &amp; Ye Vagabonds</div>
+        <div class="credits">
+          Traditional Irish (origin uncertain, possibly 17th century) &nbsp;·&nbsp;
+          <span style="white-space:nowrap"><a href="https://genius.com/Traditional-transcriptions-the-parting-glass-lyrics" target="_blank">Lyrics</a> &nbsp;·&nbsp; <a href="https://www.youtube.com/watch?v=0doPriEMi2o" target="_blank">Watch</a></span>
+        </div>
+        <div class="tags"><span class="tag">studio</span><span class="tag">Celtic</span><span class="tag">traditional</span></div>
+      </div><img class="track-art" src="covers/26-the-parting-glass.jpg" alt="album art"></div>
+    </div>
+    <div class="track-body">
+      <p>Phoebe Bridgers, Julien Baker, and Lucy Dacus of boygenius alongside Ye Vagabonds — the Irish trad duo of brothers Brían and Diarmuid Mac Gloinn. The ancient farewell song sung by young queer women and two Irish brothers. Again, an old form inhabited by people of the new millenium.</p>
+      <p class="posthumous">Released July 2023, following the death of Sinéad O'Connor.</p>
+      <p class="lyric-pull">But since it fell unto my lot, that I should rise and you should not<br>I gently rise and softly call, good night and joy be to you all.</p>
+     </div>
+  </div>
+
+  <div class="colophon">
+    <div class="colophon-stat">
+      <span class="colophon-label">Tracks</span>
+      <span class="colophon-value">26</span>
+    </div>
+    <div class="colophon-stat">
+      <span class="colophon-label">Runtime</span>
+      <span class="colophon-value">1:57:48</span>
+    </div>
+    <div class="colophon-stat">
+      <span class="colophon-label">Live</span>
+      <span class="colophon-value">15 tracks</span>
+    </div>
+    <div class="colophon-stat">
+      <span class="colophon-label">Studio</span>
+      <span class="colophon-value">11 tracks</span>
+    </div>
+    <div class="colophon-stat">
+      <span class="colophon-label">Female lead vocal</span>
+      <span class="colophon-value">13 tracks</span>
+    </div>
+    <div class="colophon-stat">
+      <span class="colophon-label">Male lead vocal</span>
+      <span class="colophon-value">9 tracks</span>
+    </div>
+    <div class="colophon-stat">
+      <span class="colophon-label">Mixed vocal</span>
+      <span class="colophon-value">4 tracks</span>
+    </div>
+    <div class="colophon-stat colophon-full">
+      <span class="colophon-label">In memoriam</span>
+      <span class="colophon-value">Sister Rosetta Tharpe, Marie Knight, Dave Carter, Dr. John, Phoebe Snow, Sinéad O'Connor, Shirley Childress Saxton, Talia Segal</span>
+    </div>
+  </div>
+
+
+</div>
+</body>
+</html>

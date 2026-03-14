@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>First There Is Goodbye — Talia Segal</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Karla:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1714;
+    --paper: #f5f0e8;
+    --aged: #e8dfc8;
+    --rust: #8b4a2a;
+    --fade: #706860;
+    --rule: #c8bfaa;
+    --body: #3a3530;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #e8e0d0;
+      --paper: #1c1713;
+      --aged: #2a2420;
+      --rust: #c47a4a;
+      --fade: #9a9088;
+      --rule: #3a332c;
+      --body: #ccc4b4;
+    }
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Karla', sans-serif;
+    font-weight: 300;
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  .page {
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 80px 40px 120px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 64px;
+    padding-bottom: 40px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .back-link {
+    display: inline-block;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--fade);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s;
+    margin-bottom: 32px;
+  }
+
+  .back-link:hover {
+    border-color: var(--fade);
+  }
+
+  header h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    font-size: 28px;
+    line-height: 1.2;
+    margin-bottom: 10px;
+  }
+
+  header .performer {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 17px;
+    color: var(--fade);
+    margin-bottom: 16px;
+  }
+
+  header .credits {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--fade);
+    line-height: 2;
+  }
+
+  header .credits a {
+    color: var(--rust);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s;
+  }
+
+  header .credits a:hover {
+    border-color: var(--rust);
+  }
+
+  .posthumous {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--fade);
+    margin-top: 14px;
+  }
+
+  .draft-notice {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--rust);
+    opacity: 0.7;
+    text-align: center;
+    margin-bottom: 40px;
+    padding: 8px 14px;
+    border: 1px solid var(--rust);
+    display: inline-block;
+    opacity: 0.6;
+  }
+
+  .draft-notice-wrap {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .lyrics {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17px;
+    line-height: 2.1;
+    color: var(--body);
+  }
+
+  .lyrics .stanza {
+    margin-bottom: 32px;
+  }
+
+  .lyrics .line {
+    display: block;
+  }
+
+  .lyrics .line.unclear {
+    color: var(--fade);
+    font-style: italic;
+  }
+
+  .lyrics .line.unclear::after {
+    content: ' [?]';
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    opacity: 0.6;
+  }
+
+  footer {
+    text-align: center;
+    margin-top: 64px;
+    padding-top: 32px;
+    border-top: 1px solid var(--rule);
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 13px;
+    color: var(--fade);
+    line-height: 2;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div><a class="back-link" href="index.html">← Songs for my Funeral</a></div>
+    <h1>First There Is Goodbye</h1>
+    <div class="performer">Talia Segal</div>
+    <div class="credits">
+      Written by Talia Segal &nbsp;·&nbsp;
+      from <em>The Thing Itself</em> (self-produced, 2012) &nbsp;·&nbsp;
+      <a href="https://www.youtube.com/watch?v=Hy3gHPyLYBc" target="_blank">Watch</a>
+    </div>
+    <div class="posthumous">† Talia Segal, 1975–2025</div>
+  </header>
+
+
+  <div class="lyrics">
+
+    <div class="stanza">
+      <span class="line">Don't be mine. Be your own and share.</span>
+      <span class="line">Live your life. Just tell me when and where.</span>
+      <span class="line">And if you save a corner of your wildest dreams for me,</span>
+      <span class="line">you'll always find me there.</span>
+    </div>
+
+    <div class="stanza">
+      <span class="line">But first there is goodbye.</span>
+      <span class="line">We're leaving in good graces.</span>
+      <span class="line">Pack your memories into dusty weather-worn suitcases.</span>
+      <span class="line">We'll fill the empty spaces with the ghost of you and I.</span>
+      <span class="line">But first there is goodbye.</span>
+      <span class="line">Yeah.</span>
+     
+    </div>
+
+    <div class="stanza">
+      <span class="line">Don't look back as you go down the road.</span>
+      <span class="line">No regrets — is that what you've been told?</span>
+      <span class="line">Because Lord knows I've got plenty,</span>
+      <span class="line">and I ain't even stopped for gas yet,</span>
+      <span class="line">and the dust still hasn't settled,</span>
+      <span class="line">and the covers aren't cold.</span>
+    </div>
+
+    <div class="stanza">
+      <span class="line">Goodbye. Go in good graces.</span>
+      <span class="line">Pack your memories into dusty weather-worn suitcases.</span>
+      <span class="line">We'll fill the empty spaces with the ghost of you and I.</span>
+      <span class="line">But first there is goodbye.</span>
+      <span class="line">First there is goodbye.</span>
+    </div>
+
+    <div class="stanza">
+      <span class="line">First there is goodbye. whoa-hoh.</span>
+      <span class="line">First there is goodbye.</span>
+      <span class="line">First there is goodbye.</span>
+    </div>
+
+  </div>
+
+  <footer>
+    Transcribed from audio &nbsp;·&nbsp; corrections welcome
+  </footer>
+
+</div>
+</body>
+</html>
