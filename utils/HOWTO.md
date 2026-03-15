@@ -4,37 +4,106 @@
 
 ---
 
-## Files in this folder
+## Project layout
 
-| File | What it is |
-|------|------------|
-| `liner-notes.html` | The main document. Open in a browser. |
-| `talia-segal-first-there-is-goodbye-lyrics.html` | Standalone lyrics page, linked from track 24. |
-| `covers/` | Album art, one jpg per track, named `NN-slug.jpg`. |
-| `tracks.tsv` | **Single source of truth** for track order, filenames, transitions, and chapters. Edit this first for any structural change. |
-| `assemble.sh` | ffmpeg script to build chapter mp3s and master file. Reads from `tracks.tsv`. |
-| `reorder.pl` | Renames mp3 and cover files on disk to match `tracks.tsv` after you've reordered. Dry-run by default; use `--apply` to execute. Requires Perl (ships with macOS). |
-| `duration.sh` | Reports individual track durations and total runtime. Reads transitions from `tracks.tsv`. |
-| `HOWTO.md` | This file. |
-| `one-timers/check-sample-rates.sh` | Audits all 25 mp3s for sample rate, channels, and bitrate. Run if you add new tracks and want to confirm they're all 44100 Hz stereo before assembling. |
-| `one-timers/fetch-covers.sh` | Downloads cover art from MusicBrainz / Cover Art Archive. Already run — covers are in `covers/`. Run again only if covers are lost or new tracks need art. |
-| `01. Artist - Title.mp3` … | Source tracks, 25 of them. |
-| `chapter-01-*.mp3` … | Built by assemble.sh. Rebuild any time tracks change. |
-| `songs-for-my-funeral.mp3` | The master. Built by assemble.sh. |
+### Repository (`~/github/hm/songs-for-my-funeral/`)
 
-**YouTube playlist:** https://www.youtube.com/playlist?list=PLJ7S-K0cjvGJHuI-kagxZUfN9fOaVV2ET
+This is where all code, scripts, and text assets live. Clone once and keep it here.
+
+```
+songs-for-my-funeral/
+├── index.html                          ← public website (GitHub Pages)
+├── talia-segal-first-there-is-goodbye-lyrics.html
+├── red_hat_icon.ico / .png / _tiny.png
+├── package.json                        ← Node dependencies (pptxgenjs)
+├── run.sh                              ← build + sync script (see below)
+├── covers/                             ← album art, one jpg per track
+├── tracks/                             ← symlink → Google Drive/tracks/
+│   ├── tracks.tsv                      ← source of truth for track order/transitions
+│   └── 01. Artist - Title.mp3 … (26 tracks)
+├── output/                             ← symlink → Google Drive/output/
+│   ├── chapter-01-*.mp3 … (6 chapters)
+│   └── songs-for-my-funeral.mp3
+├── photos/                             ← placeholder for slideshow photos
+├── website/                            ← placeholder for website mirror/backup
+├── ppt/
+│   ├── build-slides.js                 ← generates the PPTX
+│   └── HOWTO-slideshow.md
+└── utils/
+    ├── HOWTO.md                        ← this file
+    ├── assemble.sh                     ← ffmpeg assembly script
+    ├── duration.sh                     ← reports track/chapter/total runtime
+    ├── reorder.pl                      ← renames mp3s + covers after reordering
+    └── one-timers/
+        ├── check-sample-rates.sh
+        └── fetch-covers.sh
+```
+
+### Google Drive (`~/Library/CloudStorage/GoogleDrive-redhat.bootlegs@gmail.com/My Drive/songs for my funeral/`)
+
+Holds the large binary files that don't belong in git:
+
+```
+songs for my funeral/
+├── covers/                             ← mirrors repo covers/ (source of truth is repo)
+├── tracks/                             ← 26 source mp3s + tracks.tsv (source of truth)
+├── output/                             ← assembled chapter + master mp3s (source of truth)
+├── photos/                             ← slideshow photos (source of truth)
+├── website/                            ← website mirror/backup
+├── misc/                               ← youtubelinks.txt, First There Is Goodbye.txt
+├── one-timers/                         ← check-sample-rates.sh, fetch-covers.sh
+└── slides-songs-for-my-funeral.pptx   ← generated PPTX (source of truth)
+```
+
+`tracks/` and `output/` in the repo are symlinks into Google Drive, so scripts that write there go directly to Drive when it's mounted.
+
+### Ownership model
+
+| Asset | Source of truth | In git? |
+|---|---|---|
+| Code and scripts | repo | ✅ |
+| Cover art JPGs | repo (`covers/`) | ✅ |
+| `index.html`, HTML pages | repo | ✅ |
+| `tracks.tsv` | repo (`tracks/`) | ✅ |
+| `package.json` | repo | ✅ |
+| Individual track mp3s | Drive (`tracks/`) | ❌ gitignored |
+| Assembled output mp3s | Drive (`output/`) | ❌ gitignored |
+| PPTX slideshow | Drive root | ❌ gitignored |
+| Slideshow photos | Drive (`photos/`) | ❌ |
+
+---
+
+## run.sh — build and sync
+
+`run.sh` in the repo root is the main entry point for rebuilding outputs. Run it from the repo root:
+
+```bash
+./run.sh assemble   # run assemble.sh, copy chapter + master mp3s to Drive/output/
+./run.sh slides     # run build-slides.js, copy pptx to Drive root
+./run.sh all        # both
+```
+
+**If Google Drive is mounted:** outputs are copied directly to Drive after building.
+
+**If Google Drive is disconnected:** the script warns you and saves outputs locally to `output/` or `ppt/`. Copy them to Drive manually when it reconnects.
+
+The Drive path is hardcoded in `run.sh`:
+```
+~/Library/CloudStorage/GoogleDrive-redhat.bootlegs@gmail.com/My Drive/songs for my funeral
+```
+If this ever changes (e.g. after reinstalling Drive for Desktop or switching accounts), update `GDRIVE_ROOT` near the top of `run.sh`.
 
 ---
 
 ## tracks.tsv — the source of truth
 
-`tracks.tsv` is a tab-separated file that drives `assemble.sh`, `reorder.sh`, and `duration.sh`. Edit it first whenever the playlist changes structurally.
+`tracks/tracks.tsv` is a tab-separated file that drives `assemble.sh`, `reorder.pl`, and `duration.sh`. It lives in `tracks/` alongside the mp3s because `assemble.sh` reads it from whatever directory it's run in. Edit it first whenever the playlist changes structurally.
 
 **Columns:**
 
 | Column | Values | Notes |
 |--------|--------|-------|
-| `num` | `01`–`25` | Track number, zero-padded. Must be unique and sequential. |
+| `num` | `01`–`26` | Track number, zero-padded. Must be unique and sequential. |
 | `chapter` | `1`–`6` | Chapter number. All tracks in a chapter must be consecutive rows. |
 | `filename` | e.g. `01. Artist - Title.mp3` | Exact filename on disk. |
 | `transition_type` | `gap`, `xfade`, `end` | How this track connects to the next. |
@@ -71,22 +140,23 @@
 | 15 | Before I'm Old | Kingfish | studio | 4 | |
 | 16 | Enjoy Yourself | The Specials | live | 4 | Archival ska club footage |
 | 17 | One Last Drink | Enter the Haggis | studio | 4 | |
-| 18 | I'll Fly Away | PHJB & Del McCoury Band | live | 5 | Letterman 2011. Trimmed: 23s from start, 19s from end |
-| 19 | Lips As Cold As Diamond | Larkin Poe | studio | 5 | |
-| 20 | Hallelujah | Sarah Rogo | live | 5 | Haus Music Production, LA, April 2020 |
-| 21 | Since the Last Time | Lyle Lovett | live | 5 | SWR Studio 5, Baden-Baden, Nov 1992 |
-| 22 | Bright Blue Rose | Mary Black | live | 5 | RTÉ Late Late Show 1991 |
-| 23 | Take This Body Home | Rose Betts | live | 6 | |
-| 24 | First There Is Goodbye | Talia Segal | studio | 6 | Lyrics need cleanup against recording |
-| 25 | The Parting Glass | boygenius & Ye Vagabonds | studio | 6 | Released July 2023 |
+| 18 | Five More Minutes | The War & Treaty | live | 4 | |
+| 19 | I'll Fly Away | PHJB & Del McCoury Band | live | 5 | Letterman 2011. Trimmed: 23s from start, 19s from end |
+| 20 | Lips As Cold As Diamond | Larkin Poe | studio | 5 | |
+| 21 | Hallelujah | Sarah Rogo | live | 5 | Haus Music Production, LA, April 2020 |
+| 22 | Since the Last Time | Lyle Lovett | live | 5 | SWR Studio 5, Baden-Baden, Nov 1992 |
+| 23 | Bright Blue Rose | Mary Black | live | 5 | RTÉ Late Late Show 1991 |
+| 24 | Take This Body Home | Rose Betts | live | 6 | |
+| 25 | First There Is Goodbye | Talia Segal | studio | 6 | Lyrics need cleanup against recording |
+| 26 | The Parting Glass | boygenius & Ye Vagabonds | studio | 6 | Released July 2023 |
 
 **Chapters:**
 1. I Am Where I'm Meant to Be (tracks 1–3)
 2. You'll Be Okay (Grief Sucks) (tracks 4–9)
 3. Don't Worry About Me (tracks 10–11)
-4. You're Still in the Pink (tracks 12–17)
-5. But Before We Part (tracks 18–22)
-6. Go in Good Graces (tracks 23–25)
+4. You're Still in the Pink (tracks 12–18)
+5. But Before We Part (tracks 19–23)
+6. Go in Good Graces (tracks 24–26)
 
 ---
 
@@ -111,30 +181,32 @@
 | 15 | Before I'm Old | [Genius](https://genius.com/Christone-kingfish-ingram-before-im-old-lyrics) | [YouTube](https://www.youtube.com/watch?v=6KWBJkv-8kM) |
 | 16 | Enjoy Yourself | [Genius](https://genius.com/The-specials-enjoy-yourself-its-later-than-you-think-lyrics) | [YouTube](https://www.youtube.com/watch?v=rA2-6ZlOXeg) |
 | 17 | One Last Drink | [Bandcamp](https://enterthehaggis.bandcamp.com/track/one-last-drink-2) | [YouTube](https://www.youtube.com/watch?v=YgHQZGHzEIs) |
-| 18 | I'll Fly Away | [Bluegrass Lyrics](https://www.bluegrasslyrics.com/song/ill-fly-away/) | [YouTube](https://www.youtube.com/watch?v=hBd0FdBt0jk) |
-| 19 | Lips As Cold As Diamond | [Genius](https://genius.com/Larkin-poe-lips-as-cold-as-diamond-lyrics) | [YouTube](https://www.youtube.com/watch?v=3dLAnJHiB0A) |
-| 20 | Hallelujah | [Genius](https://genius.com/Leonard-cohen-hallelujah-lyrics) | [YouTube](https://www.youtube.com/watch?v=VJB29vBmbZ8) |
-| 21 | Since the Last Time | [Genius](https://genius.com/Lyle-lovett-since-the-last-time-lyrics) | [YouTube](https://www.youtube.com/watch?v=l-FFN7Y4-nY) |
-| 22 | Bright Blue Rose | [mary-black.net](https://www.mary-black.net/song.php?id=224) | [YouTube](https://www.youtube.com/watch?v=ZSw0nfJhKvI) |
-| 23 | Take This Body Home | [Genius](https://genius.com/Rose-betts-take-this-body-home-lyrics) | [YouTube](https://www.youtube.com/watch?v=ePe0ftecG04) |
-| 24 | First There Is Goodbye | [Local](talia-segal-first-there-is-goodbye-lyrics.html) | [YouTube](https://www.youtube.com/watch?v=Hy3gHPyLYBc) |
-| 25 | The Parting Glass | [Genius](https://genius.com/Traditional-transcriptions-the-parting-glass-lyrics) | [YouTube](https://www.youtube.com/watch?v=0doPriEMi2o) |
+| 18 | Five More Minutes | [Genius](https://genius.com/The-war-and-treaty-five-more-minutes-lyrics) | [YouTube](https://www.youtube.com/watch?v=5K9kiQkYWqY) |
+| 19 | I'll Fly Away | [Bluegrass Lyrics](https://www.bluegrasslyrics.com/song/ill-fly-away/) | [YouTube](https://www.youtube.com/watch?v=hBd0FdBt0jk) |
+| 20 | Lips As Cold As Diamond | [Genius](https://genius.com/Larkin-poe-lips-as-cold-as-diamond-lyrics) | [YouTube](https://www.youtube.com/watch?v=3dLAnJHiB0A) |
+| 21 | Hallelujah | [Genius](https://genius.com/Leonard-cohen-hallelujah-lyrics) | [YouTube](https://www.youtube.com/watch?v=VJB29vBmbZ8) |
+| 22 | Since the Last Time | [Genius](https://genius.com/Lyle-lovett-since-the-last-time-lyrics) | [YouTube](https://www.youtube.com/watch?v=l-FFN7Y4-nY) |
+| 23 | Bright Blue Rose | [mary-black.net](https://www.mary-black.net/song.php?id=224) | [YouTube](https://www.youtube.com/watch?v=ZSw0nfJhKvI) |
+| 24 | Take This Body Home | [Genius](https://genius.com/Rose-betts-take-this-body-home-lyrics) | [YouTube](https://www.youtube.com/watch?v=ePe0ftecG04) |
+| 25 | First There Is Goodbye | [Local](talia-segal-first-there-is-goodbye-lyrics.html) | [YouTube](https://www.youtube.com/watch?v=Hy3gHPyLYBc) |
+| 26 | The Parting Glass | [Genius](https://genius.com/Traditional-transcriptions-the-parting-glass-lyrics) | [YouTube](https://www.youtube.com/watch?v=0doPriEMi2o) |
 
 ---
 
 ## Adding a new track (e.g. inserting a new track 14)
 
-This involves: tracks.tsv, the mp3 file, cover art, liner-notes.html, and the YouTube playlist. The ffmpeg script no longer needs manual editing — it reads tracks.tsv.
+This involves: tracks.tsv, the mp3 file, cover art, index.html, and the YouTube playlist. The ffmpeg script no longer needs manual editing — it reads tracks.tsv.
 
 ### 1. Edit tracks.tsv first
 
-Add the new row at the correct position. Renumber all rows after the insertion point (increment `num`). Update `transition_type`/`transition_secs` for the track immediately before the new one if its outgoing transition changes. Set `chapter_break_after=yes` on the last track of whichever chapter is affected.
+Add the new row at the correct position in `tracks/tracks.tsv`. Renumber all rows after the insertion point (increment `num`). Update `transition_type`/`transition_secs` for the track immediately before the new one if its outgoing transition changes. Set `chapter_break_after=yes` on the last track of whichever chapter is affected.
 
 ### 2. Rename existing mp3 and cover files with reorder.pl
 
 ```bash
-perl reorder.pl          # dry run — shows what would be renamed, touches nothing
-perl reorder.pl --apply  # actually renames files to match tracks.tsv
+cd ~/github/hm/songs-for-my-funeral
+perl utils/reorder.pl          # dry run — shows what would be renamed, touches nothing
+perl utils/reorder.pl --apply  # actually renames files to match tracks.tsv
 ```
 
 This handles the cascade renaming (old 14→15, 15→16 etc.) automatically for both mp3s and cover art.
@@ -143,13 +215,13 @@ This handles the cascade renaming (old 14→15, 15→16 etc.) automatically for 
 
 ### 3. Add the new track's mp3
 
-Name it following the existing convention:
+Drop it in `tracks/` (which is a symlink to Drive). Name it following the existing convention:
 ```
 14. Artist Name - Track Title.mp3
 ```
 No special characters except hyphens and spaces. Accented characters (é, í) are fine — they're already in the filenames.
 
-### 3. Add cover art
+### 4. Add cover art
 
 - Square jpg, ideally 500×500px or larger (displays at 150px but keep originals hi-res)
 - Name it: `14-track-slug.jpg` (lowercase, hyphens, no apostrophes or special chars)
@@ -171,7 +243,7 @@ curl -o covers/14-track-slug.jpg "https://i.ytimg.com/vi/VIDEO_ID/hqdefault.jpg"
 ```
 hqdefault is 480×360 (4:3) — it will letterbox at 150px square. Crop to square first if that bothers you.
 
-### 4. Update liner-notes.html for the new track
+### 5. Update index.html for the new track
 
 Copy the HTML block from a nearby track as a template. Each track block looks like:
 
@@ -185,8 +257,7 @@ Copy the HTML block from a nearby track as a template. Each track block looks li
       <div class="credits">
         Written by … &nbsp;·&nbsp; from <em>Album</em> (Year) &nbsp;·&nbsp;
         <a href="https://genius.com/…-lyrics" target="_blank">Lyrics</a> &nbsp;·&nbsp;
-        <a href="https://www.youtube.com/watch?v=VIDEO_ID" target="_blank">Watch</a> &nbsp;·&nbsp;
-        <a href="14.%20Artist%20-%20Title.mp3" download="14-title-artist.mp3">Download</a>
+        <a href="https://www.youtube.com/watch?v=VIDEO_ID" target="_blank">Watch</a>
       </div>
       <div class="tags"><span class="tag">live</span></div>
       <!-- If performer is deceased: -->
@@ -208,13 +279,7 @@ Copy the HTML block from a nearby track as a template. Each track block looks li
 - `.lyric-pull` — rust left-border block. Goes at the bottom of `.track-body`, after any `.posthumous` footnote.
 - `.chapter-break` — section divider with title and epigraph. Goes *between* `</div></div>` (end of one track) and `<div class="track">` (start of next).
 
-### 5. Update the download href
-
-The `href` in the Download link uses URL-encoded spaces (`%20`). The `download` attribute is the suggested save-as filename — use the short slug format: `14-title-artist.mp3`.
-
-```html
-<a href="14.%20Artist%20-%20Title.mp3" download="14-title-artist.mp3">Download</a>
-```
+Note: `index.html` is the public website — it has no Download links (mp3s are not in the repo). Don't add them here.
 
 ### 6. Update tracks.tsv for transitions
 
@@ -230,15 +295,36 @@ Transition conventions:
 
 ### 7. Update the colophon stats
 
-At the bottom of `liner-notes.html`, update:
+At the bottom of `index.html`, update:
 - Total tracks (currently 26)
-- Runtime — run `bash duration.sh` to get the new total
+- Runtime — run `bash utils/duration.sh` from the repo root to get the new total
 - Live/studio split
 - Vocal gender breakdown if it changes
 
-### 8. Update the YouTube playlist
+### 8. Rebuild the audio
+
+```bash
+./run.sh assemble
+```
+
+### 9. Rebuild the slideshow
+
+```bash
+./run.sh slides
+```
+
+### 10. Update the YouTube playlist
 
 Add the new video to the playlist at the correct position, and remove any displaced video if the slot was previously occupied. Playlist: https://www.youtube.com/playlist?list=PLJ7S-K0cjvGJHuI-kagxZUfN9fOaVV2ET
+
+### 11. Commit and push
+
+```bash
+cd ~/github/hm/songs-for-my-funeral
+git add covers/14-track-slug.jpg tracks/tracks.tsv index.html
+git commit -m "Add track 14: Artist - Title"
+git push
+```
 
 ---
 
@@ -246,33 +332,37 @@ Add the new video to the playlist at the correct position, and remove any displa
 
 Simpler than inserting — no renumbering needed.
 
-1. Update `tracks.tsv` — change the filename, transition_type/secs if the live/studio character changed
-2. Replace the mp3 file (keep the same `NN.` prefix, or rename and update tracks.tsv to match)
+1. Update `tracks/tracks.tsv` — change the filename, transition_type/secs if the live/studio character changed
+2. Replace the mp3 file in `tracks/` (keep the same `NN.` prefix, or rename and update tracks.tsv to match)
 3. Replace the cover art in `covers/`
-4. Update the track block in `liner-notes.html` — h2, performer, credits, tags, posthumous, note text, lyric pull
-5. Update the colophon stats if anything changed — live/studio split, vocal gender breakdown, runtime (`bash duration.sh`)
+4. Update the track block in `index.html` — h2, performer, credits, tags, posthumous, note text, lyric pull
+5. Update the colophon stats if anything changed — live/studio split, vocal gender breakdown, runtime (`bash utils/duration.sh`)
 6. Update the YouTube playlist if the video changed. Playlist: https://www.youtube.com/playlist?list=PLJ7S-K0cjvGJHuI-kagxZUfN9fOaVV2ET
-7. Re-run `assemble.sh`
+7. Run `./run.sh assemble` and `./run.sh slides`
+8. Commit and push
 
 ---
 
 ## Rebuilding the audio files
 
 ```bash
-# From the folder containing all mp3s, tracks.tsv, and assemble.sh:
-chmod +x assemble.sh
-./assemble.sh
+./run.sh assemble
 ```
 
-assemble.sh reads `tracks.tsv` for track order, filenames, and transitions. The chapter and master *expected* durations used for the ✓/⚠ check are hardcoded in assemble.sh — update them manually when tracks are added or removed. To check durations without rebuilding:
+This runs `utils/assemble.sh` from the `tracks/` directory (where the mp3s and tracks.tsv live), then copies the assembled chapter and master mp3s to Drive's `output/` folder.
+
+To check durations without rebuilding:
 
 ```bash
-bash duration.sh
+cd ~/github/hm/songs-for-my-funeral/tracks
+bash ../utils/duration.sh
 ```
+
+assemble.sh reads `tracks.tsv` for track order, filenames, and transitions. The chapter and master *expected* durations used for the ✓/⚠ check are hardcoded in assemble.sh — update them manually when tracks are added or removed.
 
 This rebuilds all six chapter files and the master. Takes a few minutes.
 Intermediate `_ch*` temp files are cleaned up automatically.
-If the script fails mid-run, delete any stray `_xfade_ch*.mp3` files before retrying.
+If the script fails mid-run, delete any stray `_xfade_ch*.mp3` files from `tracks/` before retrying.
 
 Chapter files are independent — if you only change tracks in chapter 4, you could manually edit the script to run just that chapter's section and rebuild the master. But running the full script is safer.
 
@@ -280,15 +370,53 @@ The ✓ check allows ~10s of drift per chapter — small overages are normal due
 
 ---
 
-## Lyrics links
+## Rebuilding the slideshow (slides-songs-for-my-funeral.pptx)
 
-Track 24 (Talia Segal) links to the local `talia-segal-first-there-is-goodbye-lyrics.html` page. All lyrics links have been verified.
+```bash
+./run.sh slides
+```
 
-If a Genius page doesn't exist, search Genius directly — the URL isn't always predictable. For cover songs in particular, lyrics are often filed under the original artist rather than the performing artist, and the page title may include a longer subtitle (e.g. "Enjoy Yourself (It's Later Than You Think)" rather than just "Enjoy Yourself"). If Genius genuinely has nothing, options are: find another lyrics site, link directly to the YouTube watch URL instead, or drop the Lyrics link and leave Watch · Download.
+This runs `ppt/build-slides.js` from the repo root (it needs `red_hat_icon.png` and `covers/` there), then copies the output PPTX to Drive's root folder.
+
+**Use PowerPoint to open the PPTX** — Google Slides mangles the font and layout.
+
+See `ppt/HOWTO-slideshow.md` for full slideshow documentation.
+
+### Node.js installation (macOS)
+
+Node is not included with macOS. Install it from the command line:
+
+```bash
+sudo installer -pkg ~/Downloads/node-v22*.pkg -target /
+```
+
+Download the pkg first from [nodejs.org](https://nodejs.org) — choose the **macOS ARM64** installer. The GUI installer may fail silently; the command above works reliably.
+
+Verify:
+```bash
+node --version   # should be v22 or higher
+npm --version
+```
+
+Then install dependencies (only needed once, from repo root):
+```bash
+cd ~/github/hm/songs-for-my-funeral
+npm install
+```
+
+The script was built and tested with Node v22 and pptxgenjs v4.0.1. `run.sh` will auto-run `npm install` if `node_modules/` is missing.
 
 ---
 
-## Track 24 — Talia Segal lyrics
+## Lyrics links
+
+Track 25 (Talia Segal) links to the local `talia-segal-first-there-is-goodbye-lyrics.html` page. All lyrics links have been verified.
+
+If a Genius page doesn't exist, search Genius directly — the URL isn't always predictable. For cover songs in particular, lyrics are often filed under the original artist rather than the performing artist, and the page title may include a longer subtitle (e.g. "Enjoy Yourself (It's Later Than You Think)" rather than just "Enjoy Yourself"). If Genius genuinely has nothing, options are: find another lyrics site, link directly to the YouTube watch URL instead, or drop the Lyrics link and leave Watch only.
+
+---
+
+## Track 25 — Talia Segal lyrics
 
 `talia-segal-first-there-is-goodbye-lyrics.html` is a complete, clean transcript verified against the recording. No outstanding issues.
 
@@ -300,13 +428,11 @@ The liner notes are hosted at:
 
 **https://dan2bit.github.io/songs-for-my-funeral/index.html**
 
-The public version (`index.html`) differs from the private `liner-notes.html` in two ways:
-- Download links removed (mp3s are not in the repo)
-- YouTube playlist link added in the header
+`index.html` is the public version — it has no Download links (mp3s are not in the repo). The YouTube playlist link is in the header.
 
-The GitHub repo also contains `talia-segal-first-there-is-goodbye-lyrics.html`, `red_hat_icon.png`, `red_hat_icon.ico`, and the `covers/` folder. The mp3s, PPTX, and private liner-notes.html are kept locally and in Google Drive only.
+The GitHub repo also contains `talia-segal-first-there-is-goodbye-lyrics.html`, `red_hat_icon.png`, `red_hat_icon.ico`, `red_hat_icon_tiny.png`, and the `covers/` folder. The mp3s, PPTX, and any private liner-notes are kept in Google Drive only.
 
-To update the public site after editing `liner-notes.html`: regenerate `index.html` (remove download links, verify playlist link is present), commit and push to the repo.
+To update the public site after editing `index.html`: commit and push. GitHub Pages deploys automatically.
 
 ---
 
@@ -328,20 +454,23 @@ This is the Facebook photo album of gig photos, mostly featuring the red trilby 
 
 **To extract captions for slideshow use:** The bulk extraction (Google Photos API script → spreadsheet of filename + caption + date) only needs to be done once for the initial slideshow build. For new photos added after that, just check the Google album directly — you're not going to dozens of shows a month, so manually copying a caption or two is fine. The Google album is public and bookmarked above, so you don't need to log in to check it.
 
+**Photos on Drive:** Slideshow photos (selected/cropped from the Google Photos album) live in `Drive/photos/`.
+
 ---
 
-## One-timer scripts (one-timers/)
+## One-timer scripts (utils/one-timers/)
 
 These scripts solved specific problems during setup and are kept for reference in case they're needed again, but shouldn't be part of the normal maintenance workflow.
 
 ### check-sample-rates.sh
 
-Audits all 25 mp3 files and reports sample rate (Hz), channels (stereo/mono), and bitrate. Flags anything that isn't 44100 Hz stereo, because mismatches cause ffmpeg to re-encode everything and can cause subtle artifacts in the assembled file.
+Audits all mp3 files and reports sample rate (Hz), channels (stereo/mono), and bitrate. Flags anything that isn't 44100 Hz stereo, because mismatches cause ffmpeg to re-encode everything and can cause subtle artifacts in the assembled file.
 
 All tracks were confirmed 44100 Hz stereo when this was first run. **Run it again** if you add a new track and aren't sure of its specs, before running `assemble.sh`.
 
 ```bash
-bash one-timers/check-sample-rates.sh
+cd ~/github/hm/songs-for-my-funeral/tracks
+bash ../utils/one-timers/check-sample-rates.sh
 ```
 
 If a track fails, resample it:
@@ -359,10 +488,13 @@ Downloads front cover art for each track from MusicBrainz and the Cover Art Arch
 - A new track is added and you want to try auto-fetching its art before falling back to a YouTube thumbnail
 
 ```bash
-bash one-timers/fetch-covers.sh
+cd ~/github/hm/songs-for-my-funeral
+bash utils/one-timers/fetch-covers.sh
 ```
 
 Requires `curl` and `python3`. Rate-limited to ~1 req/sec to respect MusicBrainz policy. Some tracks (Playing for Change, Jamie Wilson, Talia Segal, boygenius+Ye Vagabonds, Sarah Rogo) aren't in MusicBrainz and needed manual art — those aren't in the script.
+
+---
 
 ## The red trilby hat
 
@@ -370,61 +502,13 @@ The hat is the physical object that connects the liner notes, the slideshow, and
 
 **Full signatories list (maintained in Google Docs):** https://docs.google.com/document/d/1haKMpfwPWosdPnZXBAAlLUzj3926hoTEH7icg6gTRA8/edit?usp=sharing
 
-Notable connections to the playlist: Allison Russell (track 07), both Larkin Poe sisters — Rebecca and Megan (tracks 04 and 19), Rose Baldino and Caroline Browning of Enter the Haggis (track 17), and Talia Segal (track 24, ✝ 2025).
+Notable connections to the playlist: Allison Russell (track 07), both Larkin Poe sisters — Rebecca and Megan (tracks 04 and 20), Rose Baldino and Caroline Browning of Enter the Haggis (track 17), and Talia Segal (track 25, ✝ 2025).
 
-The icon file (`red_hat_icon.png`) must be delivered as a ZIP to preserve the alpha channel — drag-and-drop flattens it to RGB and destroys the outline. The transparent PNG with outline intact is in `outputs/red_hat_icon.png`.
-
----
-
-## Rebuilding the slideshow (slides-songs-for-my-funeral.pptx)
-
-The slideshow is generated by `build-slides.js` using [PptxGenJS](https://gitbrent.github.io/PptxGenJS/). To rebuild after any change to track data, lyric pulls, format tags, or layout:
-
-```bash
-node build-slides.js
-```
-
-This writes `slides-songs-for-my-funeral.pptx` to the same directory. **Use PowerPoint to open it** — Google Slides mangles the font and layout.
-
-### Directory layout expected by build-slides.js
-
-```
-your-folder/
-├── build-slides.js
-├── red_hat_icon.png        ← must be the RGBA version (deliver as ZIP to preserve alpha)
-└── covers/
-    ├── 01-aint-no-grave.jpg
-    ├── 02-danny-boy.jpg
-    └── ... (25 cover images)
-```
-
-### Node.js installation (macOS)
-
-Node is not included with macOS. Install it from the command line:
-
-```bash
-sudo installer -pkg ~/Downloads/node-v22*.pkg -target /
-```
-
-Download the pkg first from [nodejs.org](https://nodejs.org) — choose the **macOS ARM64** installer. The GUI installer may fail silently; the command above works reliably.
-
-Verify:
-```bash
-node --version   # should be v22 or higher
-npm --version
-```
-
-Then install PptxGenJS locally in the project folder (only needed once):
-```bash
-cd path/to/songs\ for\ my\ funeral
-npm install pptxgenjs
-```
-
-The script was built and tested with Node v22 and pptxgenjs v4.0.1.
+The icon file (`red_hat_icon.png`) must be delivered as a ZIP to preserve the alpha channel — drag-and-drop flattens it to RGB and destroys the outline. The transparent PNG with outline intact is in the repo root.
 
 ---
 
-## Color palette (liner-notes.html)
+## Color palette (index.html)
 
 | Variable | Light | Dark | Used for |
 |----------|-------|------|---------|
