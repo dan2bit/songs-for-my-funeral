@@ -7,7 +7,7 @@
 #   ./run.sh all            # run both
 #
 # Auto-detects whether Google Drive is mounted and falls back
-# to a local ./output/ or ./ppt/ copy if Drive is unavailable.
+# to a local ./output/ copy if Drive is unavailable.
 #
 # Run from the repo root: ~/projects/songs-for-my-funeral/
 
@@ -53,8 +53,7 @@ run_assemble() {
 
   if [ ! -f "$TRACKS_DIR/tracks.tsv" ]; then
     echo "ERROR: tracks.tsv not found in $TRACKS_DIR"
-    echo "       assemble.sh expects tracks.tsv in the same directory as the mp3s."
-    echo "       You may need to copy utils/tracks.tsv into tracks/ first."
+    echo "       Expected at: $TRACKS_DIR/tracks.tsv"
     exit 1
   fi
 
