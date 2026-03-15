@@ -1,0 +1,27 @@
+num	chapter	filename	transition_type	transition_secs	chapter_break_after
+01	1	01. A Southern Gospel Revival - Jamie Wilson - Aint No Grave (live).mp3	xfade	1.5
+02	1	02. Sinéad O'Connor - Danny Boy (live).mp3	gap	2.0
+03	1	03. Alison Krauss - I'll Fly Away.mp3	gap	3.5	yes
+04	2	04. Larkin Poe - Ain't Gonna Cry (live).mp3	xfade	1.5
+05	2	05. Sweet Honey in The Rock - Wade in the Water (live).mp3	xfade	1.5
+06	2	06. The Wood Brothers - One More Day (live).mp3	gap	2.0
+07	2	07. Allison Russell - You're Not Alone ft. Brandi Carlile.mp3	gap	1.5
+08	2	08. Playing For Change - Everlasting Arms ft. Dr. John.mp3	gap	1.0
+09	2	09. Alabama Shakes - Hold On (live).mp3	gap	3.5	yes
+10	3	10. Dave Carter and Tracy Grammer - When I Go (live).mp3	gap	2.0
+11	3	11. The Avett Brothers - No Hard Feelings.mp3	gap	3.5	yes
+12	4	12. Eric Clapton and Steve Winwood - Sleeping in the Ground (live).mp3	gap	2.5
+13	4	13. Sister Rosetta Tharpe and Marie Knight - Up Above My Head.mp3	gap	1.5
+14	4	14. Paul Simon and Phoebe Snow - Gone at Last.mp3	gap	1.5
+15	4	15. Christone Kingfish Ingram - Before I'm Old.mp3	gap	1.0
+16	4	16. The Specials - Enjoy Yourself (live).mp3	gap	2.5
+17	4	17. Enter The Haggis - One Last Drink.mp3	gap	3.5	yes
+18	4	18. The War And Treaty - Five More Minutes (live).mp3	gap	3.5	yes
+19	5	19. Preservation Hall Jazz Band and The Del McCoury Band - I'll Fly Away (live).mp3	gap	2.0
+20	5	20. Larkin Poe - Lips As Cold As Diamond.mp3	xfade	2.0
+21	5	21. Sarah Rogo - Hallelujah (live).mp3	xfade	1.5
+22	5	22. Lyle Lovett and his Large Band - Since the Last Time (live).mp3	xfade	2.0
+23	5	23. Mary Black - Bright Blue Rose (live).mp3	gap	3.5	yes
+24	6	24. Rose Betts - Take This Body Home (live).mp3	gap	2.5
+25	6	25. Talia Segal - First There Is Goodbye.mp3	gap	2.5
+26	6	26. boygenius and Ye Vagabonds - The Parting Glass.mp3	end	0
