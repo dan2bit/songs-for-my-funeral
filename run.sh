@@ -17,7 +17,8 @@ set -e
 # CONFIG — edit these paths to match your machine
 # ─────────────────────────────────────────────────────
 
-GDRIVE_ROOT="$HOME/Google Drive/My Drive/songs for my funeral"
+# Google Drive for Desktop mounts here on macOS:
+GDRIVE_ROOT="$HOME/Library/CloudStorage/GoogleDrive-redhat.bootlegs@gmail.com/My Drive/songs for my funeral"
 GDRIVE_OUTPUT="$GDRIVE_ROOT/output"
 GDRIVE_ROOT_PPTX="$GDRIVE_ROOT/slides-songs-for-my-funeral.pptx"
 
