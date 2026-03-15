@@ -13,7 +13,7 @@
 | `covers/` | Album art, one jpg per track, named `NN-slug.jpg`. |
 | `tracks.tsv` | **Single source of truth** for track order, filenames, transitions, and chapters. Edit this first for any structural change. |
 | `assemble.sh` | ffmpeg script to build chapter mp3s and master file. Reads from `tracks.tsv`. |
-| `reorder.sh` | Renames mp3 files on disk to match `tracks.tsv` after you've reordered. Dry-run by default; use `--apply` to execute. |
+| `reorder.pl` | Renames mp3 and cover files on disk to match `tracks.tsv` after you've reordered. Dry-run by default; use `--apply` to execute. Requires Perl (ships with macOS). |
 | `duration.sh` | Reports individual track durations and total runtime. Reads transitions from `tracks.tsv`. |
 | `HOWTO.md` | This file. |
 | `one-timers/check-sample-rates.sh` | Audits all 25 mp3s for sample rate, channels, and bitrate. Run if you add new tracks and want to confirm they're all 44100 Hz stereo before assembling. |
@@ -130,14 +130,16 @@ This involves: tracks.tsv, the mp3 file, cover art, liner-notes.html, and the Yo
 
 Add the new row at the correct position. Renumber all rows after the insertion point (increment `num`). Update `transition_type`/`transition_secs` for the track immediately before the new one if its outgoing transition changes. Set `chapter_break_after=yes` on the last track of whichever chapter is affected.
 
-### 2. Rename existing mp3 files with reorder.sh
+### 2. Rename existing mp3 and cover files with reorder.pl
 
 ```bash
-bash reorder.sh          # dry run — shows what would be renamed, touches nothing
-bash reorder.sh --apply  # actually renames files to match tracks.tsv
+perl reorder.pl          # dry run — shows what would be renamed, touches nothing
+perl reorder.pl --apply  # actually renames files to match tracks.tsv
 ```
 
-This handles the cascade renaming (old 14→15, 15→16 etc.) automatically. Also rename cover art files manually — reorder.sh only handles mp3s.
+This handles the cascade renaming (old 14→15, 15→16 etc.) automatically for both mp3s and cover art.
+
+**Order of operations matters:** run reorder.pl *after* adding the new track's mp3 to disk but *before* running assemble.sh. The script keys on track name (not number), so it correctly finds files regardless of whether the tsv filename column has been updated yet.
 
 ### 3. Add the new track's mp3
 
@@ -229,7 +231,7 @@ Transition conventions:
 ### 7. Update the colophon stats
 
 At the bottom of `liner-notes.html`, update:
-- Total tracks (currently 25)
+- Total tracks (currently 26)
 - Runtime — run `bash duration.sh` to get the new total
 - Live/studio split
 - Vocal gender breakdown if it changes
@@ -262,7 +264,7 @@ chmod +x assemble.sh
 ./assemble.sh
 ```
 
-assemble.sh reads `tracks.tsv` for track order, filenames, and transitions — no hardcoded values. To check durations without rebuilding:
+assemble.sh reads `tracks.tsv` for track order, filenames, and transitions. The chapter and master *expected* durations used for the ✓/⚠ check are hardcoded in assemble.sh — update them manually when tracks are added or removed. To check durations without rebuilding:
 
 ```bash
 bash duration.sh
@@ -274,11 +276,13 @@ If the script fails mid-run, delete any stray `_xfade_ch*.mp3` files before retr
 
 Chapter files are independent — if you only change tracks in chapter 4, you could manually edit the script to run just that chapter's section and rebuild the master. But running the full script is safer.
 
+The ✓ check allows ~10s of drift per chapter — small overages are normal due to ffmpeg's crossfade and gap rounding. If a chapter shows ⚠, first verify the track count is correct, then update the expected value in assemble.sh to match actual output.
+
 ---
 
 ## Lyrics links
 
-Track 24 (Talia Segal) links to the local `talia-segal-first-there-is-goodbye-lyrics.html` page — see below for cleanup notes. All other lyrics links have been verified.
+Track 24 (Talia Segal) links to the local `talia-segal-first-there-is-goodbye-lyrics.html` page. All lyrics links have been verified.
 
 If a Genius page doesn't exist, search Genius directly — the URL isn't always predictable. For cover songs in particular, lyrics are often filed under the original artist rather than the performing artist, and the page title may include a longer subtitle (e.g. "Enjoy Yourself (It's Later Than You Think)" rather than just "Enjoy Yourself"). If Genius genuinely has nothing, options are: find another lyrics site, link directly to the YouTube watch URL instead, or drop the Lyrics link and leave Watch · Download.
 
@@ -286,11 +290,23 @@ If a Genius page doesn't exist, search Genius directly — the URL isn't always 
 
 ## Track 24 — Talia Segal lyrics
 
-`talia-segal-first-there-is-goodbye-lyrics.html` contains a Happyscribe transcript that needs cleanup. Unclear lines are marked in faded italic with `[?]`. To clean up:
+`talia-segal-first-there-is-goodbye-lyrics.html` is a complete, clean transcript verified against the recording. No outstanding issues.
 
-1. Open the YouTube video: `https://www.youtube.com/watch?v=Hy3gHPyLYBc`
-2. Edit the `.line.unclear` spans in the HTML — remove the `unclear` class once you're confident in the text
-3. When all lines are clean, delete the `<div class="draft-notice-wrap">…</div>` block at the top of the page
+---
+
+## Public website
+
+The liner notes are hosted at:
+
+**https://dan2bit.github.io/songs-for-my-funeral/index.html**
+
+The public version (`index.html`) differs from the private `liner-notes.html` in two ways:
+- Download links removed (mp3s are not in the repo)
+- YouTube playlist link added in the header
+
+The GitHub repo also contains `talia-segal-first-there-is-goodbye-lyrics.html`, `red_hat_icon.png`, `red_hat_icon.ico`, and the `covers/` folder. The mp3s, PPTX, and private liner-notes.html are kept locally and in Google Drive only.
+
+To update the public site after editing `liner-notes.html`: regenerate `index.html` (remove download links, verify playlist link is present), commit and push to the repo.
 
 ---
 
