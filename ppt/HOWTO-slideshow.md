@@ -6,7 +6,7 @@
 
 ## What you have
 
-Someone — probably me, in a better season — put together a playlist of 25 songs organized into six chapters. There's a slideshow to go with it. Your job, if you choose to accept it, is to fill it with photos and run it at the service.
+Someone — probably me, in a better season — put together a playlist of 26 songs organized into six chapters. There's a slideshow to go with it. Your job, if you choose to accept it, is to fill it with photos and run it at the service.
 
 This document tells you everything you need to know. You don't need any special software beyond PowerPoint (or Google Slides, in a pinch). You don't need to be technical. Take it one track at a time.
 
@@ -27,15 +27,15 @@ Open the .pptx in PowerPoint.
 
 ## How the slideshow is structured
 
-There are 82 slides in three types. You only need to touch one of them.
+There are 85 slides in three types. You only need to touch one of them.
 
 **Chapter cards** (6 slides — one per chapter)
 These have the chapter number, title, and an epigraph. They're meant to stay exactly as they are. Don't edit them.
 
-**Track cards** (25 slides — one per song)
+**Track cards** (26 slides — one per song)
 These show the track number, title, performer, a lyric, and the album cover. They're meant to stay exactly as they are.
 
-**Photo slides** (50 slides — two templates per track, one landscape, one portrait)
+**Photo slides** (52 slides — two templates per track, one landscape, one portrait)
 **These are the ones you edit.** Each photo slide is a placeholder — a dark grey box with "[LANDSCAPE PHOTO]" or "[PORTRAIT / SQUARE PHOTO]" written in it. Replace those boxes with your photos.
 
 The two templates exist because photos come in different shapes:
@@ -83,14 +83,15 @@ There's no wrong answer. For a memorial, slower tends to feel more right. If you
 | 15 | Before I'm Old | 4:15 | 32 | 25 – 42 |
 | 16 | Enjoy Yourself | 3:59 | 30 | 24 – 40 |
 | 17 | One Last Drink | 3:48 | 28 | 22 – 38 |
-| 18 | I'll Fly Away | 3:48 | 28 | 22 – 38 |
-| 19 | Lips As Cold As Diamond | 3:42 | 28 | 22 – 37 |
-| 20 | Hallelujah | 4:26 | 33 | 26 – 44 |
-| 21 | Since the Last Time | 7:10 | 54 | 43 – 71 |
-| 22 | Bright Blue Rose | 3:52 | 29 | 23 – 39 |
-| 23 | Take This Body Home | 3:39 | 27 | 21 – 36 |
-| 24 | First There Is Goodbye | 3:06 | 23 | 18 – 31 |
-| 25 | The Parting Glass | 4:11 | 31 | 25 – 42 |
+| 18 | Five More Minutes | 5:14 | 39 | 31 – 52 |
+| 19 | I'll Fly Away | 3:48 | 28 | 22 – 38 |
+| 20 | Lips As Cold As Diamond | 3:42 | 28 | 22 – 37 |
+| 21 | Hallelujah | 4:26 | 33 | 26 – 44 |
+| 22 | Since the Last Time | 7:10 | 54 | 43 – 71 |
+| 23 | Bright Blue Rose | 3:52 | 29 | 23 – 39 |
+| 24 | Take This Body Home | 3:39 | 27 | 21 – 36 |
+| 25 | First There Is Goodbye | 3:06 | 23 | 18 – 31 |
+| 26 | The Parting Glass | 4:11 | 31 | 25 – 42 |
 
 Don't stress about hitting the numbers exactly. These are starting points, not requirements.
 
@@ -104,12 +105,12 @@ Sort or loosely group them by mood or era if you can — it doesn't need to be c
 
 | Chapter | Tracks | Theme |
 |---------|--------|-------|
-| I — I Am Where I'm Meant to Be | 1–3 | Arrival, peace |
-| II — You'll Be Okay (Grief Sucks) | 4–9 | Comfort, community |
-| III — Don't Worry About Me | 10–11 | Release |
-| IV — You're Still in the Pink | 12–17 | Celebration, joy |
-| V — But Before We Part | 18–22 | Tenderness |
-| VI — Go in Good Graces | 23–25 | Farewell |
+| 1 — I Am Where I'm Meant to Be | 1–3 | Arrival, peace |
+| 2 — You'll Be Okay (Grief Sucks) | 4–9 | Comfort, community |
+| 3 — Don't Worry About Me | 10–11 | Release |
+| 4 — You're Still in the Pink | 12–18 | Celebration, joy |
+| 5 — But Before We Part | 19–23 | Tenderness |
+| 6 — Go in Good Graces | 24–26 | Farewell |
 
 ### 2. Find the photo slides
 
@@ -161,7 +162,7 @@ This is the most important part. The music and the slideshow run separately — 
 ### Setup (do this before people arrive)
 
 1. Connect the laptop to the TV or projector via HDMI
-2. Open `songs-for-my-funeral-slides.pptx` in PowerPoint
+2. Open `slides-songs-for-my-funeral.pptx` in PowerPoint
 3. Open `songs-for-my-funeral.mp3` in VLC, Apple Music, Windows Media Player, or any music app — whatever you have
 4. Put the music app in the background, with the playlist queued and paused at the start
 5. Start the slideshow: Slideshow → From Beginning (or press F5). It should appear full-screen on the TV.
@@ -195,4 +196,4 @@ You were handed something that was made with a lot of care and a lot of love. Wh
 
 ---
 
-*For questions about the audio files, the playlist, or the liner notes, see `HOWTO.md` in the same folder.*
+*For questions about the audio files, the playlist, or the liner notes, see `utils/HOWTO.md` in the same repository.*
