@@ -1,0 +1,11 @@
+{
+  "name": "songs-for-my-funeral",
+  "version": "1.0.0",
+  "description": "Slideshow builder for Songs for My Funeral",
+  "scripts": {
+    "build-slides": "node ppt/build-slides.js"
+  },
+  "dependencies": {
+    "pptxgenjs": "^3.12.0"
+  }
+}

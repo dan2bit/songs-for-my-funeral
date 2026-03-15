@@ -1,0 +1,21 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Node
+node_modules/
+npm-debug.log*
+package-lock.json
+
+# Build outputs — live in Google Drive, not git
+ppt/*.pptx
+output/
+tracks/
+*.mp3
+
+# Temp files from assemble.sh
+_xfade_*.mp3
+_chapter*_list.txt
+_master_list.txt
+silence_*.mp3
