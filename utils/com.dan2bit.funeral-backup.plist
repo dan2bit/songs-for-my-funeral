@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+
+  <!-- Unique identifier for this launchd job -->
+  <key>Label</key>
+  <string>com.dan2bit.funeral-backup</string>
+
+  <!-- The script to run. Adjust the path if your repo clone lives elsewhere. -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/Users/YOURUSERNAME/github/hm/songs-for-my-funeral/backup-to-thumb.sh</string>
+  </array>
+
+  <!-- Run every 1800 seconds (30 minutes) -->
+  <key>StartInterval</key>
+  <integer>1800</integer>
+
+  <!-- Start automatically when you log in -->
+  <key>RunAtLoad</key>
+  <true/>
+
+  <!-- Capture stdout/stderr to a log file (in addition to what the script logs itself) -->
+  <key>StandardOutPath</key>
+  <string>/Users/YOURUSERNAME/Library/Logs/funeral-backup.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/YOURUSERNAME/Library/Logs/funeral-backup.log</string>
+
+</dict>
+</plist>
