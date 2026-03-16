@@ -18,11 +18,11 @@ LOGFILE="$HOME/Library/Logs/funeral-backup.log"
 
 # Source 1: the repo clone
 REPO_SRC="$HOME/github/hm/songs-for-my-funeral/"
-REPO_DST="$THUMB/songs-for-my-funeral/"
+REPO_DST="$THUMB/songs-for-my-funeral-website/"
 
 # Source 2: the Google Drive folder (via Google Drive for Desktop)
 GDRIVE_SRC="$HOME/Library/CloudStorage/GoogleDrive-redhat.bootlegs@gmail.com/My Drive/songs for my funeral/"
-GDRIVE_DST="$THUMB/songs-for-my-funeral-gdrive/"
+GDRIVE_DST="$THUMB/songs-for-my-funeral-slideshow/"
 
 # ─────────────────────────────────────────────────────
 # HELPERS
