@@ -55,6 +55,7 @@ if [ -d "$REPO_SRC" ]; then
     --exclude='.git/' \
     --exclude='node_modules/' \
     --exclude='*.DS_Store' \
+    --exclude='~$*' \
     "$REPO_SRC" "$REPO_DST" \
     >> "$LOGFILE" 2>&1 && log "Repo sync OK" || { log "ERROR: repo sync failed"; ERRORS=$((ERRORS+1)); }
 else
@@ -66,6 +67,7 @@ if [ -d "$GDRIVE_SRC" ]; then
   log "Syncing GDrive: $GDRIVE_SRC → $GDRIVE_DST"
   rsync -a --delete \
     --exclude='*.DS_Store' \
+    --exclude='~$*' \
     "$GDRIVE_SRC" "$GDRIVE_DST" \
     >> "$LOGFILE" 2>&1 && log "GDrive sync OK" || { log "ERROR: GDrive sync failed"; ERRORS=$((ERRORS+1)); }
 else
