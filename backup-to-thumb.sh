@@ -1,5 +1,5 @@
 #!/bin/bash
-# backup-to-thumb.sh — rsync the repo and GDrive folder to the Dan-RIP thumb drive
+# backup-to-thumb.sh — rsync the repo and GDrive folders to the Dan-RIP thumb drive
 #
 # Designed to be run by launchd every 30 minutes (see utils/HOWTO-backup.md).
 # Safe to run manually too: ./backup-to-thumb.sh
@@ -20,9 +20,13 @@ LOGFILE="$HOME/Library/Logs/funeral-backup.log"
 REPO_SRC="$HOME/github/hm/songs-for-my-funeral/"
 REPO_DST="$THUMB/songs-for-my-funeral-website/"
 
-# Source 2: the Google Drive folder (via Google Drive for Desktop)
+# Source 2: the Google Drive "songs for my funeral" folder
 GDRIVE_SRC="$HOME/Library/CloudStorage/GoogleDrive-redhat.bootlegs@gmail.com/My Drive/songs for my funeral/"
 GDRIVE_DST="$THUMB/songs-for-my-funeral-slideshow/"
+
+# Source 3: the Google Drive "in case of emergency" folder
+ICE_SRC="$HOME/Library/CloudStorage/GoogleDrive-redhat.bootlegs@gmail.com/My Drive/in case of emergency/"
+ICE_DST="$THUMB/in case of emergency/"
 
 # ─────────────────────────────────────────────────────
 # HELPERS
@@ -62,16 +66,28 @@ else
   log "WARNING: repo source not found: $REPO_SRC"
 fi
 
-# GDrive folder → thumb drive
+# GDrive "songs for my funeral" folder → thumb drive
 if [ -d "$GDRIVE_SRC" ]; then
-  log "Syncing GDrive: $GDRIVE_SRC → $GDRIVE_DST"
+  log "Syncing GDrive (slideshow): $GDRIVE_SRC → $GDRIVE_DST"
   rsync -a --delete \
     --exclude='*.DS_Store' \
     --exclude='~$*' \
     "$GDRIVE_SRC" "$GDRIVE_DST" \
-    >> "$LOGFILE" 2>&1 && log "GDrive sync OK" || { log "ERROR: GDrive sync failed"; ERRORS=$((ERRORS+1)); }
+    >> "$LOGFILE" 2>&1 && log "GDrive slideshow sync OK" || { log "ERROR: GDrive slideshow sync failed"; ERRORS=$((ERRORS+1)); }
 else
-  log "WARNING: GDrive source not found: $GDRIVE_SRC"
+  log "WARNING: GDrive slideshow source not found: $GDRIVE_SRC"
+fi
+
+# GDrive "in case of emergency" folder → thumb drive
+if [ -d "$ICE_SRC" ]; then
+  log "Syncing GDrive (in case of emergency): $ICE_SRC → $ICE_DST"
+  rsync -a --delete \
+    --exclude='*.DS_Store' \
+    --exclude='~$*' \
+    "$ICE_SRC" "$ICE_DST" \
+    >> "$LOGFILE" 2>&1 && log "GDrive ICE sync OK" || { log "ERROR: GDrive ICE sync failed"; ERRORS=$((ERRORS+1)); }
+else
+  log "WARNING: GDrive ICE source not found: $ICE_SRC"
 fi
 
 if [ "$ERRORS" -eq 0 ]; then
