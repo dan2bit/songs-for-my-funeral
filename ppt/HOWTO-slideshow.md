@@ -19,7 +19,7 @@ This document tells you everything you need to know. You don't need any special 
 | `slides-songs-for-my-funeral.pptx` | The slideshow. This is what you're editing. |
 | `songs-for-my-funeral.mp3` | The full audio. Two hours of music, plays straight through. |
 | `chapter-01-*.mp3` … `chapter-06-*.mp3` | The six chapters as separate files, if you prefer. |
-| `covers/` | Album artwork for each track — already in the slideshow placeholders. |
+| `covers/` | Album artwork for each track — already in the slideshow. |
 
 Open the .pptx in PowerPoint.
 
@@ -36,13 +36,13 @@ These have the chapter number, title, and an epigraph. They're meant to stay exa
 These show the track number, title, performer, a lyric, and the album cover. They're meant to stay exactly as they are.
 
 **Photo slides** (52 slides — two templates per track, one landscape, one portrait)
-**These are the ones you edit.** Each photo slide is a placeholder — a dark grey box with "[LANDSCAPE PHOTO]" or "[PORTRAIT / SQUARE PHOTO]" written in it. Replace those boxes with your photos.
+**These are the ones you edit.** Each photo slide has a dark placeholder image with "LANDSCAPE PHOTO" or "PORTRAIT / SQUARE PHOTO" on it. You replace that placeholder with your photos using the Change Picture workflow described below.
 
 The two templates exist because photos come in different shapes:
 - Use the **landscape** template for wide photos (phone landscape, old prints, group shots)
 - Use the **portrait/square** template for tall or square photos (phone portrait, school photos, headshots)
 
-You can use as many photo slides per track as you like — just duplicate the right template and drop photos in. More on that below.
+You can use as many photo slides per track as you like — just duplicate the right template and swap in a photo. More on that below.
 
 ---
 
@@ -118,17 +118,23 @@ In the slide panel on the left, scroll to find the landscape or portrait templat
 
 ### 3. Duplicate the template
 
-Right-click the template slide → Duplicate. Do this once per photo you plan to use for that track. If you need 10 photos, make 10 duplicates. You can always add or delete more later.
+**Right-click** the template slide in the left panel → **Duplicate Slide**. Do this once for each photo you plan to use for that track. If you need 10 photos, make 10 duplicates. You can always add or delete more later.
 
-### 4. Drop in a photo
+Keep the original template at the end of the group — it makes it easy to duplicate again if you need more.
 
-Click once on the grey placeholder box to select it. Then:
+### 4. Replace the placeholder with your photo
 
-**In PowerPoint:** Press Delete to remove the placeholder. Then Insert → Pictures → This Device (or drag a photo file directly onto the slide). Resize to fill the slide — for landscape slides, drag to fill the whole upper area; for portrait slides, fill the left side.
+Each photo slide contains a placeholder image. Because it's a real image (not a box), PowerPoint lets you swap it in place using **Change Picture** — no deleting or repositioning needed.
 
-**Keyboard shortcut:** Select the placeholder, hit Delete, then Ctrl+Z if something goes wrong.
+**To replace the placeholder:**
+1. Click once on the placeholder image to select it
+2. Right-click → **Change Picture** → **From a File…** (or "From This Device…")
+3. Browse to your photo and select it
+4. PowerPoint replaces the placeholder with your photo, fitted to the same position and size
 
-**Tip:** Right-click the image → Format Picture → Crop to reframe without resizing.
+The photo fills the frame automatically. If the crop isn't right, right-click the image → **Format Picture** → **Crop** to adjust what's visible without resizing the frame.
+
+**Note:** Change Picture is the key step. It keeps the photo in exactly the right position and size for the slide layout, so you don't have to fiddle with placement at all.
 
 ### 5. Choosing landscape vs. portrait template
 
