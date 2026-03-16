@@ -4,8 +4,10 @@ The backup script mirrors two things to the thumb drive:
 
 | Source | Destination on thumb |
 |--------|----------------------|
-| `~/github/hm/songs-for-my-funeral/` (repo clone) | `Dan-RIP/songs-for-my-funeral/` |
-| Google Drive `songs for my funeral/` folder | `Dan-RIP/songs-for-my-funeral-gdrive/` |
+| `~/github/hm/songs-for-my-funeral/` (repo clone) | `Dan-RIP/songs-for-my-funeral-website/` |
+| Google Drive `songs for my funeral/` folder | `Dan-RIP/songs-for-my-funeral-slideshow/` |
+
+The folder names are intentional — if someone picks up the drive without any context, `songs-for-my-funeral-slideshow/` is immediately obvious as the thing to open.
 
 It runs automatically every 30 minutes while `Dan-RIP` is mounted. If the drive isn't plugged in, it exits silently — no errors, no notifications.
 
