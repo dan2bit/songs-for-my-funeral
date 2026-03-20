@@ -8,12 +8,19 @@ Naming conventions on @dan2bit channel:
   Playlists: "Keb' Mo' LIVE solo - Maryland Hall, Annapolis 11/21/25"
 
 Logic per show:
-  1. Look for a playlist whose title contains the artist name + "LIVE"
-     and whose title contains a date or venue fragment matching the show.
+  1. PLAYLIST MATCH: Look for a playlist whose title contains the HEADLINER name + "LIVE"
+     AND whose title contains a DATE VARIANT matching the show date (required).
+     Venue-only matches are intentionally excluded to prevent wrong-year false positives.
      If found → use the playlist URL as the Playlist URL.
-  2. If no playlist → count individual videos whose description contains
-     a date string matching the show date (MM/DD/YY or MM/DD/YYYY).
+  2. VIDEO MATCH: If no playlist found, search for ANY video whose description contains
+     a date string matching the show date (MM/DD/YY or MM/DD/YYYY). No artist filter —
+     this covers multi-bill shows where supporting acts were filmed instead of the headliner.
   3. Output one row per show with: playlist URL (if found) OR video count.
+
+Key improvements over v1:
+  - Playlist matching requires DATE match (venue-only removed — caused year mismatches)
+  - artist_in_title uses NOISE_WORDS to avoid generic false positives
+  - find_videos uses date-only matching (no artist filter) to catch support act footage
 
 Usage:
     python3 youtube_correlate.py
@@ -40,21 +47,25 @@ def load_tsv(filename):
 def normalize(s):
     return re.sub(r"[^\w\s]", "", s.lower()).strip()
 
+# Words too generic to use as distinctive artist-name match tokens
+NOISE_WORDS = {"band", "the", "and", "live", "feat", "featuring", "with"}
+
 def artist_in_title(artist, title):
-    """Check if artist name (or key part of it) appears in title."""
+    """Check if headliner artist name appears in playlist title.
+    Requires full normalized name match OR all distinctive words (>4 chars, not noise)."""
     artist_norm = normalize(artist)
     title_norm = normalize(title)
     if artist_norm in title_norm:
         return True
-    # Try each word of the artist name that's long enough to be distinctive
-    words = [w for w in artist_norm.split() if len(w) > 4]
-    return all(w in title_norm for w in words) if words else False
+    words = [w for w in artist_norm.split() if len(w) > 4 and w not in NOISE_WORDS]
+    if not words:
+        return False
+    return all(w in title_norm for w in words)
 
 def date_variants(date_str):
     """
-    Given YYYY-MM-DD, return list of date strings that might appear
-    in a YouTube title or description.
-    e.g. 2025-11-21 → ['11/21/25', '11/21/2025', '112125', '11-21-25']
+    Given YYYY-MM-DD, return date strings that might appear in a YouTube title.
+    e.g. 2025-11-21 → ['11/21/25', '11/21/2025', '11/21/25', '11/21/2025']
     """
     try:
         d = datetime.strptime(date_str, "%Y-%m-%d")
@@ -62,47 +73,47 @@ def date_variants(date_str):
         return []
     yy = d.strftime("%y")
     yyyy = d.strftime("%Y")
-    mm = d.strftime("%m")
-    dd = d.strftime("%d")
     return [
-        f"{mm}/{dd}/{yy}",
-        f"{mm}/{dd}/{yyyy}",
         f"{d.month}/{d.day}/{yy}",
         f"{d.month}/{d.day}/{yyyy}",
+        f"{d.strftime('%m')}/{d.strftime('%d')}/{yy}",
+        f"{d.strftime('%m')}/{d.strftime('%d')}/{yyyy}",
     ]
 
-def venue_fragment(venue):
-    """Extract a short venue keyword from the full venue string."""
-    parts = venue.split(",")
-    name = parts[0].strip().lower()
-    name = re.sub(r"^the\s+", "", name)
-    words = name.split()[:2]
-    return " ".join(words)
-
-def find_playlist(artist, date_str, venue, playlists):
+def find_playlist(headliner, date_str, playlists):
+    """
+    Find a playlist matching this show.
+    Rules:
+      - Playlist title must contain the HEADLINER name
+      - Playlist title must contain "LIVE"
+      - Playlist title must contain a DATE VARIANT for the show date (required)
+    Venue-only matches are intentionally excluded to prevent year mismatches.
+    """
     date_vars = date_variants(date_str)
-    vfrag = venue_fragment(venue)
-    best = None
+    if not date_vars:
+        return None
     for pl in playlists:
         title = pl["title"]
         title_norm = normalize(title)
-        if not artist_in_title(artist, title):
-            continue
         if "live" not in title_norm:
             continue
-        date_match = any(dv in title for dv in date_vars)
-        venue_match = vfrag and vfrag in title_norm
-        if date_match or venue_match:
-            best = pl
-            break
-    return best
+        if not artist_in_title(headliner, title):
+            continue
+        if any(dv in title for dv in date_vars):
+            return pl
+    return None
 
-def find_videos(artist, date_str, videos):
+def find_videos(date_str, videos):
+    """
+    Find ANY video whose description contains the show date.
+    No artist filter — covers multi-bill shows and cases where supporting
+    acts were filmed rather than (or in addition to) the headliner.
+    """
     date_vars = date_variants(date_str)
+    if not date_vars:
+        return []
     matches = []
     for v in videos:
-        if not artist_in_title(artist, v["title"]):
-            continue
         desc = v.get("description", "")
         if any(dv in desc for dv in date_vars):
             matches.append(v)
@@ -127,41 +138,40 @@ def correlate(shows, videos, playlists):
     playlist_hits = 0
     video_hits = 0
     for show in shows:
-        artist   = show["Artist"]
-        date_str = show["Show Date"]
-        venue    = show["Venue"]
-        setlist  = show.get("Setlist.fm URL", "")
-        pl_url_existing = show.get("Playlist URL", "")
+        headliner = show["Artist"]
+        date_str  = show["Show Date"]
+        venue     = show["Venue"]
+        setlist   = show.get("Setlist.fm URL", "")
 
-        playlist = find_playlist(artist, date_str, venue, playlists)
+        playlist = find_playlist(headliner, date_str, playlists)
         vids = []
         if not playlist:
-            vids = find_videos(artist, date_str, videos)
+            vids = find_videos(date_str, videos)
 
         if playlist:
             playlist_hits += 1
-            yt_result  = playlist["url"]
+            yt_url     = playlist["url"]
             match_type = f"Playlist ({playlist['item_count']} videos)"
             yt_title   = playlist["title"]
         elif vids:
             video_hits += 1
-            yt_result  = ""
+            yt_url     = ""
             match_type = f"{len(vids)} video(s) found"
             yt_title   = " | ".join(v["title"] for v in vids[:3])
             if len(vids) > 3:
                 yt_title += f" ... (+{len(vids)-3} more)"
         else:
-            yt_result  = ""
+            yt_url     = ""
             match_type = "No match"
             yt_title   = ""
 
         results.append({
             "Show Date":        date_str,
-            "Artist":           artist,
+            "Artist":           headliner,
             "Supporting Acts":  show.get("Supporting Acts", ""),
             "Venue":            venue,
             "Setlist.fm URL":   setlist,
-            "Playlist URL":     yt_result if yt_result else pl_url_existing,
+            "Playlist URL":     yt_url,
             "Match Type":       match_type,
             "YT Title":         yt_title,
             "Notes / Memories": show.get("Notes / Memories", ""),
