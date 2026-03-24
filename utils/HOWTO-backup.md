@@ -1,6 +1,6 @@
 # Backing up to the Dan-RIP thumb drive
 
-The backup script mirrors two things to the thumb drive:
+The backup script mirrors three things to the thumb drive:
 
 | Source | Destination on thumb |
 |--------|----------------------|
@@ -26,16 +26,7 @@ Do this once on any machine where you want the automatic backup.
 chmod +x ~/github/hm/songs-for-my-funeral/backup-to-thumb.sh
 ```
 
-### 2. Edit the plist with your actual username
-
-Open `utils/com.dan2bit.funeral-backup.plist` in any text editor and replace both instances of `YOURUSERNAME` with your macOS username (the short name, e.g. `dan2bit`).
-
-You can find your username by running:
-```bash
-whoami
-```
-
-### 3. Install the plist and substitute your username in one step
+### 2. Install the plist and substitute your username in one step
 
 ```bash
 cp ~/github/hm/songs-for-my-funeral/utils/com.dan2bit.funeral-backup.plist \
@@ -45,9 +36,13 @@ sed -i '' "s/YOURUSERNAME/$(whoami)/g" \
    ~/Library/LaunchAgents/com.dan2bit.funeral-backup.plist
 ```
 
-### 4. Load the agent
+Verify the substitution worked:
+```bash
+grep dan ~/Library/LaunchAgents/com.dan2bit.funeral-backup.plist
+```
+You should see your actual username, not `YOURUSERNAME`.
 
-**On macOS Sequoia / Tahoe (14+), use `bootstrap`:**
+### 3. Load the agent
 
 ```bash
 launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.dan2bit.funeral-backup.plist
@@ -60,15 +55,12 @@ launchctl bootout gui/$(id -u)/com.dan2bit.funeral-backup
 launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.dan2bit.funeral-backup.plist
 ```
 
-### 5. Test it immediately
+### 4. Test it immediately
 
 Plug in `Dan-RIP`, then run:
 ```bash
-bash ~/github/hm/songs-for-my-funeral/backup-to-thumb.sh
-```
-
-Check the log to confirm it worked:
-```bash
+launchctl kickstart gui/$(id -u)/com.dan2bit.funeral-backup
+sleep 10
 tail ~/Library/Logs/funeral-backup.log
 ```
 
@@ -118,6 +110,8 @@ Verify it took:
 launchctl list | grep funeral
 ```
 
+Also make sure `/bin/bash` still has Full Disk Access in System Settings → Privacy & Security → Full Disk Access. This permission can be lost after a major OS upgrade.
+
 ---
 
 ## Changing the interval
@@ -145,5 +139,6 @@ launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.dan2bit.funeral-back
 - Files deleted from the source are deleted from the destination
 - File permissions and timestamps are preserved
 - The `.git/` directory and `node_modules/` are excluded from the repo backup (they're large and reconstructable)
+- Google Workspace stub files (`.gdoc`, `.gsheet`, `.gslides`, etc.) are excluded from the GDrive syncs — these are pointer stubs with no actual content; the real documents live only in Google's cloud
 
 It's safe to unplug the drive mid-backup — rsync writes complete files, so you won't end up with half-written corrupted files.
