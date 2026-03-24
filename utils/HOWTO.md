@@ -74,7 +74,7 @@ Because the app is in "Testing" mode, Google will block the auth flow with a 403
 
 1. Go to https://console.cloud.google.com/auth/audience?project=dan2bit-youtub-channel
 2. Under **Test users**, click **+ Add Users**
-3. Enter `redhat.bootlegs@gmail.com` and save
+3. Enter `dan2bit@gmail.com` and save (this is the account that owns the YouTube channel)
 
 You only need to do this once. If you ever see a 403 "access blocked" error during `--auth-only`, come back here and verify the account is still listed.
 
@@ -88,7 +88,15 @@ source .venv/bin/activate
 python3 youtube_create_playlists.py --auth-only
 ```
 
-This opens a browser window, asks you to approve access to your YouTube account, and writes `token.json` to `live-shows/`. Subsequent runs reuse this token silently (it auto-refreshes).
+This opens a browser window. **Sign in as `dan2bit@gmail.com`** — that is the account that owns the bootleg YouTube channel. Signing in with any other account will produce a `401 youtubeSignupRequired` error when you try to create playlists.
+
+Once authorized, `token.json` is written to `live-shows/`. Subsequent runs reuse it silently (it auto-refreshes).
+
+**If you see `401 Unauthorized / youtubeSignupRequired`** when running without `--dry-run`:
+```bash
+rm ~/github/hm/songs-for-my-funeral/live-shows/token.json
+python3 youtube_create_playlists.py --auth-only   # re-authorize as dan2bit@gmail.com
+```
 
 ### Verify everything is working
 
@@ -99,8 +107,8 @@ source .venv/bin/activate
 # Test the API key (youtube_fetch.py)
 python3 youtube_fetch.py
 
-# Test OAuth (dry run — no playlists created)
-python3 youtube_create_playlists.py --dry-run --date 2022-12-16
+# Test OAuth with a date that already has a playlist — confirms auth without creating a duplicate
+python3 youtube_create_playlists.py --dry-run --date 2023-03-07
 ```
 
 ### After a fresh clone
@@ -113,8 +121,8 @@ pip install python-dotenv google-api-python-client google-auth-oauthlib requests
 cp .env.example .env
 # Fill in YOUTUBE_API_KEY in .env
 # Download client_secrets.json from Google Cloud Console
-# Verify redhat.bootlegs@gmail.com is listed at https://console.cloud.google.com/auth/audience?project=dan2bit-youtub-channel
-python3 youtube_create_playlists.py --auth-only   # generates token.json
+# Verify dan2bit@gmail.com is listed at https://console.cloud.google.com/auth/audience?project=dan2bit-youtub-channel
+python3 youtube_create_playlists.py --auth-only   # sign in as dan2bit@gmail.com
 ```
 
 ---
