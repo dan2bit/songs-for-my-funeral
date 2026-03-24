@@ -19,3 +19,8 @@ _xfade_*.mp3
 _chapter*_list.txt
 _master_list.txt
 silence_*.mp3
+
+# Credentials — never commit these
+live-shows/.env
+live-shows/client_secrets.json
+live-shows/token.json

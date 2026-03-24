@@ -9,12 +9,13 @@ and writes the resulting playlist URLs back to live_shows_history.tsv.
 REQUIRES OAuth (not just an API key) because playlist creation is a write operation.
 
 FIRST-TIME SETUP:
-    1. Go to Google Cloud Console → APIs & Services → Credentials
-    2. Create an OAuth 2.0 Client ID (Desktop app)
-    3. Download the JSON file and save as client_secrets.json in this directory
-    4. pip install google-api-python-client google-auth-oauthlib
-    5. Run once: python3 youtube_create_playlists.py --auth-only
+    1. Copy live-shows/.env.example to live-shows/.env
+    2. Place client_secrets.json in the live-shows/ directory
+       (download from Google Cloud Console → Credentials → OAuth 2.0 Client IDs)
+    3. pip install google-api-python-client google-auth-oauthlib python-dotenv
+    4. Run once: python3 youtube_create_playlists.py --auth-only
        This opens a browser, you approve access, token.json is cached for future runs.
+    See utils/HOWTO.md → "YouTube API credentials" for full setup instructions.
 
 USAGE:
     # Dry run — shows what would be created without calling the API
@@ -64,6 +65,14 @@ from datetime import datetime
 
 # ── dependency check ──────────────────────────────────────────────────────────
 try:
+    from dotenv import load_dotenv
+except ImportError:
+    sys.exit(
+        "Missing dependency: python-dotenv\n"
+        "Run: pip install python-dotenv"
+    )
+
+try:
     from googleapiclient.discovery import build
     from google_auth_oauthlib.flow import InstalledAppFlow
     from google.auth.transport.requests import Request
@@ -83,10 +92,13 @@ except ImportError:
         "  pip install requests beautifulsoup4\n"
     )
 
+# Load .env from the same directory as this script
+load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
+
 # ── constants ─────────────────────────────────────────────────────────────────
 SCOPES = ["https://www.googleapis.com/auth/youtube"]
-CLIENT_SECRETS = "client_secrets.json"
-TOKEN_FILE = "token.json"
+CLIENT_SECRETS = os.environ.get("YOUTUBE_CLIENT_SECRETS", "client_secrets.json")
+TOKEN_FILE     = os.environ.get("YOUTUBE_TOKEN_FILE",     "token.json")
 CHANNEL_HANDLE = "dan2bit"
 
 # Input files (same directory)
@@ -138,21 +150,27 @@ WORKLIST = [
 
 # ── auth ──────────────────────────────────────────────────────────────────────
 def get_authenticated_service():
+    # Resolve paths relative to this script's directory
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    client_secrets_path = os.path.join(script_dir, CLIENT_SECRETS)
+    token_path = os.path.join(script_dir, TOKEN_FILE)
+
     creds = None
-    if os.path.exists(TOKEN_FILE):
-        creds = Credentials.from_authorized_user_file(TOKEN_FILE, SCOPES)
+    if os.path.exists(token_path):
+        creds = Credentials.from_authorized_user_file(token_path, SCOPES)
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            if not os.path.exists(CLIENT_SECRETS):
+            if not os.path.exists(client_secrets_path):
                 sys.exit(
-                    f"OAuth credentials file '{CLIENT_SECRETS}' not found.\n"
-                    "Download it from Google Cloud Console → Credentials → OAuth 2.0 Client IDs."
+                    f"OAuth credentials file not found: {client_secrets_path}\n"
+                    "Download it from Google Cloud Console → Credentials → OAuth 2.0 Client IDs.\n"
+                    "See utils/HOWTO.md → \"YouTube API credentials\" for instructions."
                 )
-            flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRETS, SCOPES)
+            flow = InstalledAppFlow.from_client_secrets_file(client_secrets_path, SCOPES)
             creds = flow.run_local_server(port=0)
-        with open(TOKEN_FILE, "w") as f:
+        with open(token_path, "w") as f:
             f.write(creds.to_json())
     return build("youtube", "v3", credentials=creds)
 

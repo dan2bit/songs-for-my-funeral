@@ -4,21 +4,49 @@ dan2bit YouTube channel metadata fetcher
 Pulls all videos and playlists and outputs TSVs for correlation with show history.
 
 Usage:
-    pip install google-api-python-client
+    pip install google-api-python-client python-dotenv
     python3 youtube_fetch.py
 
 Output files:
     youtube_videos.tsv    — all uploads with title, date, duration, URL
     youtube_playlists.tsv — all playlists with title, date, item count, URL
 
-NOTE: API_KEY must be set before running. Do not commit a live key to this repo.
+Credentials:
+    Copy live-shows/.env.example to live-shows/.env and set YOUTUBE_API_KEY.
+    See utils/HOWTO.md → "YouTube API credentials" for setup instructions.
 """
 
 import csv
+import os
 import sys
-from googleapiclient.discovery import build
 
-API_KEY    = "YOUR_API_KEY_HERE"  # Replace with your key; do not commit live keys
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    sys.exit(
+        "Missing dependency: python-dotenv\n"
+        "Run: pip install python-dotenv"
+    )
+
+try:
+    from googleapiclient.discovery import build
+except ImportError:
+    sys.exit(
+        "Missing dependency: google-api-python-client\n"
+        "Run: pip install google-api-python-client"
+    )
+
+# Load .env from the same directory as this script
+load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
+
+API_KEY = os.environ.get("YOUTUBE_API_KEY", "")
+if not API_KEY or API_KEY == "your_api_key_here":
+    sys.exit(
+        "ERROR: YOUTUBE_API_KEY is not set.\n"
+        "Copy live-shows/.env.example to live-shows/.env and fill in your API key.\n"
+        "See utils/HOWTO.md → \"YouTube API credentials\" for instructions."
+    )
+
 CHANNEL_HANDLE = "dan2bit"
 
 def get_channel_id(youtube):

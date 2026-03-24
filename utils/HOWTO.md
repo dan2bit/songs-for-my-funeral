@@ -4,6 +4,83 @@
 
 ---
 
+## YouTube API credentials
+
+The live-shows scripts use two separate Google credentials that must be kept **out of git**. The `.gitignore` excludes them, but you need to recreate them locally after a fresh clone or if they're ever deleted.
+
+### What you need and where it lives
+
+| File | Used by | How to get it |
+|------|---------|---------------|
+| `live-shows/.env` | both scripts | copy `.env.example`, fill in values |
+| `live-shows/client_secrets.json` | `youtube_create_playlists.py` only | download from Google Cloud Console |
+| `live-shows/token.json` | `youtube_create_playlists.py` only | auto-generated on first auth run |
+
+### Step 1 — Create the .env file
+
+```bash
+cd ~/github/hm/songs-for-my-funeral/live-shows
+cp .env.example .env
+```
+
+Then open `.env` and fill in `YOUTUBE_API_KEY` (see Step 2). Leave the other two lines at their defaults.
+
+### Step 2 — Get or recreate the YouTube Data API key
+
+This key is read-only and used only by `youtube_fetch.py`.
+
+1. Go to https://console.cloud.google.com/apis/credentials?project=dan2bit-youtub-channel
+2. If a key named something like "YouTube Data API key" already exists, click it to view and copy the key value
+3. If no key exists (or you want a fresh one): click **+ Create Credentials** → **API key** → copy it
+4. Paste the key into `live-shows/.env` as the value for `YOUTUBE_API_KEY`
+
+Optionally restrict the key: click the key → **API restrictions** → restrict to **YouTube Data API v3**. This limits blast radius if it ever leaks.
+
+### Step 3 — Get or recreate client_secrets.json (OAuth)
+
+This file is used by `youtube_create_playlists.py` for write access (creating playlists).
+
+1. Go to https://console.cloud.google.com/apis/credentials?project=dan2bit-youtub-channel
+2. Under **OAuth 2.0 Client IDs**, find the Desktop client (probably named something like "Desktop client 1" or "dan2bit playlist tool")
+3. Click the download icon (↓) on the right side of that row
+4. Save the downloaded file as `client_secrets.json` in `live-shows/`
+
+If no OAuth client exists, create one: **+ Create Credentials** → **OAuth client ID** → Application type: **Desktop app** → name it anything → click **Create** → download the JSON.
+
+### Step 4 — Generate token.json (first run only)
+
+`token.json` is auto-generated the first time you authenticate. You don't create it manually.
+
+```bash
+cd ~/github/hm/songs-for-my-funeral/live-shows
+python3 youtube_create_playlists.py --auth-only
+```
+
+This opens a browser window, asks you to approve access to your YouTube account, and writes `token.json` to `live-shows/`. Subsequent runs reuse this token silently (it auto-refreshes).
+
+### Verify everything is working
+
+```bash
+# Test the API key (youtube_fetch.py)
+cd ~/github/hm/songs-for-my-funeral/live-shows
+python3 youtube_fetch.py
+
+# Test OAuth (dry run — no playlists created)
+python3 youtube_create_playlists.py --dry-run --date 2022-12-16
+```
+
+### After a fresh clone
+
+```bash
+cd ~/github/hm/songs-for-my-funeral/live-shows
+cp .env.example .env
+# Fill in YOUTUBE_API_KEY in .env
+# Download client_secrets.json from Google Cloud Console
+python3 youtube_create_playlists.py --auth-only   # generates token.json
+```
+
+---
+
 ## Project layout
 
 ### Repository (`~/github/hm/songs-for-my-funeral/`)
@@ -70,6 +147,9 @@ songs for my funeral/
 | Assembled output mp3s | Drive (`output/`) | ❌ gitignored |
 | PPTX slideshow | Drive root | ❌ gitignored |
 | Slideshow photos | Drive (`photos/`) | ❌ |
+| `.env` | local only | ❌ gitignored |
+| `client_secrets.json` | local only | ❌ gitignored |
+| `token.json` | local only | ❌ gitignored |
 
 ---
 
