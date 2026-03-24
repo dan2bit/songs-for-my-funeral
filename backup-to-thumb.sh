@@ -72,6 +72,11 @@ if [ -d "$GDRIVE_SRC" ]; then
   rsync -a --delete \
     --exclude='*.DS_Store' \
     --exclude='~$*' \
+    --exclude='*.gdoc' \
+    --exclude='*.gsheet' \
+    --exclude='*.gslides' \
+    --exclude='*.gform' \
+    --exclude='*.gdraw' \
     "$GDRIVE_SRC" "$GDRIVE_DST" \
     >> "$LOGFILE" 2>&1 && log "GDrive slideshow sync OK" || { log "ERROR: GDrive slideshow sync failed"; ERRORS=$((ERRORS+1)); }
 else
@@ -79,11 +84,18 @@ else
 fi
 
 # GDrive "in case of emergency" folder → thumb drive
+# Note: .gdoc/.gsheet/.gslides etc. are excluded — they are pointer stubs, not real files.
+# The actual documents live in Google Drive's cloud and are not backed up here.
 if [ -d "$ICE_SRC" ]; then
   log "Syncing GDrive (in case of emergency): $ICE_SRC → $ICE_DST"
   rsync -a --delete \
     --exclude='*.DS_Store' \
     --exclude='~$*' \
+    --exclude='*.gdoc' \
+    --exclude='*.gsheet' \
+    --exclude='*.gslides' \
+    --exclude='*.gform' \
+    --exclude='*.gdraw' \
     "$ICE_SRC" "$ICE_DST" \
     >> "$LOGFILE" 2>&1 && log "GDrive ICE sync OK" || { log "ERROR: GDrive ICE sync failed"; ERRORS=$((ERRORS+1)); }
 else
