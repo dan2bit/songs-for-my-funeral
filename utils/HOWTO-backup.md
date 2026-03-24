@@ -6,6 +6,7 @@ The backup script mirrors two things to the thumb drive:
 |--------|----------------------|
 | `~/github/hm/songs-for-my-funeral/` (repo clone) | `Dan-RIP/songs-for-my-funeral-website/` |
 | Google Drive `songs for my funeral/` folder | `Dan-RIP/songs-for-my-funeral-slideshow/` |
+| Google Drive `in case of emergency/` folder | `Dan-RIP/in case of emergency/` |
 
 The folder names are intentional — if someone picks up the drive without any context, `songs-for-my-funeral-slideshow/` is immediately obvious as the thing to open.
 
@@ -27,25 +28,39 @@ chmod +x ~/github/hm/songs-for-my-funeral/backup-to-thumb.sh
 
 ### 2. Edit the plist with your actual username
 
-Open `utils/com.dan2bit.funeral-backup.plist` in any text editor and replace both instances of `YOURUSERNAME` with your macOS username (the short name, e.g. `dan`).
+Open `utils/com.dan2bit.funeral-backup.plist` in any text editor and replace both instances of `YOURUSERNAME` with your macOS username (the short name, e.g. `dan2bit`).
 
 You can find your username by running:
 ```bash
 whoami
 ```
 
-### 3. Install the plist as a launchd agent
+### 3. Install the plist and substitute your username in one step
 
 ```bash
 cp ~/github/hm/songs-for-my-funeral/utils/com.dan2bit.funeral-backup.plist \
    ~/Library/LaunchAgents/
 
-launchctl load ~/Library/LaunchAgents/com.dan2bit.funeral-backup.plist
+sed -i '' "s/YOURUSERNAME/$(whoami)/g" \
+   ~/Library/LaunchAgents/com.dan2bit.funeral-backup.plist
 ```
 
-That's it. launchd will now run the backup every 30 minutes whenever you're logged in.
+### 4. Load the agent
 
-### 4. Test it immediately
+**On macOS Sequoia / Tahoe (14+), use `bootstrap`:**
+
+```bash
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.dan2bit.funeral-backup.plist
+```
+
+If that fails with `Bootstrap failed: 5: Input/output error`, there is likely a stale entry from a previous install or OS upgrade. Clear it first, then retry:
+
+```bash
+launchctl bootout gui/$(id -u)/com.dan2bit.funeral-backup
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.dan2bit.funeral-backup.plist
+```
+
+### 5. Test it immediately
 
 Plug in `Dan-RIP`, then run:
 ```bash
@@ -59,12 +74,14 @@ tail ~/Library/Logs/funeral-backup.log
 
 You should see something like:
 ```
-[2026-03-16 01:30:00] --- backup started ---
-[2026-03-16 01:30:00] Syncing repo: ...
-[2026-03-16 01:30:02] Repo sync OK
-[2026-03-16 01:30:02] Syncing GDrive: ...
-[2026-03-16 01:30:08] GDrive sync OK
-[2026-03-16 01:30:08] --- backup complete (no errors) ---
+[2026-03-24 01:30:00] --- backup started ---
+[2026-03-24 01:30:00] Syncing repo: ...
+[2026-03-24 01:30:02] Repo sync OK
+[2026-03-24 01:30:02] Syncing GDrive (slideshow): ...
+[2026-03-24 01:30:08] GDrive slideshow sync OK
+[2026-03-24 01:30:08] Syncing GDrive (in case of emergency): ...
+[2026-03-24 01:30:09] GDrive ICE sync OK
+[2026-03-24 01:30:09] --- backup complete (no errors) ---
 ```
 
 ---
@@ -72,16 +89,32 @@ You should see something like:
 ## Managing the agent
 
 ```bash
-# Stop it (stops the running job, won't restart until next login)
-launchctl unload ~/Library/LaunchAgents/com.dan2bit.funeral-backup.plist
+# Check if it's running
+launchctl list | grep funeral
 
-# Start it again
-launchctl load ~/Library/LaunchAgents/com.dan2bit.funeral-backup.plist
+# Stop and unregister
+launchctl bootout gui/$(id -u)/com.dan2bit.funeral-backup
 
-# Run it immediately (useful for testing)
-launchctl start com.dan2bit.funeral-backup
+# Re-register and start
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.dan2bit.funeral-backup.plist
 
-# Check its status
+# Run it immediately (useful for testing, once registered)
+launchctl kickstart gui/$(id -u)/com.dan2bit.funeral-backup
+```
+
+---
+
+## After a macOS upgrade
+
+If the agent stops working after an OS update, the most likely cause is a stale launchd entry. Fix:
+
+```bash
+launchctl bootout gui/$(id -u)/com.dan2bit.funeral-backup
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.dan2bit.funeral-backup.plist
+```
+
+Verify it took:
+```bash
 launchctl list | grep funeral
 ```
 
@@ -89,7 +122,7 @@ launchctl list | grep funeral
 
 ## Changing the interval
 
-Edit the plist and change the `StartInterval` value (in seconds):
+Edit the installed plist and change the `StartInterval` value (in seconds):
 
 | Interval | Seconds |
 |----------|---------|
@@ -99,8 +132,8 @@ Edit the plist and change the `StartInterval` value (in seconds):
 
 After editing, reload:
 ```bash
-launchctl unload ~/Library/LaunchAgents/com.dan2bit.funeral-backup.plist
-launchctl load   ~/Library/LaunchAgents/com.dan2bit.funeral-backup.plist
+launchctl bootout gui/$(id -u)/com.dan2bit.funeral-backup
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.dan2bit.funeral-backup.plist
 ```
 
 ---
