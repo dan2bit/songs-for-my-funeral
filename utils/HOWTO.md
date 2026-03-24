@@ -16,6 +16,25 @@ The live-shows scripts use two separate Google credentials that must be kept **o
 | `live-shows/client_secrets.json` | `youtube_create_playlists.py` only | download from Google Cloud Console |
 | `live-shows/token.json` | `youtube_create_playlists.py` only | auto-generated on first auth run |
 
+### Step 0 — Set up the Python virtual environment (first time only)
+
+The scripts require a few Python packages. Because macOS Homebrew Python 3.14+ refuses system-wide pip installs, use a virtual environment instead. This only needs to be done once per machine, after cloning.
+
+```bash
+cd ~/github/hm/songs-for-my-funeral/live-shows
+python3 -m venv .venv
+source .venv/bin/activate
+pip install python-dotenv google-api-python-client google-auth-oauthlib requests beautifulsoup4
+```
+
+The `.venv/` folder is gitignored. **Every time you open a new terminal to run these scripts**, activate the venv first:
+
+```bash
+source ~/github/hm/songs-for-my-funeral/live-shows/.venv/bin/activate
+```
+
+Your prompt will show `(.venv)` when it's active. You only need to `pip install` once — after that, just activate and run.
+
 ### Step 1 — Create the .env file
 
 ```bash
@@ -47,12 +66,15 @@ This file is used by `youtube_create_playlists.py` for write access (creating pl
 
 If no OAuth client exists, create one: **+ Create Credentials** → **OAuth client ID** → Application type: **Desktop app** → name it anything → click **Create** → download the JSON.
 
+If prompted to configure a consent screen first: go to https://console.cloud.google.com/apis/auth/consent?project=dan2bit-youtub-channel, fill in App name and your email, click through Scopes and Test users without adding anything, save. Then come back and create the OAuth client ID.
+
 ### Step 4 — Generate token.json (first run only)
 
 `token.json` is auto-generated the first time you authenticate. You don't create it manually.
 
 ```bash
 cd ~/github/hm/songs-for-my-funeral/live-shows
+source .venv/bin/activate
 python3 youtube_create_playlists.py --auth-only
 ```
 
@@ -61,8 +83,10 @@ This opens a browser window, asks you to approve access to your YouTube account,
 ### Verify everything is working
 
 ```bash
-# Test the API key (youtube_fetch.py)
 cd ~/github/hm/songs-for-my-funeral/live-shows
+source .venv/bin/activate
+
+# Test the API key (youtube_fetch.py)
 python3 youtube_fetch.py
 
 # Test OAuth (dry run — no playlists created)
@@ -73,6 +97,9 @@ python3 youtube_create_playlists.py --dry-run --date 2022-12-16
 
 ```bash
 cd ~/github/hm/songs-for-my-funeral/live-shows
+python3 -m venv .venv
+source .venv/bin/activate
+pip install python-dotenv google-api-python-client google-auth-oauthlib requests beautifulsoup4
 cp .env.example .env
 # Fill in YOUTUBE_API_KEY in .env
 # Download client_secrets.json from Google Cloud Console
@@ -150,6 +177,7 @@ songs for my funeral/
 | `.env` | local only | ❌ gitignored |
 | `client_secrets.json` | local only | ❌ gitignored |
 | `token.json` | local only | ❌ gitignored |
+| `.venv/` | local only | ❌ gitignored |
 
 ---
 

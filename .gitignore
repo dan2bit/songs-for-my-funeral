@@ -24,3 +24,6 @@ silence_*.mp3
 live-shows/.env
 live-shows/client_secrets.json
 live-shows/token.json
+
+# Python virtual environment
+live-shows/.venv/
