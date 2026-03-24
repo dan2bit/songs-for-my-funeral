@@ -66,7 +66,17 @@ This file is used by `youtube_create_playlists.py` for write access (creating pl
 
 If no OAuth client exists, create one: **+ Create Credentials** → **OAuth client ID** → Application type: **Desktop app** → name it anything → click **Create** → download the JSON.
 
-If prompted to configure a consent screen first: go to https://console.cloud.google.com/apis/auth/consent?project=dan2bit-youtub-channel, fill in App name and your email, click through Scopes and Test users without adding anything, save. Then come back and create the OAuth client ID.
+If prompted to configure a consent screen first: go to https://console.cloud.google.com/apis/auth/consent?project=dan2bit-youtub-channel, fill in App name and your email, click through Scopes without adding anything, save. Then come back and create the OAuth client ID.
+
+### Step 3a — Add yourself as a test user (required for OAuth)
+
+Because the app is in "Testing" mode, Google will block the auth flow with a 403 unless your account is explicitly listed as a test user.
+
+1. Go to https://console.cloud.google.com/auth/audience?project=dan2bit-youtub-channel
+2. Under **Test users**, click **+ Add Users**
+3. Enter `redhat.bootlegs@gmail.com` and save
+
+You only need to do this once. If you ever see a 403 "access blocked" error during `--auth-only`, come back here and verify the account is still listed.
 
 ### Step 4 — Generate token.json (first run only)
 
@@ -103,6 +113,7 @@ pip install python-dotenv google-api-python-client google-auth-oauthlib requests
 cp .env.example .env
 # Fill in YOUTUBE_API_KEY in .env
 # Download client_secrets.json from Google Cloud Console
+# Verify redhat.bootlegs@gmail.com is listed at https://console.cloud.google.com/auth/audience?project=dan2bit-youtub-channel
 python3 youtube_create_playlists.py --auth-only   # generates token.json
 ```
 
