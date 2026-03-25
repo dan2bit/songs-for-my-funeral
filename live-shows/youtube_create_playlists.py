@@ -132,22 +132,19 @@ SETLIST_DELAY = 2.0  # seconds between setlist.fm requests
 #   2024-06-27  Christone Kingfish Ingram (PLJ7S-K0cjvGLSwIQC01VwRxLlxqUnZBWz)
 #   2024-09-28  Soul Coughing        (PLJ7S-K0cjvGKJath7-jUYRE2EuuNFRgU7)
 #   2024-10-03  The Lone Bellow      (PLJ7S-K0cjvGJBpcSRwOfciHwhbssMAyAR)
+#   2024-11-20  Samantha Fish        (PLJ7S-K0cjvGJ4Z5BOVXjoqZtOfng90wNV)
+#   2025-04-11  The War and Treaty   (PLJ7S-K0cjvGJ0oxlwovpXG26gHAMR0ViG)
+#   2025-06-10  Suzanne Vega         (PLJ7S-K0cjvGK5nb1sCthFnLvqdYbJI_tD)
+#   2025-07-17  Jax Hollow           (PLJ7S-K0cjvGJqpoD9UT_BtMYghkC91Vqr)
+#   2025-08-19  D.K. Harrell         (PLJ7S-K0cjvGLG-WCQPCyCMvPy5mhfmOym)
+#   2025-09-19  Alabama Shakes       (PLJ7S-K0cjvGKuIHQkITzIRpAiSxah3hpx)
+#   2025-09-24  Christone Kingfish Ingram (PLJ7S-K0cjvGIRp58p0ZK_whWMsFRNnYmN)
+#   2025-10-15  Jackie Venson        (PLJ7S-K0cjvGKYTwXZMX8huYuTgbPF-_Qh)
+#   2025-10-21  Tommy Emmanuel       (PLJ7S-K0cjvGLOAzoPhVXBV1lHGD1YliMK)
+#   2025-10-26  Ruthie Foster        (PLJ7S-K0cjvGLZWb0lcUzPfC917AfzTCz0)
+#   2025-11-08  North Mississippi Allstars (PLJ7S-K0cjvGKXGlxcjXwWHadud4tZUOYn)
 WORKLIST = [
-    # Tier 1 — high video count + important notes
-    ("2025-10-21", "Tommy Emmanuel",                None),
-    ("2025-10-15", "Jackie Venson",                 None),
-    # Tier 2
     ("2021-11-18", "Christone \"Kingfish\" Ingram", None),  # Sixth & I
-    ("2024-11-20", "Samantha Fish",                 None),
-    ("2025-10-26", "Ruthie Foster",                 None),
-    ("2025-11-08", "North Mississippi Allstars",    None),
-    ("2025-09-19", "Alabama Shakes",                None),
-    ("2025-09-24", "Christone \"Kingfish\" Ingram", None),
-    ("2025-08-19", "D.K. Harrell",                  None),
-    ("2025-07-17", "Jax Hollow",                    None),
-    ("2025-06-10", "Suzanne Vega",                  None),
-    # Tier 3
-    ("2025-04-11", "The War and Treaty",            None),
     ("2025-06-19", "Eric Gales",                    None),
     ("2025-07-21", "Amythyst Kiah",                 None),
     ("2025-10-08", "Judith Hill",                   None),
@@ -156,7 +153,6 @@ WORKLIST = [
 
 # ── auth ──────────────────────────────────────────────────────────────────────
 def get_authenticated_service():
-    # Resolve paths relative to this script's directory
     script_dir = os.path.dirname(os.path.abspath(__file__))
     client_secrets_path = os.path.join(script_dir, CLIENT_SECRETS)
     token_path = os.path.join(script_dir, TOKEN_FILE)
@@ -192,7 +188,6 @@ def load_videos():
 
 def load_history():
     rows = load_tsv(HISTORY_TSV)
-    # Index by (date, artist) for fast lookup
     index = {}
     for r in rows:
         index[(r["Show Date"], r["Artist"])] = r
