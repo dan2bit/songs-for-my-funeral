@@ -118,25 +118,29 @@ SETLIST_DELAY = 2.0  # seconds between setlist.fm requests
 # title_override: set a custom playlist title string; None = auto-generate.
 #
 # Removed — playlists already exist in live_shows_history.tsv:
-#   2022-11-30  Kate Davis          (combined 3-show playlist PLJ7S-K0cjvGLY-DcEWxAOKJUfpnxH0OjA)
+#   2021-10-16  Larkin Poe           (PLJ7S-K0cjvGK28bYHf1SaivuMW6_vbtb4, incl. fan videos)
+#   2022-11-30  Kate Davis           (combined 3-show playlist PLJ7S-K0cjvGLY-DcEWxAOKJUfpnxH0OjA)
 #   2022-12-16  They Might Be Giants (PLJ7S-K0cjvGL_4w7JPXDjdpVEyrdWMt7A)
 #   2022-12-29  The Pietasters       (PLJ7S-K0cjvGLSUDeAzh0kWdohvVdRgXwU)
+#   2023-01-28  Greensky Bluegrass   (PLJ7S-K0cjvGIwrytCDiiIwjYMp9Gu-dBU)
 #   2023-02-16  Gaelic Storm         (PLJ7S-K0cjvGJCuoPi7VNSx0axXv1HGFOu)
 #   2023-02-23  Buffalo Nichols      (PLJ7S-K0cjvGL3d6OIv6ko926yd1i6phA_)
 #   2023-03-09  Larkin Poe           (PLJ7S-K0cjvGITKvXJ5BP8bv4CKMnRkdiG)
 #   2023-06-15  Kate Davis           (combined 3-show playlist PLJ7S-K0cjvGLY-DcEWxAOKJUfpnxH0OjA)
+#   2023-06-20  Christone Kingfish Ingram (shared 2-show playlist PLJ7S-K0cjvGLFTXtHeMY5QzPncF8xiZP_)
 #   2023-11-26  The Lone Bellow      (PLJ7S-K0cjvGKRyNDy8v0VqJXIn3HkT39K)
 #   2024-06-27  Christone Kingfish Ingram (PLJ7S-K0cjvGLSwIQC01VwRxLlxqUnZBWz)
 #   2024-09-28  Soul Coughing        (PLJ7S-K0cjvGKJath7-jUYRE2EuuNFRgU7)
+#   2024-10-03  The Lone Bellow      (PLJ7S-K0cjvGJBpcSRwOfciHwhbssMAyAR)
 WORKLIST = [
     # Tier 1 — high video count + important notes
     ("2025-10-21", "Tommy Emmanuel",                None),
     ("2025-10-15", "Jackie Venson",                 None),
     # Tier 2
+    ("2021-11-18", "Christone \"Kingfish\" Ingram", None),  # Sixth & I
     ("2024-11-20", "Samantha Fish",                 None),
     ("2025-10-26", "Ruthie Foster",                 None),
     ("2025-11-08", "North Mississippi Allstars",    None),
-    ("2023-01-28", "Greensky Bluegrass",            None),
     ("2025-09-19", "Alabama Shakes",                None),
     ("2025-09-24", "Christone \"Kingfish\" Ingram", None),
     ("2025-08-19", "D.K. Harrell",                  None),
@@ -213,8 +217,6 @@ def format_date_short(date_str):
     return f"{d.month}/{d.day}/{d.strftime('%y')}"
 
 # ── venue short name ──────────────────────────────────────────────────────────
-# Maps venue strings (as they appear in history) to short display names for
-# playlist titles. Falls back to first segment of venue name if not found.
 VENUE_SHORT = {
     "Lincoln Theatre, Washington, DC, USA":                         "Lincoln Theatre (DC)",
     "The Hamilton Live, Washington, DC, USA":                       "Hamilton Live (DC)",
@@ -255,29 +257,22 @@ VENUE_SHORT = {
     "Bethesda Theater, Bethesda, MD, USA":                          "Bethesda Theatre (MD)",
     "Hub City Vinyl, Hagerstown, MD, USA":                          "Hub City Vinyl (MD)",
     "Columbia Art Center, Columbia, MD, USA":                       "Columbia Art Center (MD)",
+    "Sixth & I Historic Synagogue, Washington, DC, USA":            "Sixth & I (DC)",
 }
 
 def venue_short(venue_str):
     if venue_str in VENUE_SHORT:
         return VENUE_SHORT[venue_str]
-    # Fallback: strip ", [State], USA" and use first portion
     parts = venue_str.split(",")
     return parts[0].strip()
 
 # ── playlist title generation ─────────────────────────────────────────────────
 def make_playlist_title(headliner, venue_str, date_str):
-    """
-    Follows @dan2bit naming convention:
-    "{Headliner} LIVE @ {Venue Short} {M/D/YY}"
-    e.g. "They Might Be Giants LIVE @ Lincoln Theatre (DC) 12/16/22"
-    """
-    # Strip quoted nicknames for cleaner titles (e.g. Christone "Kingfish" Ingram)
     name = re.sub(r'\s*"[^"]+"\s*', ' ', headliner).strip()
     return f"{name} LIVE @ {venue_short(venue_str)} {format_date_short(date_str)}"
 
 # ── video matching ────────────────────────────────────────────────────────────
 def find_videos_for_date(date_str, videos):
-    """Return all videos whose description contains a date variant for this show."""
     dvs = date_variants(date_str)
     return [v for v in videos if any(dv in v.get("description", "") for dv in dvs)]
 
@@ -285,13 +280,11 @@ def normalize_title(s):
     return re.sub(r"[^\w\s]", "", s.lower()).strip()
 
 def artist_words(artist):
-    """Return distinctive words from artist name for matching."""
     noise = {"band", "the", "and", "live", "feat", "featuring", "with", "ingram"}
     words = normalize_title(artist).split()
     return [w for w in words if len(w) > 3 and w not in noise]
 
 def video_is_for_artist(video_title, artist):
-    """Loose check: does this video title seem to be about this artist?"""
     vt = normalize_title(video_title)
     for w in artist_words(artist):
         if w in vt:
@@ -299,18 +292,10 @@ def video_is_for_artist(video_title, artist):
     return False
 
 def partition_videos(show_date, headliner, supporting_acts_str, all_date_videos):
-    """
-    Split date-matched videos into:
-      - headliner_videos: videos whose title matches the headliner
-      - support_groups: dict of {act_name: [videos]} for supporting acts
-      - unattributed: videos that don't clearly match any act
-    """
     acts = [a.strip() for a in re.split(r"[/&]", supporting_acts_str) if a.strip()] if supporting_acts_str else []
-
     headliner_vids = []
     support_vids = {act: [] for act in acts}
     unattributed = []
-
     for v in all_date_videos:
         title = v["title"]
         if video_is_for_artist(title, headliner):
@@ -325,16 +310,10 @@ def partition_videos(show_date, headliner, supporting_acts_str, all_date_videos)
                 support_vids[matched_act].append(v)
             else:
                 unattributed.append(v)
-
     return headliner_vids, support_vids, unattributed
 
 # ── setlist.fm ordering ───────────────────────────────────────────────────────
 def fetch_setlist_songs(setlist_url):
-    """
-    Fetch song titles from a setlist.fm URL.
-    Returns (list_of_song_titles, status_message).
-    status_message explains what happened (used in log even on failure).
-    """
     if not setlist_url:
         return [], "no setlist URL"
     try:
@@ -343,7 +322,6 @@ def fetch_setlist_songs(setlist_url):
         if resp.status_code != 200:
             return [], f"HTTP {resp.status_code}"
         soup = BeautifulSoup(resp.text, "html.parser")
-        # setlist.fm song titles are in <a class="songLabel"> or <span class="songLabel">
         songs = []
         for tag in soup.find_all(class_="songLabel"):
             t = tag.get_text(strip=True)
@@ -356,17 +334,11 @@ def fetch_setlist_songs(setlist_url):
         return [], f"fetch error: {e}"
 
 def order_by_setlist(videos, songs):
-    """
-    Reorder videos to match setlist song order.
-    Unmatched videos go at the end in upload-date order.
-    Returns ordered list.
-    """
     if not songs:
         return sorted(videos, key=lambda v: v.get("published", ""))
 
     def best_match(video_title, songs):
         vt = normalize_title(video_title)
-        # Strip "(bootleg)", "LIVE -", artist prefix patterns for cleaner matching
         vt = re.sub(r"\bbootleg\b", "", vt)
         vt = re.sub(r"\blive\b", "", vt)
         vt = vt.strip()
@@ -374,16 +346,15 @@ def order_by_setlist(videos, songs):
         best_score = 0
         for i, song in enumerate(songs):
             sn = normalize_title(song)
-            # Score: number of shared words
             vwords = set(vt.split())
             swords = set(sn.split())
             shared = len(vwords & swords)
             if shared > best_score and shared >= 1:
                 best_score = shared
                 best_idx = i
-        return best_idx  # None if no match
+        return best_idx
 
-    placed = {}  # setlist_index → video
+    placed = {}
     unmatched = []
     for v in videos:
         idx = best_match(v["title"], songs)
@@ -391,7 +362,6 @@ def order_by_setlist(videos, songs):
             placed[idx] = v
         else:
             unmatched.append(v)
-
     ordered = [placed[i] for i in sorted(placed.keys())]
     ordered += sorted(unmatched, key=lambda v: v.get("published", ""))
     return ordered
@@ -401,10 +371,7 @@ def create_playlist(youtube, title, description=""):
     resp = youtube.playlists().insert(
         part="snippet,status",
         body={
-            "snippet": {
-                "title": title,
-                "description": description,
-            },
+            "snippet": {"title": title, "description": description},
             "status": {"privacyStatus": "public"},
         }
     ).execute()
@@ -413,28 +380,18 @@ def create_playlist(youtube, title, description=""):
 def add_video_to_playlist(youtube, playlist_id, video_id, position):
     youtube.playlistItems().insert(
         part="snippet",
-        body={
-            "snippet": {
-                "playlistId": playlist_id,
-                "resourceId": {
-                    "kind": "youtube#video",
-                    "videoId": video_id,
-                },
-                "position": position,
-            }
-        }
+        body={"snippet": {"playlistId": playlist_id, "resourceId": {"kind": "youtube#video", "videoId": video_id}, "position": position}}
     ).execute()
 
 # ── history update ─────────────────────────────────────────────────────────────
 def update_history_playlist_url(date_str, artist, playlist_url):
-    """Write playlist URL back to live_shows_history.tsv for this show."""
     rows = load_tsv(HISTORY_TSV)
     fieldnames = list(rows[0].keys()) if rows else []
     updated = False
     for r in rows:
         if r["Show Date"] == date_str and r["Artist"] == artist:
             r["Playlist URL"] = playlist_url
-            r["Match Type"] = f"Playlist (assembled)"
+            r["Match Type"] = "Playlist (assembled)"
             updated = True
             break
     if updated:
@@ -447,11 +404,7 @@ def update_history_playlist_url(date_str, artist, playlist_url):
         print(f"  WARNING: could not find {date_str} / {artist} in {HISTORY_TSV}")
 
 # ── log ───────────────────────────────────────────────────────────────────────
-LOG_FIELDNAMES = [
-    "Show Date", "Artist", "Playlist Title", "Playlist URL",
-    "Video Count", "Setlist URL Checked", "Setlist Order Used",
-    "Videos Added"
-]
+LOG_FIELDNAMES = ["Show Date", "Artist", "Playlist Title", "Playlist URL", "Video Count", "Setlist URL Checked", "Setlist Order Used", "Videos Added"]
 
 def write_log_row(log_rows):
     write_header = not os.path.exists(LOG_TSV)
@@ -463,79 +416,42 @@ def write_log_row(log_rows):
             writer.writerow(row)
 
 # ── core per-show processing ──────────────────────────────────────────────────
-def process_show(youtube, date_str, headliner, title_override,
-                 videos, history_index, dry_run=False, update_history=False):
-    """
-    Full pipeline for one show:
-      1. Look up show in history for venue, supporting acts, setlist URL
-      2. Find all date-matched videos
-      3. Partition into headliner / supporting act groups
-      4. Fetch setlist.fm ordering for each group
-      5. Create playlist and add videos (or print plan in dry-run mode)
-      6. Log results
-    """
+def process_show(youtube, date_str, headliner, title_override, videos, history_index, dry_run=False, update_history=False):
     print(f"\n{'[DRY RUN] ' if dry_run else ''}Processing: {date_str} — {headliner}")
-
-    # 1. Look up show
     show = history_index.get((date_str, headliner))
     if not show:
-        # Try fuzzy — headliner name may differ slightly
-        matches = [(k, v) for k, v in history_index.items()
-                   if k[0] == date_str and headliner.lower()[:8] in k[1].lower()]
+        matches = [(k, v) for k, v in history_index.items() if k[0] == date_str and headliner.lower()[:8] in k[1].lower()]
         if matches:
             show = matches[0][1]
             print(f"  Fuzzy match: {matches[0][0][1]}")
         else:
             print(f"  WARNING: show not found in history — skipping")
             return None
-
-    venue_str       = show.get("Venue", "")
-    supporting_str  = show.get("Supporting Acts", "")
-    setlist_url     = show.get("Setlist.fm URL", "")
-
-    # 2. Find date-matched videos
+    venue_str      = show.get("Venue", "")
+    supporting_str = show.get("Supporting Acts", "")
+    setlist_url    = show.get("Setlist.fm URL", "")
     date_vids = find_videos_for_date(date_str, videos)
     if not date_vids:
         print(f"  No videos found for {date_str} — skipping")
         return None
     print(f"  Found {len(date_vids)} video(s) for this date")
-
-    # 3. Partition
-    headliner_vids, support_vids, unattributed = partition_videos(
-        date_str, headliner, supporting_str, date_vids
-    )
-    print(f"  Headliner: {len(headliner_vids)} | "
-          f"Support: {sum(len(v) for v in support_vids.values())} | "
-          f"Unattributed: {len(unattributed)}")
-
-    # Unattributed go with headliner group (better than dropping them)
+    headliner_vids, support_vids, unattributed = partition_videos(date_str, headliner, supporting_str, date_vids)
+    print(f"  Headliner: {len(headliner_vids)} | Support: {sum(len(v) for v in support_vids.values())} | Unattributed: {len(unattributed)}")
     headliner_vids += unattributed
-
-    # 4. Fetch setlist ordering
     setlist_songs, setlist_status = fetch_setlist_songs(setlist_url)
     print(f"  Setlist.fm ({setlist_url or 'none'}): {setlist_status}")
-
     headliner_vids = order_by_setlist(headliner_vids, setlist_songs)
-
-    # For supporting acts, try setlist.fm too (same URL, different songs won't match well
-    # but the attempt is logged). In practice supporting setlists would need separate URLs
-    # which we don't have — so supporting act videos just sort by upload date.
     ordered_support = []
     for act, act_vids in support_vids.items():
         if act_vids:
             act_sorted = sorted(act_vids, key=lambda v: v.get("published", ""))
             ordered_support.extend(act_sorted)
             print(f"  Supporting act '{act}': {len(act_vids)} video(s) (upload order)")
-
     final_order = headliner_vids + ordered_support
-
-    # 5. Build playlist title
     playlist_title = title_override or make_playlist_title(headliner, venue_str, date_str)
     print(f"  Playlist title: {playlist_title}")
-    print(f"  Videos in order:")
     for i, v in enumerate(final_order, 1):
         print(f"    {i:2}. {v['title'][:80]}")
-
     playlist_url = "[dry run — no playlist created]"
     if not dry_run:
         print("  Creating playlist...")
@@ -543,21 +459,15 @@ def process_show(youtube, date_str, headliner, title_override,
         print(f"  Playlist created: {playlist_url}")
         for pos, v in enumerate(final_order):
             add_video_to_playlist(youtube, playlist_id, v["video_id"], pos)
-            time.sleep(0.3)  # be gentle with quota
+            time.sleep(0.3)
         print(f"  Added {len(final_order)} videos")
         if update_history:
             update_history_playlist_url(date_str, headliner, playlist_url)
-
-    # 6. Log
     log_row = {
-        "Show Date":          date_str,
-        "Artist":             headliner,
-        "Playlist Title":     playlist_title,
-        "Playlist URL":       playlist_url,
-        "Video Count":        len(final_order),
-        "Setlist URL Checked": setlist_url or "none",
-        "Setlist Order Used": setlist_status,
-        "Videos Added":       " | ".join(v["title"] for v in final_order),
+        "Show Date": date_str, "Artist": headliner, "Playlist Title": playlist_title,
+        "Playlist URL": playlist_url, "Video Count": len(final_order),
+        "Setlist URL Checked": setlist_url or "none", "Setlist Order Used": setlist_status,
+        "Videos Added": " | ".join(v["title"] for v in final_order),
     }
     write_log_row([log_row])
     return playlist_url
@@ -566,14 +476,12 @@ def process_show(youtube, date_str, headliner, title_override,
 def main():
     import argparse
     parser = argparse.ArgumentParser(description="Create YouTube playlists for @dan2bit shows")
-    parser.add_argument("--auth-only",      action="store_true", help="Just authenticate and exit")
-    parser.add_argument("--dry-run",        action="store_true", help="Print plan without calling API")
-    parser.add_argument("--worklist",       action="store_true", help="Process all shows in WORKLIST")
-    parser.add_argument("--date",           nargs="+",           help="Process specific date(s) YYYY-MM-DD")
-    parser.add_argument("--update-history", action="store_true", help="Write playlist URLs back to history TSV")
+    parser.add_argument("--auth-only",      action="store_true")
+    parser.add_argument("--dry-run",        action="store_true")
+    parser.add_argument("--worklist",       action="store_true")
+    parser.add_argument("--date",           nargs="+")
+    parser.add_argument("--update-history", action="store_true")
     args = parser.parse_args()
-
-    # Auth
     youtube = None
     if not args.dry_run:
         print("Authenticating with YouTube...")
@@ -582,25 +490,19 @@ def main():
         if args.auth_only:
             print("Auth complete. token.json saved.")
             return
-
-    # Load data
     videos = load_videos()
     history_rows, history_index = load_history()
     print(f"Loaded {len(history_rows)} history shows")
-
-    # Build work queue
     queue = []
     if args.worklist:
         queue = [(d, a, t) for d, a, t in WORKLIST]
         print(f"Processing {len(queue)} shows from WORKLIST")
     elif args.date:
-        # Find matching entries in WORKLIST, or use headliner from history
         worklist_index = {d: (d, a, t) for d, a, t in WORKLIST}
         for date_str in args.date:
             if date_str in worklist_index:
                 queue.append(worklist_index[date_str])
             else:
-                # Try to find the show in history
                 matches = [(k, v) for k, v in history_index.items() if k[0] == date_str]
                 if matches:
                     artist = matches[0][0][1]
@@ -611,24 +513,14 @@ def main():
     else:
         parser.print_help()
         return
-
-    # Process
     results = []
     for date_str, headliner, title_override in queue:
-        url = process_show(
-            youtube, date_str, headliner, title_override,
-            videos, history_index,
-            dry_run=args.dry_run,
-            update_history=args.update_history,
-        )
+        url = process_show(youtube, date_str, headliner, title_override, videos, history_index, dry_run=args.dry_run, update_history=args.update_history)
         results.append((date_str, headliner, url))
-
-    # Summary
     print(f"\n{'='*60}")
     print(f"{'DRY RUN ' if args.dry_run else ''}SUMMARY — {len(results)} show(s) processed")
     for date_str, headliner, url in results:
-        status = url or "skipped"
-        print(f"  {date_str}  {headliner:<35}  {status}")
+        print(f"  {date_str}  {headliner:<35}  {url or 'skipped'}")
     print(f"\nLog written to: {LOG_TSV}")
     if args.update_history and not args.dry_run:
         print(f"History updated: {HISTORY_TSV}")
