@@ -22,12 +22,13 @@ OPTIONS
   --days N             Only show events in the next N days (default: 365)
   --app-id ID          Bandsintown app_id string (default: dan2bit-shows)
   --delay SECS         Seconds between API calls in scan mode (default: 0.5)
+  --no-verify          Disable SSL certificate verification (see SSL note below)
 
-DATA FILES (relative to this script's directory, one level up in live-shows/)
+DATA FILES (same directory as this script)
 -----------
-  ../live-shows/live_shows_history.tsv   — seen-before artist list
-  ../live-shows/venues.tsv               — venue list with city/region
-  ../live-shows/live_shows_2026.tsv      — upcoming ticketed shows
+  live_shows_history.tsv   — seen-before artist list
+  venues.tsv               — venue list with city/region
+  live_shows_2026.tsv      — upcoming ticketed shows
 
 OUTPUT
 ------
@@ -36,6 +37,20 @@ OUTPUT
     ✓ HAVE TICKET  2026-07-11  Shovels & Rope @ The Birchmere (Alexandria, VA)
     → BUY TICKETS  2026-08-15  Larkin Poe @ The Birchmere (Alexandria, VA)
                    https://www.bandsintown.com/t/...
+
+SSL CERTIFICATE NOTE
+--------------------
+  If you see: [SSL: CERTIFICATE_VERIFY_FAILED] unable to get local issuer certificate
+
+  This is a macOS + python.org installer issue. The permanent fix is:
+    /Applications/Python\ 3.x/Install\ Certificates.command
+  (substitute your Python version, e.g. 3.13)
+
+  Quick workaround (less secure, fine for this read-only script):
+    python3 bandsintown_check.py --no-verify --artist "Larkin Poe"
+
+  The --no-verify flag suppresses SSL verification for all API calls.
+  It also suppresses the InsecureRequestWarning that urllib would emit.
 
 NOTES ON THE BANDSINTOWN PUBLIC API
 ------------------------------------
@@ -54,6 +69,7 @@ import argparse
 import csv
 import json
 import os
+import ssl
 import sys
 import time
 import urllib.parse
@@ -63,12 +79,11 @@ from difflib import SequenceMatcher
 
 # ── config ────────────────────────────────────────────────────────────────────
 SCRIPT_DIR   = os.path.dirname(os.path.abspath(__file__))
-LIVE_SHOWS   = os.path.join(SCRIPT_DIR, "..", "live-shows")
-HISTORY_TSV  = os.path.join(LIVE_SHOWS, "live_shows_history.tsv")
-VENUES_TSV   = os.path.join(LIVE_SHOWS, "venues.tsv")
-UPCOMING_TSV = os.path.join(LIVE_SHOWS, "live_shows_2026.tsv")
+HISTORY_TSV  = os.path.join(SCRIPT_DIR, "live_shows_history.tsv")
+VENUES_TSV   = os.path.join(SCRIPT_DIR, "venues.tsv")
+UPCOMING_TSV = os.path.join(SCRIPT_DIR, "live_shows_2026.tsv")
 
-BIT_BASE     = "https://rest.bandsintown.com/artists/{name}/events"
+BIT_BASE      = "https://rest.bandsintown.com/artists/{name}/events"
 DEFAULT_APPID = "dan2bit-shows"
 
 # Similarity threshold for venue name fuzzy matching (0.0–1.0)
@@ -127,17 +142,16 @@ def parse_city_region(address):
 
 def get_ticketed_shows(upcoming_rows):
     """
-    Return a set of (artist_normalized, venue_name_normalized) pairs
+    Return a dict of (artist_normalized, venue_name_normalized) → date string
     for shows with Status == "upcoming" (i.e. ticket already purchased).
-    Also returns a dict mapping that key to the show date string.
     """
     ticketed = {}
     for r in upcoming_rows:
         status = r.get("Status", "").strip().lower()
         if status == "upcoming":
-            artist  = normalize(r.get("Artist", ""))
-            venue   = normalize(r.get("Venue Name", ""))
-            date    = r.get("Show Date", "").strip()
+            artist = normalize(r.get("Artist", ""))
+            venue  = normalize(r.get("Venue Name", ""))
+            date   = r.get("Show Date", "").strip()
             if artist and venue:
                 ticketed[(artist, venue)] = date
     return ticketed
@@ -159,7 +173,7 @@ def venue_matches(bit_venue_name, bit_city, our_venues, threshold=VENUE_MATCH_TH
     Matches on:
       - Normalized substring containment (either direction)
       - Or fuzzy similarity >= threshold
-    Also uses city as a tiebreaker / required condition.
+    City must roughly agree (unless one is blank).
     Returns list of matching venue dicts (usually 0 or 1).
     """
     matches = []
@@ -171,7 +185,6 @@ def venue_matches(bit_venue_name, bit_city, our_venues, threshold=VENUE_MATCH_TH
 
         # City must roughly agree (unless one is blank)
         if bc and vc and bc != vc:
-            # allow partial city match ("washington" in "washington, dc" etc.)
             if bc not in vc and vc not in bc:
                 continue
 
@@ -191,8 +204,25 @@ def venue_matches_query(venue_name, query):
     return query.lower() in venue_name.lower()
 
 
+# ── SSL context ────────────────────────────────────────────────────────────────
+def make_ssl_context(verify=True):
+    """
+    Build an SSL context. If verify=False, return an unverified context.
+
+    The standard macOS fix is running:
+      /Applications/Python 3.x/Install Certificates.command
+    but --no-verify is a quick workaround for this read-only script.
+    """
+    if not verify:
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        return ctx
+    return None  # None = use urllib's default (verified) context
+
+
 # ── Bandsintown API ───────────────────────────────────────────────────────────
-def fetch_artist_events(artist_name, app_id, date_param="upcoming"):
+def fetch_artist_events(artist_name, app_id, ssl_context, date_param="upcoming"):
     """
     Fetch upcoming events for an artist from Bandsintown public API.
     Returns list of event dicts, or [] on error / unknown artist.
@@ -205,8 +235,16 @@ def fetch_artist_events(artist_name, app_id, date_param="upcoming"):
     )
     try:
         req = urllib.request.Request(url, headers={"User-Agent": f"{app_id}/1.0"})
-        with urllib.request.urlopen(req, timeout=10) as resp:
+        with urllib.request.urlopen(req, timeout=10, context=ssl_context) as resp:
             raw = resp.read().decode("utf-8")
+    except ssl.SSLCertVerificationError:
+        print(
+            f"\n  [SSL error for {artist_name!r}]\n"
+            f"  Fix: run /Applications/Python\\ 3.x/Install\\ Certificates.command\n"
+            f"  Or rerun with --no-verify for a quick workaround.\n",
+            file=sys.stderr,
+        )
+        sys.exit(1)
     except Exception as e:
         print(f"  [API error for {artist_name!r}]: {e}", file=sys.stderr)
         return []
@@ -252,13 +290,12 @@ def print_result(event, artist_name, matched_venue, ticket_status):
     Print a single result line.
     ticket_status: "have_ticket" | "available" | "none"
     """
-    dt = event_date(event)
+    dt       = event_date(event)
     date_str = dt.isoformat() if dt else "????-??-??"
-    venue     = event.get("venue", {})
-    vname     = venue.get("name", "?")
-    city      = venue.get("city", "")
-    region    = venue.get("region", "")
-    location  = f"{city}, {region}" if region else city
+    venue    = event.get("venue", {})
+    city     = venue.get("city", "")
+    region   = venue.get("region", "")
+    location = f"{city}, {region}" if region else city
 
     if ticket_status == "have_ticket":
         prefix = "✓ HAVE TICKET"
@@ -275,36 +312,30 @@ def print_result(event, artist_name, matched_venue, ticket_status):
             print(f"                 {url}")
 
     if ticket_status == "none":
-        # Show BIT event page link as fallback
         bit_url = event.get("url", "")
         if bit_url:
             print(f"                 {bit_url}")
 
 
 # ── core matching logic ────────────────────────────────────────────────────────
-def check_events_against_venues(
-    artist_name, events, our_venues, ticketed, cutoff_date
-):
+def check_events_against_venues(artist_name, events, our_venues, ticketed, cutoff_date, ssl_context):
     """
     Filter a list of BIT events to those at our venues, within cutoff date,
     and print results. Returns count of matches.
     """
     count = 0
     for event in events:
-        # Date filter
         dt = event_date(event)
         if dt is None or dt > cutoff_date:
             continue
 
-        # Venue filter
         bit_venue = event.get("venue", {})
-        bvn  = bit_venue.get("name", "")
-        bvc  = bit_venue.get("city", "")
+        bvn = bit_venue.get("name", "")
+        bvc = bit_venue.get("city", "")
         matched = venue_matches(bvn, bvc, our_venues)
         if not matched:
             continue
 
-        # Determine ticket status
         mv   = matched[0]
         akey = normalize(artist_name)
         vnk  = normalize(mv["name"])
@@ -322,31 +353,29 @@ def check_events_against_venues(
 
 
 # ── modes ─────────────────────────────────────────────────────────────────────
-def mode_artist(query, our_venues, ticketed, cutoff, app_id):
+def mode_artist(query, our_venues, ticketed, cutoff, app_id, ssl_context):
     """Mode 1: given an artist query, check all venues."""
     print(f"\n── Artist search: {query!r} ──────────────────────────────────────")
-    # Load history to find exact artist name(s) matching query
-    history = load_tsv(HISTORY_TSV)
-    artists = get_seen_artists(history)
+    history    = load_tsv(HISTORY_TSV)
+    artists    = get_seen_artists(history)
     candidates = [a for a in artists if artist_matches_query(a, query)]
 
     if not candidates:
-        # Try the query literally even if not in history
         candidates = [query]
         print(f"  (not in seen-before list; searching BIT directly for {query!r})")
 
     total = 0
     for artist in candidates:
         print(f"\n  Fetching events for: {artist}")
-        events = fetch_artist_events(artist, app_id)
-        n = check_events_against_venues(artist, events, our_venues, ticketed, cutoff)
+        events = fetch_artist_events(artist, app_id, ssl_context)
+        n = check_events_against_venues(artist, events, our_venues, ticketed, cutoff, ssl_context)
         if n == 0:
-            print(f"  (no upcoming matches at your venues)")
+            print("  (no upcoming matches at your venues)")
         total += n
     return total
 
 
-def mode_venue(query, our_venues, ticketed, cutoff, app_id, delay):
+def mode_venue(query, our_venues, ticketed, cutoff, app_id, ssl_context, delay):
     """Mode 2: given a venue query, check all seen-before artists."""
     print(f"\n── Venue search: {query!r} ───────────────────────────────────────")
     matched_venues = [v for v in our_venues if venue_matches_query(v["name"], query)]
@@ -364,19 +393,18 @@ def mode_venue(query, our_venues, ticketed, cutoff, app_id, delay):
     for i, artist in enumerate(artists):
         if i > 0 and delay > 0:
             time.sleep(delay)
-        events = fetch_artist_events(artist, app_id)
-        # Only check against the queried venues
-        n = check_events_against_venues(artist, events, matched_venues, ticketed, cutoff)
+        events = fetch_artist_events(artist, app_id, ssl_context)
+        n = check_events_against_venues(artist, events, matched_venues, ticketed, cutoff, ssl_context)
         total += n
 
     if total == 0:
-        print(f"\n  No upcoming matches found at this venue for any seen-before artist.")
+        print("\n  No upcoming matches found at this venue for any seen-before artist.")
     return total
 
 
-def mode_scan(our_venues, ticketed, cutoff, app_id, delay):
+def mode_scan(our_venues, ticketed, cutoff, app_id, ssl_context, delay):
     """Mode 3: all seen-before artists × all venues."""
-    print(f"\n── Full scan: all artists × all venues ──────────────────────────")
+    print("\n── Full scan: all artists × all venues ──────────────────────────")
     history = load_tsv(HISTORY_TSV)
     artists = get_seen_artists(history)
     print(f"  {len(artists)} artists × {len(our_venues)} venues")
@@ -385,14 +413,14 @@ def mode_scan(our_venues, ticketed, cutoff, app_id, delay):
     for i, artist in enumerate(artists):
         if i > 0 and delay > 0:
             time.sleep(delay)
-        events = fetch_artist_events(artist, app_id)
+        events = fetch_artist_events(artist, app_id, ssl_context)
         if not events:
             continue
-        n = check_events_against_venues(artist, events, our_venues, ticketed, cutoff)
+        n = check_events_against_venues(artist, events, our_venues, ticketed, cutoff, ssl_context)
         total += n
 
     if total == 0:
-        print(f"\n  No upcoming matches found.")
+        print("\n  No upcoming matches found.")
     else:
         print(f"\n  Total matches: {total}")
     return total
@@ -410,31 +438,36 @@ def main():
                        help="Search for all seen-before artists at a specific venue")
     group.add_argument("--scan",   action="store_true",
                        help="Full scan: all artists × all venues")
-    parser.add_argument("--days",   type=int,   default=365,
+    parser.add_argument("--days",      type=int,   default=365,
                         help="Only show events within this many days (default: 365)")
-    parser.add_argument("--app-id", default=DEFAULT_APPID,
+    parser.add_argument("--app-id",    default=DEFAULT_APPID,
                         help=f"Bandsintown app_id string (default: {DEFAULT_APPID})")
-    parser.add_argument("--delay",  type=float, default=0.5,
+    parser.add_argument("--delay",     type=float, default=0.5,
                         help="Seconds between API calls in venue/scan mode (default: 0.5)")
+    parser.add_argument("--no-verify", action="store_true",
+                        help="Disable SSL certificate verification (workaround for macOS SSL errors)")
     args = parser.parse_args()
 
-    cutoff = datetime.now(timezone.utc).date() + timedelta(days=args.days)
+    if args.no_verify:
+        print("  [warning] SSL certificate verification disabled (--no-verify)", file=sys.stderr)
 
-    # Load static data
-    venue_rows   = load_tsv(VENUES_TSV)
+    ssl_context = make_ssl_context(verify=not args.no_verify)
+    cutoff      = datetime.now(timezone.utc).date() + timedelta(days=args.days)
+
+    venue_rows    = load_tsv(VENUES_TSV)
     upcoming_rows = load_tsv(UPCOMING_TSV)
-    our_venues   = get_venues(venue_rows)
-    ticketed     = get_ticketed_shows(upcoming_rows)
+    our_venues    = get_venues(venue_rows)
+    ticketed      = get_ticketed_shows(upcoming_rows)
 
     print(f"Loaded {len(our_venues)} venues, {len(ticketed)} ticketed upcoming shows")
     print(f"Checking events through {cutoff.isoformat()}")
 
     if args.artist:
-        mode_artist(args.artist, our_venues, ticketed, cutoff, args.app_id)
+        mode_artist(args.artist, our_venues, ticketed, cutoff, args.app_id, ssl_context)
     elif args.venue:
-        mode_venue(args.venue, our_venues, ticketed, cutoff, args.app_id, args.delay)
+        mode_venue(args.venue, our_venues, ticketed, cutoff, args.app_id, ssl_context, args.delay)
     elif args.scan:
-        mode_scan(our_venues, ticketed, cutoff, args.app_id, args.delay)
+        mode_scan(our_venues, ticketed, cutoff, args.app_id, ssl_context, args.delay)
 
 
 if __name__ == "__main__":
