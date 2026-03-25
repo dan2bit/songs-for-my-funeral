@@ -68,7 +68,18 @@ If no OAuth client exists, create one: **+ Create Credentials** → **OAuth clie
 
 If prompted to configure a consent screen first: go to https://console.cloud.google.com/apis/auth/consent?project=dan2bit-youtub-channel, fill in App name and your email, click through Scopes without adding anything, save. Then come back and create the OAuth client ID.
 
-### Step 3a — Add yourself as a test user (required for OAuth)
+### Step 3a — Verify the YouTube scope is on the consent screen
+
+The OAuth consent screen must include the full YouTube management scope, not just the read-only variant.
+
+1. Go to https://console.cloud.google.com/apis/auth/consent?project=dan2bit-youtub-channel
+2. Click **Edit App** → **Add or Remove Scopes**
+3. Confirm `https://www.googleapis.com/auth/youtube` is listed (not `youtube.readonly`)
+4. If it's missing, add it and save
+
+Without this scope, `--dry-run` will work fine but live playlist creation will return `401 Unauthorized`.
+
+### Step 3b — Add yourself as a test user (required for OAuth)
 
 Because the app is in "Testing" mode, Google will block the auth flow with a 403 unless your account is explicitly listed as a test user.
 
@@ -88,14 +99,27 @@ source .venv/bin/activate
 python3 youtube_create_playlists.py --auth-only
 ```
 
-This opens a browser window. **Sign in as `dan2bit@gmail.com`** — that is the account that owns the bootleg YouTube channel. Signing in with any other account will produce a `401 youtubeSignupRequired` error when you try to create playlists.
+This opens a browser window. The OAuth flow has **two steps** — both matter:
+
+**Step 4a — Choose your Google account.** Sign in as `dan2bit@gmail.com` (the account that manages the Google Cloud project and is listed as a test user).
+
+**Step 4b — Choose your YouTube channel.** After signing in, Google shows a channel picker. You must select the **`@dan2bit` Brand Account**, not your personal Google account's YouTube presence. The Brand Account is the one that owns the bootleg playlist channel. Selecting the wrong one here produces a `401 youtubeSignupRequired` error because the personal account doesn't have a standalone YouTube channel.
 
 Once authorized, `token.json` is written to `live-shows/`. Subsequent runs reuse it silently (it auto-refreshes).
 
-**If you see `401 Unauthorized / youtubeSignupRequired`** when running without `--dry-run`:
+**If you see `401 Unauthorized / youtubeSignupRequired`** when running without `--dry-run`, the token is almost certainly scoped to the wrong account or channel:
+
 ```bash
 rm ~/github/hm/songs-for-my-funeral/live-shows/token.json
-python3 youtube_create_playlists.py --auth-only   # re-authorize as dan2bit@gmail.com
+python3 youtube_create_playlists.py --auth-only
+# In the browser: sign in as dan2bit@gmail.com
+# On the channel picker screen: select the @dan2bit Brand Account
+```
+
+You can verify the token has the right scope after re-auth:
+```bash
+python3 -c "import json; t=json.load(open('token.json')); print(t.get('scopes','no scopes field'))"
+# Should contain: https://www.googleapis.com/auth/youtube  (not youtube.readonly)
 ```
 
 ### Verify everything is working
@@ -121,8 +145,10 @@ pip install python-dotenv google-api-python-client google-auth-oauthlib requests
 cp .env.example .env
 # Fill in YOUTUBE_API_KEY in .env
 # Download client_secrets.json from Google Cloud Console
+# Verify https://www.googleapis.com/auth/youtube scope is on the consent screen (Step 3a)
 # Verify dan2bit@gmail.com is listed at https://console.cloud.google.com/auth/audience?project=dan2bit-youtub-channel
-python3 youtube_create_playlists.py --auth-only   # sign in as dan2bit@gmail.com
+python3 youtube_create_playlists.py --auth-only
+# Browser: sign in as dan2bit@gmail.com → select @dan2bit Brand Account on channel picker
 ```
 
 ---
