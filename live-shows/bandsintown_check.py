@@ -20,7 +20,7 @@ OPTIONS
   --venue VENUE        Venue name (partial match OK against venues.tsv)
   --scan               Scan all artists × all venues
   --days N             Only show events in the next N days (default: 365)
-  --app-id ID          Bandsintown app_id string (default: dan2bit-shows)
+  --app-id ID          Bandsintown app_id string (default: js_bandsintown)
   --delay SECS         Seconds between API calls in scan mode (default: 0.5)
   --no-verify          Disable SSL certificate verification (see SSL note below)
 
@@ -37,6 +37,15 @@ OUTPUT
     ✓ HAVE TICKET  2026-07-11  Shovels & Rope @ The Birchmere (Alexandria, VA)
     → BUY TICKETS  2026-08-15  Larkin Poe @ The Birchmere (Alexandria, VA)
                    https://www.bandsintown.com/t/...
+
+APP_ID NOTE
+-----------
+  Bandsintown now validates app_id against registered applications and will
+  return HTTP 403 for arbitrary strings. The default app_id "js_bandsintown"
+  is the ID used by Bandsintown's own embeddable JavaScript widget and works
+  for public read-only access. If this ever stops working, register a free
+  app at https://corp.bandsintown.com/data-applications-terms and pass your
+  key via --app-id.
 
 SSL CERTIFICATE NOTE
 --------------------
@@ -57,7 +66,6 @@ NOTES ON THE BANDSINTOWN PUBLIC API
   - Query params: app_id (required), date=upcoming
   - Returns JSON array of events with venue, datetime, offers
   - No venue search endpoint — venue matching is done client-side
-  - app_id is an identifier string, not a secret key
   - Artist name is URL-encoded; special chars and spaces work fine
   - Response is [] for unknown artists, "warn" string for 404-ish cases
   - Ticket links come from offers[].url where offers[].type == "Tickets"
@@ -83,7 +91,9 @@ VENUES_TSV   = os.path.join(SCRIPT_DIR, "venues.tsv")
 UPCOMING_TSV = os.path.join(SCRIPT_DIR, "live_shows_2026.tsv")
 
 BIT_BASE      = "https://rest.bandsintown.com/artists/{name}/events"
-DEFAULT_APPID = "dan2bit-shows"
+# "js_bandsintown" is the app_id used by Bandsintown's own JS widget;
+# it works for public read-only access without registration.
+DEFAULT_APPID = "js_bandsintown"
 
 # Similarity threshold for venue name fuzzy matching (0.0–1.0)
 VENUE_MATCH_THRESHOLD = 0.55
@@ -258,6 +268,18 @@ def fetch_artist_events(artist_name, app_id, ssl_context, date_param="upcoming")
             file=sys.stderr,
         )
         sys.exit(1)
+    except urllib.error.HTTPError as e:
+        if e.code == 403:
+            print(
+                f"\n  [403 Forbidden for {artist_name!r}]\n"
+                f"  The app_id {app_id!r} is being rejected by Bandsintown.\n"
+                f"  Try the default: python3 bandsintown_check.py --app-id js_bandsintown\n"
+                f"  Or register a free app at https://corp.bandsintown.com/data-applications-terms\n",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        print(f"  [API error for {artist_name!r}]: HTTP {e.code}", file=sys.stderr)
+        return []
     except Exception as e:
         print(f"  [API error for {artist_name!r}]: {e}", file=sys.stderr)
         return []
@@ -454,7 +476,7 @@ def main():
     parser.add_argument("--days",      type=int,   default=365,
                         help="Only show events within this many days (default: 365)")
     parser.add_argument("--app-id",    default=DEFAULT_APPID,
-                        help=f"Bandsintown app_id string (default: {DEFAULT_APPID})")
+                        help=f"Bandsintown app_id (default: {DEFAULT_APPID})")
     parser.add_argument("--delay",     type=float, default=0.5,
                         help="Seconds between API calls in venue/scan mode (default: 0.5)")
     parser.add_argument("--no-verify", action="store_true",
