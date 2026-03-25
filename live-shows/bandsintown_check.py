@@ -42,15 +42,14 @@ SSL CERTIFICATE NOTE
 --------------------
   If you see: [SSL: CERTIFICATE_VERIFY_FAILED] unable to get local issuer certificate
 
-  This is a macOS + python.org installer issue. The permanent fix is:
-    /Applications/Python\ 3.x/Install\ Certificates.command
-  (substitute your Python version, e.g. 3.13)
+  This script automatically uses certifi's CA bundle when available, which
+  fixes the most common macOS Homebrew Python SSL issue. If you don't have
+  certifi, install it:
+    python3 -m pip install certifi
 
-  Quick workaround (less secure, fine for this read-only script):
+  If that still doesn't work, use the quick workaround (fine for this
+  read-only script):
     python3 bandsintown_check.py --no-verify --artist "Larkin Poe"
-
-  The --no-verify flag suppresses SSL verification for all API calls.
-  It also suppresses the InsecureRequestWarning that urllib would emit.
 
 NOTES ON THE BANDSINTOWN PUBLIC API
 ------------------------------------
@@ -207,18 +206,31 @@ def venue_matches_query(venue_name, query):
 # ── SSL context ────────────────────────────────────────────────────────────────
 def make_ssl_context(verify=True):
     """
-    Build an SSL context. If verify=False, return an unverified context.
+    Build an SSL context for urllib.
 
-    The standard macOS fix is running:
-      /Applications/Python 3.x/Install Certificates.command
-    but --no-verify is a quick workaround for this read-only script.
+    When verify=True (default), tries to load the certifi CA bundle first —
+    this fixes the common Homebrew Python 3.14 on macOS issue where the
+    bundled OpenSSL doesn't have current CA certificates. Falls back to
+    the default system context if certifi isn't installed.
+
+    When verify=False, returns an unverified context (--no-verify flag).
     """
     if not verify:
         ctx = ssl.create_default_context()
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
         return ctx
-    return None  # None = use urllib's default (verified) context
+
+    # Try certifi first — fixes Homebrew Python SSL issues on macOS
+    try:
+        import certifi
+        ctx = ssl.create_default_context(cafile=certifi.where())
+        return ctx
+    except ImportError:
+        pass
+
+    # Fall back to default context (uses system certs)
+    return ssl.create_default_context()
 
 
 # ── Bandsintown API ───────────────────────────────────────────────────────────
@@ -239,9 +251,10 @@ def fetch_artist_events(artist_name, app_id, ssl_context, date_param="upcoming")
             raw = resp.read().decode("utf-8")
     except ssl.SSLCertVerificationError:
         print(
-            f"\n  [SSL error for {artist_name!r}]\n"
-            f"  Fix: run /Applications/Python\\ 3.x/Install\\ Certificates.command\n"
-            f"  Or rerun with --no-verify for a quick workaround.\n",
+            f"\n  [SSL error]\n"
+            f"  Install certifi to fix this permanently:\n"
+            f"    python3 -m pip install certifi\n"
+            f"  Or use --no-verify as a quick workaround.\n",
             file=sys.stderr,
         )
         sys.exit(1)
@@ -445,7 +458,7 @@ def main():
     parser.add_argument("--delay",     type=float, default=0.5,
                         help="Seconds between API calls in venue/scan mode (default: 0.5)")
     parser.add_argument("--no-verify", action="store_true",
-                        help="Disable SSL certificate verification (workaround for macOS SSL errors)")
+                        help="Disable SSL certificate verification (workaround for SSL errors)")
     args = parser.parse_args()
 
     if args.no_verify:
