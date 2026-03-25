@@ -116,22 +116,26 @@ SETLIST_DELAY = 2.0  # seconds between setlist.fm requests
 # Edit this list to control which shows get playlists assembled.
 # Each entry: (show_date, headliner, title_override_or_None)
 # title_override: set a custom playlist title string; None = auto-generate.
+#
+# Removed — playlists already exist in live_shows_history.tsv:
+#   2022-11-30  Kate Davis          (combined 3-show playlist PLJ7S-K0cjvGLY-DcEWxAOKJUfpnxH0OjA)
+#   2022-12-16  They Might Be Giants (PLJ7S-K0cjvGL_4w7JPXDjdpVEyrdWMt7A)
+#   2022-12-29  The Pietasters       (PLJ7S-K0cjvGLSUDeAzh0kWdohvVdRgXwU)
+#   2023-02-16  Gaelic Storm         (PLJ7S-K0cjvGJCuoPi7VNSx0axXv1HGFOu)
+#   2023-02-23  Buffalo Nichols      (PLJ7S-K0cjvGL3d6OIv6ko926yd1i6phA_)
+#   2023-03-09  Larkin Poe           (PLJ7S-K0cjvGITKvXJ5BP8bv4CKMnRkdiG)
+#   2023-06-15  Kate Davis           (combined 3-show playlist PLJ7S-K0cjvGLY-DcEWxAOKJUfpnxH0OjA)
+#   2023-11-26  The Lone Bellow      (PLJ7S-K0cjvGKRyNDy8v0VqJXIn3HkT39K)
+#   2024-06-27  Christone Kingfish Ingram (PLJ7S-K0cjvGLSwIQC01VwRxLlxqUnZBWz)
+#   2024-09-28  Soul Coughing        (PLJ7S-K0cjvGKJath7-jUYRE2EuuNFRgU7)
 WORKLIST = [
     # Tier 1 — high video count + important notes
-    ("2022-12-16", "They Might Be Giants",          None),
-    ("2023-06-15", "Kate Davis",                    None),
-    ("2023-11-26", "The Lone Bellow",               None),
-    ("2023-03-09", "Larkin Poe",                    None),
-    ("2022-11-30", "Kate Davis",                    None),
-    ("2022-12-29", "The Pietasters",                None),
     ("2025-10-21", "Tommy Emmanuel",                None),
     ("2025-10-15", "Jackie Venson",                 None),
     # Tier 2
-    ("2024-06-27", "Christone \"Kingfish\" Ingram", None),
     ("2024-11-20", "Samantha Fish",                 None),
     ("2025-10-26", "Ruthie Foster",                 None),
     ("2025-11-08", "North Mississippi Allstars",    None),
-    ("2024-09-28", "Soul Coughing",                 None),
     ("2023-01-28", "Greensky Bluegrass",            None),
     ("2025-09-19", "Alabama Shakes",                None),
     ("2025-09-24", "Christone \"Kingfish\" Ingram", None),
@@ -141,11 +145,9 @@ WORKLIST = [
     # Tier 3
     ("2025-04-11", "The War and Treaty",            None),
     ("2025-06-19", "Eric Gales",                    None),
-    ("2023-02-23", "Buffalo Nichols",               None),
     ("2025-07-21", "Amythyst Kiah",                 None),
     ("2025-10-08", "Judith Hill",                   None),
     ("2022-10-27", "Enter the Haggis",              None),
-    ("2023-02-16", "Gaelic Storm",                  None),
 ]
 
 # ── auth ──────────────────────────────────────────────────────────────────────
