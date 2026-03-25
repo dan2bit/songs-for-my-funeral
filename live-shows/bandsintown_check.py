@@ -1,0 +1,441 @@
+#!/usr/bin/env python3
+"""
+bandsintown_check.py — Check Bandsintown for upcoming shows matching your
+venue list and/or seen-before artist list.
+
+USAGE
+-----
+  # Mode 1 — Given an artist, check all venues on your venue list:
+  python3 bandsintown_check.py --artist "Kingfish"
+
+  # Mode 2 — Given a venue, check all seen-before artists at that venue:
+  python3 bandsintown_check.py --venue "The Birchmere"
+
+  # Mode 3 — Full scan: all seen-before artists × all venues:
+  python3 bandsintown_check.py --scan
+
+OPTIONS
+-------
+  --artist ARTIST      Artist name (partial match OK)
+  --venue VENUE        Venue name (partial match OK against venues.tsv)
+  --scan               Scan all artists × all venues
+  --days N             Only show events in the next N days (default: 365)
+  --app-id ID          Bandsintown app_id string (default: dan2bit-shows)
+  --delay SECS         Seconds between API calls in scan mode (default: 0.5)
+
+DATA FILES (relative to this script's directory, one level up in live-shows/)
+-----------
+  ../live-shows/live_shows_history.tsv   — seen-before artist list
+  ../live-shows/venues.tsv               — venue list with city/region
+  ../live-shows/live_shows_2026.tsv      — upcoming ticketed shows
+
+OUTPUT
+------
+  Matching upcoming events are printed to stdout:
+
+    ✓ HAVE TICKET  2026-07-11  Shovels & Rope @ The Birchmere (Alexandria, VA)
+    → BUY TICKETS  2026-08-15  Larkin Poe @ The Birchmere (Alexandria, VA)
+                   https://www.bandsintown.com/t/...
+
+NOTES ON THE BANDSINTOWN PUBLIC API
+------------------------------------
+  - Base URL: https://rest.bandsintown.com/artists/{name}/events
+  - Query params: app_id (required), date=upcoming
+  - Returns JSON array of events with venue, datetime, offers
+  - No venue search endpoint — venue matching is done client-side
+  - app_id is an identifier string, not a secret key
+  - Artist name is URL-encoded; special chars and spaces work fine
+  - Response is [] for unknown artists, "warn" string for 404-ish cases
+  - Ticket links come from offers[].url where offers[].type == "Tickets"
+  - Rate limit: undocumented; 0.5s delay is conservative for scan mode
+"""
+
+import argparse
+import csv
+import json
+import os
+import sys
+import time
+import urllib.parse
+import urllib.request
+from datetime import datetime, timedelta, timezone
+from difflib import SequenceMatcher
+
+# ── config ────────────────────────────────────────────────────────────────────
+SCRIPT_DIR   = os.path.dirname(os.path.abspath(__file__))
+LIVE_SHOWS   = os.path.join(SCRIPT_DIR, "..", "live-shows")
+HISTORY_TSV  = os.path.join(LIVE_SHOWS, "live_shows_history.tsv")
+VENUES_TSV   = os.path.join(LIVE_SHOWS, "venues.tsv")
+UPCOMING_TSV = os.path.join(LIVE_SHOWS, "live_shows_2026.tsv")
+
+BIT_BASE     = "https://rest.bandsintown.com/artists/{name}/events"
+DEFAULT_APPID = "dan2bit-shows"
+
+# Similarity threshold for venue name fuzzy matching (0.0–1.0)
+VENUE_MATCH_THRESHOLD = 0.55
+
+
+# ── data loading ──────────────────────────────────────────────────────────────
+def load_tsv(path):
+    with open(path, encoding="utf-8") as f:
+        return list(csv.DictReader(f, delimiter="\t"))
+
+
+def get_seen_artists(history_rows):
+    """Return sorted unique artist names from history."""
+    artists = set()
+    for r in history_rows:
+        name = r.get("Artist", "").strip()
+        if name:
+            artists.add(name)
+    return sorted(artists)
+
+
+def get_venues(venue_rows):
+    """
+    Return list of dicts with name, city, region extracted from address.
+    Address format: "123 Street, City, ST ZIPCODE" or "..., City, State, USA"
+    """
+    venues = []
+    for r in venue_rows:
+        name = r.get("Venue Name", "").strip()
+        addr = r.get("Address", "").strip()
+        city, region = parse_city_region(addr)
+        venues.append({"name": name, "city": city, "region": region})
+    return venues
+
+
+def parse_city_region(address):
+    """
+    Parse city and region (state abbrev) out of an address string.
+    Handles:
+      "3701 Mount Vernon Ave, Alexandria, VA 22305"
+      "815 V St NW, Washington, DC 20001"
+      "1551 Trap Rd, Vienna, VA 22182"
+    """
+    parts = [p.strip() for p in address.split(",")]
+    if len(parts) >= 3:
+        city = parts[-2].strip()
+        # Last part might be "VA 22305" or just "VA" — grab first token
+        region_part = parts[-1].strip()
+        region = region_part.split()[0] if region_part else ""
+        return city, region
+    elif len(parts) == 2:
+        return parts[-1].strip(), ""
+    return "", ""
+
+
+def get_ticketed_shows(upcoming_rows):
+    """
+    Return a set of (artist_normalized, venue_name_normalized) pairs
+    for shows with Status == "upcoming" (i.e. ticket already purchased).
+    Also returns a dict mapping that key to the show date string.
+    """
+    ticketed = {}
+    for r in upcoming_rows:
+        status = r.get("Status", "").strip().lower()
+        if status == "upcoming":
+            artist  = normalize(r.get("Artist", ""))
+            venue   = normalize(r.get("Venue Name", ""))
+            date    = r.get("Show Date", "").strip()
+            if artist and venue:
+                ticketed[(artist, venue)] = date
+    return ticketed
+
+
+# ── normalization + matching ───────────────────────────────────────────────────
+def normalize(s):
+    """Lowercase, strip, collapse whitespace."""
+    return " ".join(s.lower().split())
+
+
+def similarity(a, b):
+    return SequenceMatcher(None, normalize(a), normalize(b)).ratio()
+
+
+def venue_matches(bit_venue_name, bit_city, our_venues, threshold=VENUE_MATCH_THRESHOLD):
+    """
+    Return matching our_venues entries for a BIT event's venue name + city.
+    Matches on:
+      - Normalized substring containment (either direction)
+      - Or fuzzy similarity >= threshold
+    Also uses city as a tiebreaker / required condition.
+    Returns list of matching venue dicts (usually 0 or 1).
+    """
+    matches = []
+    bn = normalize(bit_venue_name)
+    bc = normalize(bit_city)
+    for v in our_venues:
+        vn = normalize(v["name"])
+        vc = normalize(v["city"])
+
+        # City must roughly agree (unless one is blank)
+        if bc and vc and bc != vc:
+            # allow partial city match ("washington" in "washington, dc" etc.)
+            if bc not in vc and vc not in bc:
+                continue
+
+        # Name match: substring or fuzzy
+        if bn in vn or vn in bn or similarity(bn, vn) >= threshold:
+            matches.append(v)
+    return matches
+
+
+def artist_matches_query(artist_name, query):
+    """True if query (lowercased) is a substring of the artist name."""
+    return query.lower() in artist_name.lower()
+
+
+def venue_matches_query(venue_name, query):
+    """True if query (lowercased) is a substring of the venue name."""
+    return query.lower() in venue_name.lower()
+
+
+# ── Bandsintown API ───────────────────────────────────────────────────────────
+def fetch_artist_events(artist_name, app_id, date_param="upcoming"):
+    """
+    Fetch upcoming events for an artist from Bandsintown public API.
+    Returns list of event dicts, or [] on error / unknown artist.
+    """
+    encoded = urllib.parse.quote(artist_name, safe="")
+    url = (
+        f"{BIT_BASE.format(name=encoded)}"
+        f"?app_id={urllib.parse.quote(app_id)}"
+        f"&date={date_param}"
+    )
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": f"{app_id}/1.0"})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            raw = resp.read().decode("utf-8")
+    except Exception as e:
+        print(f"  [API error for {artist_name!r}]: {e}", file=sys.stderr)
+        return []
+
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError:
+        return []
+
+    # BIT returns the string "warn" (not JSON array) for unknown artists
+    if not isinstance(data, list):
+        return []
+
+    return data
+
+
+def event_ticket_url(event):
+    """Return the first available ticket URL from an event's offers, or None."""
+    for offer in event.get("offers", []):
+        if offer.get("type") == "Tickets" and offer.get("status") == "available":
+            return offer.get("url")
+    # Fall back to any offer URL
+    for offer in event.get("offers", []):
+        if offer.get("url"):
+            return offer.get("url")
+    return None
+
+
+def event_date(event):
+    """Parse event datetime string to date object, or None."""
+    dt_str = event.get("datetime", "")
+    for fmt in ("%Y-%m-%dT%H:%M:%S", "%Y-%m-%d"):
+        try:
+            return datetime.strptime(dt_str[:19], fmt).date()
+        except ValueError:
+            continue
+    return None
+
+
+# ── result formatting ─────────────────────────────────────────────────────────
+def print_result(event, artist_name, matched_venue, ticket_status):
+    """
+    Print a single result line.
+    ticket_status: "have_ticket" | "available" | "none"
+    """
+    dt = event_date(event)
+    date_str = dt.isoformat() if dt else "????-??-??"
+    venue     = event.get("venue", {})
+    vname     = venue.get("name", "?")
+    city      = venue.get("city", "")
+    region    = venue.get("region", "")
+    location  = f"{city}, {region}" if region else city
+
+    if ticket_status == "have_ticket":
+        prefix = "✓ HAVE TICKET"
+    elif ticket_status == "available":
+        prefix = "→ BUY TICKETS"
+    else:
+        prefix = "  (no tickets)"
+
+    print(f"  {prefix}  {date_str}  {artist_name} @ {matched_venue['name']} ({location})")
+
+    if ticket_status == "available":
+        url = event_ticket_url(event)
+        if url:
+            print(f"                 {url}")
+
+    if ticket_status == "none":
+        # Show BIT event page link as fallback
+        bit_url = event.get("url", "")
+        if bit_url:
+            print(f"                 {bit_url}")
+
+
+# ── core matching logic ────────────────────────────────────────────────────────
+def check_events_against_venues(
+    artist_name, events, our_venues, ticketed, cutoff_date
+):
+    """
+    Filter a list of BIT events to those at our venues, within cutoff date,
+    and print results. Returns count of matches.
+    """
+    count = 0
+    for event in events:
+        # Date filter
+        dt = event_date(event)
+        if dt is None or dt > cutoff_date:
+            continue
+
+        # Venue filter
+        bit_venue = event.get("venue", {})
+        bvn  = bit_venue.get("name", "")
+        bvc  = bit_venue.get("city", "")
+        matched = venue_matches(bvn, bvc, our_venues)
+        if not matched:
+            continue
+
+        # Determine ticket status
+        mv   = matched[0]
+        akey = normalize(artist_name)
+        vnk  = normalize(mv["name"])
+
+        if (akey, vnk) in ticketed:
+            status = "have_ticket"
+        elif event_ticket_url(event):
+            status = "available"
+        else:
+            status = "none"
+
+        print_result(event, artist_name, mv, status)
+        count += 1
+    return count
+
+
+# ── modes ─────────────────────────────────────────────────────────────────────
+def mode_artist(query, our_venues, ticketed, cutoff, app_id):
+    """Mode 1: given an artist query, check all venues."""
+    print(f"\n── Artist search: {query!r} ──────────────────────────────────────")
+    # Load history to find exact artist name(s) matching query
+    history = load_tsv(HISTORY_TSV)
+    artists = get_seen_artists(history)
+    candidates = [a for a in artists if artist_matches_query(a, query)]
+
+    if not candidates:
+        # Try the query literally even if not in history
+        candidates = [query]
+        print(f"  (not in seen-before list; searching BIT directly for {query!r})")
+
+    total = 0
+    for artist in candidates:
+        print(f"\n  Fetching events for: {artist}")
+        events = fetch_artist_events(artist, app_id)
+        n = check_events_against_venues(artist, events, our_venues, ticketed, cutoff)
+        if n == 0:
+            print(f"  (no upcoming matches at your venues)")
+        total += n
+    return total
+
+
+def mode_venue(query, our_venues, ticketed, cutoff, app_id, delay):
+    """Mode 2: given a venue query, check all seen-before artists."""
+    print(f"\n── Venue search: {query!r} ───────────────────────────────────────")
+    matched_venues = [v for v in our_venues if venue_matches_query(v["name"], query)]
+    if not matched_venues:
+        print(f"  No venue matching {query!r} found in venues.tsv")
+        return 0
+
+    for mv in matched_venues:
+        print(f"  Checking venue: {mv['name']} ({mv['city']}, {mv['region']})")
+
+    history = load_tsv(HISTORY_TSV)
+    artists = get_seen_artists(history)
+
+    total = 0
+    for i, artist in enumerate(artists):
+        if i > 0 and delay > 0:
+            time.sleep(delay)
+        events = fetch_artist_events(artist, app_id)
+        # Only check against the queried venues
+        n = check_events_against_venues(artist, events, matched_venues, ticketed, cutoff)
+        total += n
+
+    if total == 0:
+        print(f"\n  No upcoming matches found at this venue for any seen-before artist.")
+    return total
+
+
+def mode_scan(our_venues, ticketed, cutoff, app_id, delay):
+    """Mode 3: all seen-before artists × all venues."""
+    print(f"\n── Full scan: all artists × all venues ──────────────────────────")
+    history = load_tsv(HISTORY_TSV)
+    artists = get_seen_artists(history)
+    print(f"  {len(artists)} artists × {len(our_venues)} venues")
+
+    total = 0
+    for i, artist in enumerate(artists):
+        if i > 0 and delay > 0:
+            time.sleep(delay)
+        events = fetch_artist_events(artist, app_id)
+        if not events:
+            continue
+        n = check_events_against_venues(artist, events, our_venues, ticketed, cutoff)
+        total += n
+
+    if total == 0:
+        print(f"\n  No upcoming matches found.")
+    else:
+        print(f"\n  Total matches: {total}")
+    return total
+
+
+# ── main ──────────────────────────────────────────────────────────────────────
+def main():
+    parser = argparse.ArgumentParser(
+        description="Check Bandsintown for upcoming shows matching your venue + artist lists"
+    )
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("--artist", metavar="ARTIST",
+                       help="Search for a specific artist at all your venues")
+    group.add_argument("--venue",  metavar="VENUE",
+                       help="Search for all seen-before artists at a specific venue")
+    group.add_argument("--scan",   action="store_true",
+                       help="Full scan: all artists × all venues")
+    parser.add_argument("--days",   type=int,   default=365,
+                        help="Only show events within this many days (default: 365)")
+    parser.add_argument("--app-id", default=DEFAULT_APPID,
+                        help=f"Bandsintown app_id string (default: {DEFAULT_APPID})")
+    parser.add_argument("--delay",  type=float, default=0.5,
+                        help="Seconds between API calls in venue/scan mode (default: 0.5)")
+    args = parser.parse_args()
+
+    cutoff = datetime.now(timezone.utc).date() + timedelta(days=args.days)
+
+    # Load static data
+    venue_rows   = load_tsv(VENUES_TSV)
+    upcoming_rows = load_tsv(UPCOMING_TSV)
+    our_venues   = get_venues(venue_rows)
+    ticketed     = get_ticketed_shows(upcoming_rows)
+
+    print(f"Loaded {len(our_venues)} venues, {len(ticketed)} ticketed upcoming shows")
+    print(f"Checking events through {cutoff.isoformat()}")
+
+    if args.artist:
+        mode_artist(args.artist, our_venues, ticketed, cutoff, args.app_id)
+    elif args.venue:
+        mode_venue(args.venue, our_venues, ticketed, cutoff, args.app_id, args.delay)
+    elif args.scan:
+        mode_scan(our_venues, ticketed, cutoff, args.app_id, args.delay)
+
+
+if __name__ == "__main__":
+    main()
