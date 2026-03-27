@@ -12,7 +12,7 @@
   <key>ProgramArguments</key>
   <array>
     <string>/bin/bash</string>
-    <string>/Users/YOURUSERNAME/github/hm/songs-for-my-funeral/backup-to-thumb.sh</string>
+    <string>/Users/dan2bit/github/hm/songs-for-my-funeral/backup-to-thumb.sh</string>
   </array>
 
   <!-- Run every 1800 seconds (30 minutes) -->
@@ -25,9 +25,9 @@
 
   <!-- Capture stdout/stderr to a log file (in addition to what the script logs itself) -->
   <key>StandardOutPath</key>
-  <string>/Users/YOURUSERNAME/Library/Logs/funeral-backup.log</string>
+  <string>/Users/dan2bit/Library/Logs/funeral-backup.log</string>
   <key>StandardErrorPath</key>
-  <string>/Users/YOURUSERNAME/Library/Logs/funeral-backup.log</string>
+  <string>/Users/dan2bit/Library/Logs/funeral-backup.log</string>
 
 </dict>
 </plist>
