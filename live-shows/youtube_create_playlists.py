@@ -4,7 +4,7 @@ youtube_create_playlists.py — Automated playlist assembler for @dan2bit bootle
 
 Creates YouTube playlists from youtube_videos.tsv by matching videos to a show's date,
 orders them (headliner first, then supporting acts, each in setlist.fm order if available),
-and writes the resulting playlist URLs back to live_shows_history.tsv.
+and writes the resulting playlist URLs back to the appropriate show tracking file.
 
 REQUIRES OAuth (not just an API key) because playlist creation and description updates
 are write operations. The scope https://www.googleapis.com/auth/youtube is required.
@@ -24,10 +24,11 @@ USAGE:
 
     # Create a playlist for a recent show (primary workflow going forward)
     # Searches your channel uploads (including private videos) for the given date.
+    # Show is looked up in live_shows_history.tsv OR live_shows_2026.tsv automatically.
     python3 youtube_create_playlists.py --new-show 2026-03-29
     python3 youtube_create_playlists.py --new-show 2026-03-29 --update-history
 
-    # Override the headliner if the date lookup is ambiguous (not in history yet)
+    # Override the headliner if the date lookup is ambiguous
     python3 youtube_create_playlists.py --new-show 2026-03-29 --headliner "Selwyn Birchwood"
 
     # Dry run — shows what would be created without calling the API
@@ -67,7 +68,7 @@ NAMING CONVENTION (matches existing channel playlists):
     Override per-show with --title if needed.
 
 ORDERING LOGIC:
-    1. Fetch setlist.fm URL for the show (from live_shows_history.tsv)
+    1. Fetch setlist.fm URL for the show (from live_shows_history.tsv or live_shows_2026.tsv)
     2. Parse song titles from setlist.fm HTML (via requests + BeautifulSoup)
     3. Match video titles against setlist songs using fuzzy title matching
     4. Unmatched videos for the headliner go after matched ones
@@ -130,9 +131,10 @@ TOKEN_FILE     = os.environ.get("YOUTUBE_TOKEN_FILE",     "token.json")
 CHANNEL_HANDLE = "dan2bit"
 
 # Input files (same directory)
-VIDEOS_TSV   = "youtube_videos.tsv"
-HISTORY_TSV  = "live_shows_history.tsv"
-LOG_TSV      = "playlist_creation_log.tsv"
+VIDEOS_TSV    = "youtube_videos.tsv"
+HISTORY_TSV   = "live_shows_history.tsv"
+SHOWS_2026_TSV = "live_shows_2026.tsv"
+LOG_TSV       = "playlist_creation_log.tsv"
 
 # Default description template for --fix-descriptions
 DEFAULT_DESCRIPTION_TEMPLATE = "Select tracks from {setlist_url}"
@@ -210,17 +212,49 @@ def load_tsv(filename):
     with open(filename, encoding="utf-8") as f:
         return list(csv.DictReader(f, delimiter="\t"))
 
+
 def load_videos():
     videos = load_tsv(VIDEOS_TSV)
     print(f"Loaded {len(videos)} videos from {VIDEOS_TSV}")
     return videos
 
+
 def load_history():
-    rows = load_tsv(HISTORY_TSV)
+    """
+    Load show index from both live_shows_history.tsv and live_shows_2026.tsv.
+
+    Returns (history_rows, index) where:
+      - history_rows: raw rows from live_shows_history.tsv only (used for write-back)
+      - index: dict keyed by (Show Date, Artist) covering both files.
+        Rows from live_shows_2026.tsv are normalised so process_show sees the
+        same field names regardless of source:
+            Venue Name       → Venue
+            Supporting Artist → Supporting Acts
+        A "_source_file" key is added to each row so update_history_playlist_url
+        knows which file to write back to.
+    """
+    history_rows = load_tsv(HISTORY_TSV)
     index = {}
-    for r in rows:
+
+    # History rows — already have the right column names
+    for r in history_rows:
+        r["_source_file"] = HISTORY_TSV
         index[(r["Show Date"], r["Artist"])] = r
-    return rows, index
+
+    # 2026 rows — normalise column names, attended shows only
+    if os.path.exists(SHOWS_2026_TSV):
+        rows_2026 = load_tsv(SHOWS_2026_TSV)
+        attended = [r for r in rows_2026 if r.get("Status", "") == "attended"]
+        for r in attended:
+            normalised = dict(r)
+            normalised["Venue"]          = r.get("Venue Name", "")
+            normalised["Supporting Acts"] = r.get("Supporting Artist", "")
+            normalised["_source_file"]   = SHOWS_2026_TSV
+            index[(r["Show Date"], r["Artist"])] = normalised
+        print(f"Loaded {len(attended)} attended 2026 shows from {SHOWS_2026_TSV}")
+
+    return history_rows, index
+
 
 # ── date utilities ────────────────────────────────────────────────────────────
 def date_variants(date_str):
@@ -283,6 +317,15 @@ VENUE_SHORT = {
     "Columbia Art Center, Columbia, MD, USA":                       "Columbia Art Center (MD)",
     "Sixth & I Historic Synagogue, Washington, DC, USA":            "Sixth & I (DC)",
     "Filene Center at Wolf Trap, Vienna, VA, USA":                  "Wolf Trap (VA)",
+    # live_shows_2026.tsv uses short venue names directly
+    "Ram's Head Live on Stage":                                     "Ram's Head (MD)",
+    "Hamilton Live":                                                "Hamilton Live (DC)",
+    "The Birchmere":                                                "Birchmere (VA)",
+    "Jammin' Java":                                                 "Jammin' Java (VA)",
+    "Collective Encore":                                            "Collective Encore (MD)",
+    "9:30 Club":                                                    "9:30 Club (DC)",
+    "Wolf Trap Filene Center":                                      "Wolf Trap (VA)",
+    "Warner Theatre":                                               "Warner Theatre (DC)",
 }
 
 def venue_short(venue_str):
@@ -478,7 +521,7 @@ def fetch_channel_uploads(youtube, date_str=None):
             videos.append({
                 "video_id":   vid_id,
                 "title":      snippet.get("title", ""),
-                "description": snippet.get("description", ""),
+                "description\": snippet.get("description", ""),
                 "published":  snippet.get("publishedAt", "")[:10],
             })
 
@@ -536,25 +579,53 @@ def update_playlist_description(youtube, playlist_id, title, new_description):
         }
     ).execute()
 
-# ── history update ─────────────────────────────────────────────────────────────
-def update_history_playlist_url(date_str, artist, playlist_url):
-    rows = load_tsv(HISTORY_TSV)
-    fieldnames = list(rows[0].keys()) if rows else []
+# ── show file write-back ───────────────────────────────────────────────────────
+def update_history_playlist_url(date_str, artist, playlist_url, show_row=None):
+    """
+    Write the playlist URL back to the appropriate source file.
+
+    If show_row carries a "_source_file" key (set by load_history), that file
+    is used directly.  Otherwise history is tried first, then live_shows_2026.tsv.
+
+    For live_shows_history.tsv the Match Type column is also updated.
+    For live_shows_2026.tsv the Playlist URL column is updated in place.
+    """
+    source_file = (show_row or {}).get("_source_file") or HISTORY_TSV
+
+    if source_file == HISTORY_TSV or not os.path.exists(SHOWS_2026_TSV):
+        _write_playlist_url_to_file(HISTORY_TSV, date_str, artist, playlist_url,
+                                    artist_col="Artist", date_col="Show Date",
+                                    url_col="Playlist URL", match_type_col="Match Type")
+    else:
+        _write_playlist_url_to_file(SHOWS_2026_TSV, date_str, artist, playlist_url,
+                                    artist_col="Artist", date_col="Show Date",
+                                    url_col="Playlist URL", match_type_col=None)
+
+
+def _write_playlist_url_to_file(filepath, date_str, artist, playlist_url,
+                                 artist_col, date_col, url_col, match_type_col):
+    rows = load_tsv(filepath)
+    if not rows:
+        print(f"  WARNING: {filepath} is empty")
+        return
+    fieldnames = list(rows[0].keys())
     updated = False
     for r in rows:
-        if r["Show Date"] == date_str and r["Artist"] == artist:
-            r["Playlist URL"] = playlist_url
-            r["Match Type"] = "Playlist (assembled)"
+        if r.get(date_col) == date_str and r.get(artist_col) == artist:
+            r[url_col] = playlist_url
+            if match_type_col and match_type_col in r:
+                r[match_type_col] = "Playlist (assembled)"
             updated = True
             break
     if updated:
-        with open(HISTORY_TSV, "w", newline="", encoding="utf-8") as f:
-            writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter="\t")
+        with open(filepath, "w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter="\t",
+                                    extrasaction="ignore")
             writer.writeheader()
             writer.writerows(rows)
-        print(f"  Updated {HISTORY_TSV} with playlist URL")
+        print(f"  Updated {filepath} with playlist URL")
     else:
-        print(f"  WARNING: could not find {date_str} / {artist} in {HISTORY_TSV}")
+        print(f"  WARNING: could not find {date_str} / {artist} in {filepath}")
 
 # ── log ───────────────────────────────────────────────────────────────────────
 LOG_FIELDNAMES = ["Show Date", "Artist", "Playlist Title", "Playlist URL", "Video Count", "Setlist URL Checked", "Setlist Order Used", "Videos Added"]
@@ -580,8 +651,11 @@ def process_show(youtube, date_str, headliner, title_override, videos, history_i
             show = matches[0][1]
             print(f"  Fuzzy match: {matches[0][0][1]}")
         else:
-            print(f"  WARNING: show not found in history — proceeding without venue/setlist data")
+            print(f"  WARNING: show not found in history or 2026 file — proceeding without venue/setlist data")
             show = {}
+
+    source_file = show.get("_source_file", HISTORY_TSV)
+    print(f"  Source file: {source_file}")
 
     venue_str      = show.get("Venue", "")
     supporting_str = show.get("Supporting Acts", "")
@@ -633,7 +707,7 @@ def process_show(youtube, date_str, headliner, title_override, videos, history_i
             time.sleep(0.3)
         print(f"  Added {len(final_order)} videos")
         if update_history:
-            update_history_playlist_url(date_str, headliner, playlist_url)
+            update_history_playlist_url(date_str, headliner, playlist_url, show_row=show)
 
     log_row = {
         "Show Date": date_str, "Artist": headliner, "Playlist Title": playlist_title,
@@ -648,7 +722,8 @@ def process_show(youtube, date_str, headliner, title_override, videos, history_i
 def run_fix_descriptions(youtube, history_index, description_template, date_filter=None, dry_run=False):
     """
     Find channel playlists with blank descriptions and fill them in using
-    the setlist.fm URL from history, formatted with description_template.
+    the setlist.fm URL from history or 2026 tracking file, formatted with
+    description_template.
 
     Template placeholders:
         {setlist_url}  — the setlist.fm URL for the show
@@ -658,7 +733,7 @@ def run_fix_descriptions(youtube, history_index, description_template, date_filt
     playlists = fetch_all_channel_playlists(youtube)
     print(f"  Found {len(playlists)} playlists on channel")
 
-    # Build reverse index: playlist URL → history row
+    # Build reverse index: playlist URL → history/2026 row
     url_to_history = {}
     for (date_str, artist), row in history_index.items():
         purl = row.get("Playlist URL", "")
@@ -677,7 +752,6 @@ def run_fix_descriptions(youtube, history_index, description_template, date_filt
 
         # Apply date filter if specified
         if date_filter:
-            # Match against history rows for this playlist
             history_row = url_to_history.get(pl["url"])
             if not history_row or history_row.get("Show Date") not in date_filter:
                 continue
@@ -731,7 +805,7 @@ def main():
                             help="(Legacy) Process show(s) by date from youtube_videos.tsv.")
 
     parser.add_argument("--headliner",            metavar="NAME",
-                        help="Override headliner name (used with --new-show when date is ambiguous or show not yet in history).")
+                        help="Override headliner name (used with --new-show when date is ambiguous).")
     parser.add_argument("--title",                metavar="TITLE",
                         help="Override playlist title instead of auto-generating.")
     parser.add_argument("--description-template", metavar="TEMPLATE",
@@ -739,7 +813,7 @@ def main():
                         help=f"Template for --fix-descriptions. Placeholders: {{setlist_url}}, {{venue}}. "
                              f"Default: \"{DEFAULT_DESCRIPTION_TEMPLATE}\"")
     parser.add_argument("--update-history",       action="store_true",
-                        help="Write created playlist URL back to live_shows_history.tsv.")
+                        help="Write created playlist URL back to the source show file (history or 2026).")
     parser.add_argument("--dry-run",              action="store_true",
                         help="Show what would happen without making any API calls.")
     parser.add_argument("--auth-only",            action="store_true",
@@ -778,13 +852,12 @@ def main():
     # ── --new-show ───────────────────────────────────────────────────────────
     if args.new_show:
         date_str = args.new_show
-        # Look up headliner from history if not overridden
         headliner = args.headliner
         if not headliner:
             matches = [(k, v) for k, v in history_index.items() if k[0] == date_str]
             if len(matches) == 1:
                 headliner = matches[0][0][1]
-                print(f"Found in history: {date_str} — {headliner}")
+                print(f"Found in history/2026: {date_str} — {headliner}")
             elif len(matches) > 1:
                 print(f"Multiple shows on {date_str}:")
                 for k, v in matches:
@@ -792,8 +865,8 @@ def main():
                 sys.exit("Use --headliner to specify which one.")
             else:
                 sys.exit(
-                    f"No show found in history for {date_str}.\n"
-                    f"Use --headliner to specify the artist, or add the show to history first."
+                    f"No show found for {date_str} in {HISTORY_TSV} or {SHOWS_2026_TSV}.\n"
+                    f"Use --headliner to specify the artist, or add the show to the tracking file first."
                 )
 
         url = process_show(
@@ -826,9 +899,9 @@ def main():
                 if matches:
                     artist = matches[0][0][1]
                     queue.append((date_str, artist, None))
-                    print(f"  Found in history: {date_str} — {artist}")
+                    print(f"  Found in history/2026: {date_str} — {artist}")
                 else:
-                    print(f"  WARNING: {date_str} not found in history or worklist — skipping")
+                    print(f"  WARNING: {date_str} not found in history, 2026 file, or worklist — skipping")
     else:
         parser.print_help()
         return
@@ -849,7 +922,7 @@ def main():
         print(f"  {date_str}  {headliner:<35}  {url or 'skipped'}")
     print(f"\nLog written to: {LOG_TSV}")
     if args.update_history and not args.dry_run:
-        print(f"History updated: {HISTORY_TSV}")
+        print(f"Source files updated with playlist URLs")
 
 if __name__ == "__main__":
     main()
