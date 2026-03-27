@@ -4,8 +4,18 @@ dan2bit YouTube channel metadata fetcher
 Pulls all videos and playlists and outputs TSVs for correlation with show history.
 
 Usage:
-    pip install google-api-python-client python-dotenv
-    python3 youtube_fetch.py
+    python3 youtube_fetch.py [--since DATE|auto|full]
+
+    --since auto   (default) Read the newest published date already in the TSV
+                   files and only fetch items published after that date. Makes
+                   re-runs very cheap — typically only a handful of new items.
+                   Falls back to a full fetch if the TSVs are absent or empty.
+    --since full   Fetch everything regardless of existing TSV content.
+                   Use this to rebuild from scratch or after a long gap.
+    --since DATE   Only fetch items published after DATE (YYYY-MM-DD).
+
+New rows are merged into existing TSV files (deduplicated by ID). Existing rows
+are never deleted, so a partial quota-exhausted run is safe to resume.
 
 Output files:
     youtube_videos.tsv    — all uploads with title, date, duration, URL
@@ -16,9 +26,12 @@ Credentials:
     See utils/HOWTO.md → "YouTube API credentials" for setup instructions.
 """
 
+import argparse
 import csv
 import os
+import re
 import sys
+from datetime import datetime, timezone
 
 try:
     from dotenv import load_dotenv
@@ -48,6 +61,110 @@ if not API_KEY or API_KEY == "your_api_key_here":
     )
 
 CHANNEL_HANDLE = "dan2bit"
+SCRIPT_DIR     = os.path.dirname(os.path.abspath(__file__))
+VIDEOS_TSV     = os.path.join(SCRIPT_DIR, "youtube_videos.tsv")
+PLAYLISTS_TSV  = os.path.join(SCRIPT_DIR, "youtube_playlists.tsv")
+
+VIDEO_FIELDS    = ["published", "title", "duration", "url", "description", "video_id"]
+PLAYLIST_FIELDS = ["published", "title", "item_count", "url", "description", "playlist_id"]
+
+
+# ── TSV helpers ───────────────────────────────────────────────────────────────
+
+def read_tsv(path: str) -> list[dict]:
+    if not os.path.exists(path):
+        return []
+    with open(path, encoding="utf-8", newline="") as f:
+        return list(csv.DictReader(f, delimiter="\t"))
+
+
+def write_tsv(rows: list[dict], fieldnames: list[str], path: str) -> None:
+    with open(path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter="\t",
+                                lineterminator="\n", extrasaction="ignore")
+        writer.writeheader()
+        writer.writerows(rows)
+    print(f"Wrote {len(rows)} rows → {path}")
+
+
+def merge_rows(existing: list[dict], new_rows: list[dict], id_col: str) -> list[dict]:
+    """
+    Merge new_rows into existing, deduplicating by id_col.
+    Existing rows take precedence (new rows for the same ID are ignored).
+    Returns the merged list sorted by 'published' ascending.
+    """
+    seen = {r[id_col] for r in existing}
+    added = 0
+    for r in new_rows:
+        if r[id_col] not in seen:
+            existing.append(r)
+            seen.add(r[id_col])
+            added += 1
+    existing.sort(key=lambda r: r.get("published", ""))
+    return existing, added
+
+
+# ── Since-date logic ──────────────────────────────────────────────────────────
+
+def max_published(rows: list[dict]) -> str | None:
+    """Return the newest 'published' date (YYYY-MM-DD) in a list of rows, or None."""
+    dates = [r.get("published", "")[:10] for r in rows if r.get("published")]
+    return max(dates) if dates else None
+
+
+def resolve_cutoff(since_arg: str,
+                   existing_videos: list[dict],
+                   existing_playlists: list[dict]) -> str | None:
+    """
+    Return an RFC 3339 timestamp string to use as a publishedAfter cutoff,
+    or None for a full fetch.
+
+    since_arg:
+      'full'      → None (fetch everything)
+      'auto'      → newest date across both existing TSVs; None if both empty
+      YYYY-MM-DD  → use that date explicitly
+    """
+    if since_arg == "full":
+        return None
+
+    if since_arg == "auto":
+        dates = []
+        d = max_published(existing_videos)
+        if d:
+            dates.append(d)
+        d = max_published(existing_playlists)
+        if d:
+            dates.append(d)
+        if not dates:
+            print("No existing TSV data — performing full fetch.")
+            return None
+        cutoff_date = max(dates)
+        print(f"Auto-detected newest existing date: {cutoff_date}")
+    else:
+        cutoff_date = since_arg
+        try:
+            datetime.strptime(cutoff_date, "%Y-%m-%d")
+        except ValueError:
+            sys.exit(f"ERROR: --since value '{cutoff_date}' is not a valid YYYY-MM-DD date.")
+
+    rfc3339 = f"{cutoff_date}T00:00:00Z"
+    print(f"Fetching items published after: {cutoff_date}")
+    return rfc3339
+
+
+def is_after_cutoff(published_at: str, cutoff_rfc3339: str | None) -> bool:
+    """True if the item's publishedAt is strictly after the cutoff, or if no cutoff."""
+    if cutoff_rfc3339 is None:
+        return True
+    try:
+        item_dt   = datetime.fromisoformat(published_at.replace("Z", "+00:00"))
+        cutoff_dt = datetime.fromisoformat(cutoff_rfc3339.replace("Z", "+00:00"))
+        return item_dt > cutoff_dt
+    except Exception:
+        return True  # if we can't parse, include it
+
+
+# ── YouTube API ───────────────────────────────────────────────────────────────
 
 def get_channel_id(youtube):
     resp = youtube.channels().list(
@@ -64,118 +181,187 @@ def get_channel_id(youtube):
     print(f"Uploads playlist ID: {uploads_playlist_id}")
     return channel_id, uploads_playlist_id
 
-def fetch_all_videos(youtube, uploads_playlist_id):
+
+def fetch_new_videos(youtube, uploads_playlist_id: str,
+                     cutoff: str | None) -> list[dict]:
+    """
+    Fetch videos from the uploads playlist newer than cutoff.
+
+    The uploads playlist is returned newest-first, so we stop paginating as
+    soon as we hit an item older than the cutoff — no need to scan everything.
+    Without a cutoff (full fetch), all pages are retrieved as before.
+    """
     videos = []
     page_token = None
-    while True:
+    done = False
+
+    while not done:
         resp = youtube.playlistItems().list(
             part="snippet,contentDetails",
             playlistId=uploads_playlist_id,
             maxResults=50,
-            pageToken=page_token
+            pageToken=page_token,
         ).execute()
+
         for item in resp.get("items", []):
-            snippet = item["snippet"]
+            snippet  = item["snippet"]
             video_id = item["contentDetails"]["videoId"]
+            pub      = snippet.get("publishedAt", "")
+
+            if not is_after_cutoff(pub, cutoff):
+                # Playlist is newest-first; everything from here is older
+                done = True
+                break
+
             videos.append({
                 "video_id":    video_id,
                 "title":       snippet.get("title", ""),
-                "published":   snippet.get("publishedAt", "")[:10],
+                "published":   pub[:10],
                 "description": snippet.get("description", "").replace("\n", " ")[:200],
                 "url":         f"https://www.youtube.com/watch?v={video_id}",
             })
+
         page_token = resp.get("nextPageToken")
         if not page_token:
             break
-        print(f"  Fetched {len(videos)} videos so far...")
+        if not done:
+            print(f"  Fetched {len(videos)} new videos so far...")
+
     return videos
 
-def enrich_videos_with_duration(youtube, videos):
+
+def enrich_videos_with_duration(youtube, videos: list[dict]) -> list[dict]:
+    """Batch-fetch durations for a list of videos (50 per API call)."""
     enriched = []
     for i in range(0, len(videos), 50):
-        batch = videos[i:i+50]
-        ids = ",".join(v["video_id"] for v in batch)
-        resp = youtube.videos().list(
-            part="contentDetails",
-            id=ids
-        ).execute()
-        duration_map = {}
-        for item in resp.get("items", []):
-            dur = item["contentDetails"]["duration"]
-            duration_map[item["id"]] = parse_duration(dur)
+        batch = videos[i:i + 50]
+        ids   = ",".join(v["video_id"] for v in batch)
+        resp  = youtube.videos().list(part="contentDetails", id=ids).execute()
+        dur_map = {
+            item["id"]: parse_duration(item["contentDetails"]["duration"])
+            for item in resp.get("items", [])
+        }
         for v in batch:
-            v["duration"] = duration_map.get(v["video_id"], "")
+            v["duration"] = dur_map.get(v["video_id"], "")
             enriched.append(v)
     return enriched
 
-def parse_duration(iso_duration):
-    import re
-    match = re.match(r'PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?', iso_duration)
+
+def parse_duration(iso_duration: str) -> str:
+    match = re.match(r"PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?", iso_duration)
     if not match:
         return ""
     h = int(match.group(1) or 0)
     m = int(match.group(2) or 0)
     s = int(match.group(3) or 0)
-    if h:
-        return f"{h}:{m:02d}:{s:02d}"
-    return f"{m}:{s:02d}"
+    return f"{h}:{m:02d}:{s:02d}" if h else f"{m}:{s:02d}"
 
-def fetch_all_playlists(youtube, channel_id):
+
+def fetch_new_playlists(youtube, channel_id: str,
+                        cutoff: str | None) -> list[dict]:
+    """
+    Fetch playlists for the channel newer than cutoff.
+
+    Unlike the uploads playlist, the playlists endpoint is not guaranteed to
+    return results newest-first, so we filter every item individually rather
+    than stopping early.
+    """
     playlists = []
     page_token = None
+
     while True:
         resp = youtube.playlists().list(
             part="snippet,contentDetails",
             channelId=channel_id,
             maxResults=50,
-            pageToken=page_token
+            pageToken=page_token,
         ).execute()
+
         for item in resp.get("items", []):
-            snippet = item["snippet"]
+            snippet     = item["snippet"]
+            pub         = snippet.get("publishedAt", "")
             playlist_id = item["id"]
+
+            if not is_after_cutoff(pub, cutoff):
+                continue
+
             playlists.append({
-                "playlist_id":  playlist_id,
-                "title":        snippet.get("title", ""),
-                "published":    snippet.get("publishedAt", "")[:10],
-                "description":  snippet.get("description", "").replace("\n", " ")[:200],
-                "item_count":   item["contentDetails"]["itemCount"],
-                "url":          f"https://www.youtube.com/playlist?list={playlist_id}",
+                "playlist_id": playlist_id,
+                "title":       snippet.get("title", ""),
+                "published":   pub[:10],
+                "description": snippet.get("description", "").replace("\n", " ")[:200],
+                "item_count":  item["contentDetails"]["itemCount"],
+                "url":         f"https://www.youtube.com/playlist?list={playlist_id}",
             })
+
         page_token = resp.get("nextPageToken")
         if not page_token:
             break
+
     return playlists
 
-def write_tsv(rows, fieldnames, filename):
-    with open(filename, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter="\t", extrasaction="ignore")
-        writer.writeheader()
-        writer.writerows(rows)
-    print(f"Wrote {len(rows)} rows to {filename}")
+
+# ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "--since",
+        metavar="DATE|auto|full",
+        default="auto",
+        help=(
+            "Fetch only items published after this date. "
+            "'auto' (default) reads the newest date from existing TSVs. "
+            "'full' fetches everything. "
+            "YYYY-MM-DD uses an explicit cutoff date."
+        ),
+    )
+    args = parser.parse_args()
+
     youtube = build("youtube", "v3", developerKey=API_KEY)
 
-    print("Fetching channel info...")
+    # Load existing TSV data (used both for cutoff detection and merging)
+    existing_videos    = read_tsv(VIDEOS_TSV)
+    existing_playlists = read_tsv(PLAYLISTS_TSV)
+    print(f"Existing data: {len(existing_videos)} videos, "
+          f"{len(existing_playlists)} playlists in TSVs")
+
+    cutoff = resolve_cutoff(args.since, existing_videos, existing_playlists)
+
+    print("\nFetching channel info...")
     channel_id, uploads_playlist_id = get_channel_id(youtube)
 
-    print("Fetching all videos...")
-    videos = fetch_all_videos(youtube, uploads_playlist_id)
-    print(f"Found {len(videos)} videos. Fetching durations...")
-    videos = enrich_videos_with_duration(youtube, videos)
-    videos.sort(key=lambda v: v["published"])
-    write_tsv(videos,
-              ["published", "title", "duration", "url", "description", "video_id"],
-              "youtube_videos.tsv")
+    # ── Videos ───────────────────────────────────────────────────────────────
+    print("\nFetching new videos...")
+    new_videos = fetch_new_videos(youtube, uploads_playlist_id, cutoff)
+    print(f"Found {len(new_videos)} new video(s).")
 
-    print("Fetching all playlists...")
-    playlists = fetch_all_playlists(youtube, channel_id)
-    playlists.sort(key=lambda p: p["published"])
-    write_tsv(playlists,
-              ["published", "title", "item_count", "url", "description", "playlist_id"],
-              "youtube_playlists.tsv")
+    if new_videos:
+        print("Fetching durations for new videos...")
+        new_videos = enrich_videos_with_duration(youtube, new_videos)
+        merged_videos, added = merge_rows(existing_videos, new_videos, "video_id")
+        print(f"Merged: {added} new video(s) added ({len(merged_videos)} total).")
+        write_tsv(merged_videos, VIDEO_FIELDS, VIDEOS_TSV)
+    else:
+        print("No new videos — youtube_videos.tsv unchanged.")
 
-    print("\nDone! Next step: run youtube_correlate.py to match against your show history.")
+    # ── Playlists ─────────────────────────────────────────────────────────────
+    print("\nFetching new playlists...")
+    new_playlists = fetch_new_playlists(youtube, channel_id, cutoff)
+    print(f"Found {len(new_playlists)} new playlist(s).")
+
+    if new_playlists:
+        merged_playlists, added = merge_rows(existing_playlists, new_playlists, "playlist_id")
+        print(f"Merged: {added} new playlist(s) added ({len(merged_playlists)} total).")
+        write_tsv(merged_playlists, PLAYLIST_FIELDS, PLAYLISTS_TSV)
+    else:
+        print("No new playlists — youtube_playlists.tsv unchanged.")
+
+    print("\nDone! Next step: run youtube_correlate.py --merge to update show history.")
+
 
 if __name__ == "__main__":
     main()
