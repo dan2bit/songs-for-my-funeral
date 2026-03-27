@@ -89,7 +89,7 @@ except ImportError:
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(os.path.join(SCRIPT_DIR, ".env"))
 
-SCOPES          = ["https://www.googleapis.com/auth/youtube.readonly"]
+SCOPES          = ["https://www.googleapis.com/auth/youtube"]
 CLIENT_SECRETS  = os.environ.get("YOUTUBE_CLIENT_SECRETS", "client_secrets.json")
 TOKEN_FILE      = os.environ.get("YOUTUBE_TOKEN_FILE",     "token.json")
 ARTISTS_TSV     = os.path.join(SCRIPT_DIR, "artists.tsv")
