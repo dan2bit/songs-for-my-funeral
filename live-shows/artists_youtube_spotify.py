@@ -5,26 +5,30 @@ Populates the YouTube Channel and Spotify URL columns in artists.tsv.
 For each artist with a blank YouTube Channel or Spotify URL, the script:
 
   YouTube:
-    Calls the YouTube Data API v3 search.list endpoint with type=channel.
-    Uses the top result's customUrl (the @handle) if available, falling back to
-    the channel's canonical URL. Only writes a value if the result looks like a
-    genuine match (name similarity check).
+    1. Calls search.list (type=channel) to find candidate channels.
+    2. For each candidate that passes the name-similarity check, calls
+       channels.list to retrieve the channel's customUrl (@handle).
+       Falls back to https://www.youtube.com/@<customUrl> or the channel URL
+       if no handle is available.
+    Writes nothing if no result passes the similarity check.
 
   Spotify:
     Calls the Spotify Web API search endpoint with type=artist.
     Uses the top result's external_urls.spotify value.
-    Only writes a value if the returned artist name is a close match.
+    Writes nothing if no result passes the similarity check.
 
-The script reads and writes artists.tsv in-place, preserving any values that
-are already filled in (i.e. it is safe to re-run after manual corrections).
+Progress is saved to artists.tsv after every successful API write, so if the
+script is interrupted (e.g. by a YouTube quota limit) results already found
+are not lost. Re-running the script safely skips any row that already has a value.
 
 Usage:
     python3 artists_youtube_spotify.py [--dry-run] [--only-youtube] [--only-spotify]
+                                       [--artist NAME]
 
     --dry-run       Print proposed changes without writing to artists.tsv
     --only-youtube  Only run the YouTube pass
     --only-spotify  Only run the Spotify pass
-    --artist NAME   Only process a single artist (useful for spot-checks)
+    --artist NAME   Only process this artist (case-insensitive substring match)
 
 Environment variables (from .env in the same directory):
     YOUTUBE_API_KEY          YouTube Data API v3 key (read-only)
@@ -48,84 +52,142 @@ from dotenv import load_dotenv
 
 # ── Config ────────────────────────────────────────────────────────────────────
 
-SCRIPT_DIR  = os.path.dirname(os.path.abspath(__file__))
-DOTENV_PATH = os.path.join(SCRIPT_DIR, ".env")
-ARTISTS_TSV = os.path.join(SCRIPT_DIR, "artists.tsv")
+SCRIPT_DIR   = os.path.dirname(os.path.abspath(__file__))
+DOTENV_PATH  = os.path.join(SCRIPT_DIR, ".env")
+ARTISTS_TSV  = os.path.join(SCRIPT_DIR, "artists.tsv")
 
-YT_SEARCH_URL     = "https://www.googleapis.com/youtube/v3/search"
-SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
+YT_SEARCH_URL   = "https://www.googleapis.com/youtube/v3/search"
+YT_CHANNEL_URL  = "https://www.googleapis.com/youtube/v3/channels"
+SPOTIFY_TOKEN_URL  = "https://accounts.spotify.com/api/token"
 SPOTIFY_SEARCH_URL = "https://api.spotify.com/v1/search"
 
-# Seconds to wait between API calls to stay well under quota limits
-YT_DELAY      = 0.5
+# Seconds to wait between API calls
+YT_DELAY      = 0.6   # search.list + channels.list = 2 calls per artist; be conservative
 SPOTIFY_DELAY = 0.3
 
-# Minimum name similarity ratio (0–1) to accept a result as a genuine match
-MATCH_THRESHOLD = 0.6
+# Minimum Jaccard similarity to accept a result as a genuine match
+MATCH_THRESHOLD = 0.55
 
 # ── Name normalisation & similarity ──────────────────────────────────────────
 
 def _norm(s: str) -> str:
-    """Lowercase, strip accents, remove punctuation/articles for comparison."""
+    """Lowercase, strip accents, remove punctuation, drop leading 'the'."""
     s = unicodedata.normalize("NFD", s)
-    s = "".join(c for c in s if unicodedata.category(c) != "Mn")  # strip accents
+    s = "".join(c for c in s if unicodedata.category(c) != "Mn")
     s = s.lower()
     s = re.sub(r"[^\w\s]", "", s)
-    # strip leading "the " for matching purposes
     s = re.sub(r"^the\s+", "", s).strip()
     return s
 
 
+def _tokens(s: str) -> set:
+    """Return meaningful (>2 char) tokens, dropping noise words."""
+    NOISE = {"and", "the", "feat", "with", "band", "live"}
+    return {w for w in _norm(s).split() if len(w) > 2 and w not in NOISE}
+
+
 def _similarity(a: str, b: str) -> float:
-    """Simple token-overlap similarity (Jaccard on word sets)."""
-    wa = set(_norm(a).split())
-    wb = set(_norm(b).split())
+    """Jaccard similarity on token sets."""
+    wa, wb = _tokens(a), _tokens(b)
     if not wa or not wb:
         return 0.0
     return len(wa & wb) / len(wa | wb)
 
 
-def is_match(query_name: str, result_name: str) -> bool:
-    sim = _similarity(query_name, result_name)
-    # Also accept if the normalised query is a substring of the result or vice-versa
-    qn = _norm(query_name)
-    rn = _norm(result_name)
-    substring_match = qn in rn or rn in qn
-    return sim >= MATCH_THRESHOLD or substring_match
+def is_match(query: str, result: str) -> bool:
+    """
+    True if query and result look like the same artist.
+
+    Rules (any one is sufficient):
+    - Jaccard similarity >= MATCH_THRESHOLD
+    - Normalised query is a substring of normalised result (or vice-versa),
+      BUT only if the query has at least 2 tokens OR is >5 chars,
+      to avoid "Live" or "Beck" matching everything.
+    """
+    sim = _similarity(query, result)
+    if sim >= MATCH_THRESHOLD:
+        return True
+    qn, rn = _norm(query), _norm(result)
+    # Substring check with guard against very short names swallowing everything
+    if len(qn) > 5 or len(_tokens(query)) >= 2:
+        if qn in rn or rn in qn:
+            return True
+    return False
 
 # ── YouTube ───────────────────────────────────────────────────────────────────
+
+class YouTubeQuotaError(Exception):
+    pass
+
+
+def _yt_get(url: str, params: dict) -> dict:
+    """Make a YouTube API GET, raising YouTubeQuotaError on quota exhaustion."""
+    try:
+        resp = requests.get(url, params=params, timeout=10)
+    except requests.RequestException as e:
+        raise requests.RequestException(str(e))
+
+    if resp.status_code == 403:
+        data = resp.json()
+        errors = data.get("error", {}).get("errors", [])
+        if any(e.get("reason") == "quotaExceeded" for e in errors):
+            raise YouTubeQuotaError("YouTube API quota exceeded.")
+        resp.raise_for_status()
+
+    resp.raise_for_status()
+    return resp.json()
+
+
+def yt_get_handle(channel_id: str, api_key: str) -> str:
+    """
+    Given a channel ID, return the @handle via channels.list.
+    Returns "@handle" if customUrl is set, otherwise the channel URL.
+    """
+    data = _yt_get(YT_CHANNEL_URL, {
+        "part":  "snippet",
+        "id":    channel_id,
+        "key":   api_key,
+    })
+    items = data.get("items", [])
+    if not items:
+        return f"https://www.youtube.com/channel/{channel_id}"
+    custom = items[0]["snippet"].get("customUrl", "")
+    if custom:
+        handle = custom if custom.startswith("@") else f"@{custom}"
+        return handle
+    return f"https://www.youtube.com/channel/{channel_id}"
+
 
 def yt_search_channel(artist: str, api_key: str) -> str | None:
     """
     Search YouTube for a channel matching `artist`.
-    Returns the @handle (e.g. "@vanessacolliermusic") if found and plausible,
-    otherwise the channel URL, otherwise None.
+    Returns the @handle or channel URL if a plausible match is found,
+    otherwise None.
+    Raises YouTubeQuotaError if the quota is exhausted.
     """
-    params = {
+    data = _yt_get(YT_SEARCH_URL, {
         "part":       "snippet",
         "q":          artist,
         "type":       "channel",
         "maxResults": 3,
         "key":        api_key,
-    }
-    try:
-        resp = requests.get(YT_SEARCH_URL, params=params, timeout=10)
-        resp.raise_for_status()
-    except requests.RequestException as e:
-        print(f"    [YT ERROR] {artist}: {e}", file=sys.stderr)
+    })
+
+    items = data.get("items", [])
+    if not items:
+        print(f"        → YouTube: no results returned")
         return None
 
-    items = resp.json().get("items", [])
     for item in items:
-        title       = item["snippet"]["channelTitle"]
-        channel_id  = item["snippet"]["channelId"]
-        custom_url  = item["snippet"].get("customUrl", "")  # @handle if set
-        if not is_match(artist, title):
+        title      = item["snippet"]["channelTitle"]
+        channel_id = item["snippet"]["channelId"]
+        match      = is_match(artist, title)
+        print(f"        → YouTube candidate: \"{title}\" (match={match})")
+        if not match:
             continue
-        if custom_url:
-            handle = custom_url if custom_url.startswith("@") else f"@{custom_url}"
-            return handle
-        return f"https://www.youtube.com/channel/{channel_id}"
+        # Second call to get the @handle
+        time.sleep(YT_DELAY)
+        return yt_get_handle(channel_id, api_key)
 
     return None
 
@@ -135,7 +197,6 @@ _spotify_token_cache: dict = {}
 
 
 def _get_spotify_token(client_id: str, client_secret: str) -> str:
-    """Fetch (or return cached) Spotify client credentials token."""
     if _spotify_token_cache.get("token"):
         return _spotify_token_cache["token"]
     resp = requests.post(
@@ -151,25 +212,19 @@ def _get_spotify_token(client_id: str, client_secret: str) -> str:
 
 
 def spotify_search_artist(artist: str, client_id: str, client_secret: str) -> str | None:
-    """
-    Search Spotify for an artist matching `artist`.
-    Returns the Spotify artist URL if found and plausible, otherwise None.
-    """
     try:
         token = _get_spotify_token(client_id, client_secret)
     except requests.RequestException as e:
         print(f"    [SPOTIFY TOKEN ERROR] {e}", file=sys.stderr)
         return None
 
-    params = {
-        "q":     artist,
-        "type":  "artist",
-        "limit": 3,
-    }
     headers = {"Authorization": f"Bearer {token}"}
     try:
         resp = requests.get(
-            SPOTIFY_SEARCH_URL, params=params, headers=headers, timeout=10
+            SPOTIFY_SEARCH_URL,
+            params={"q": artist, "type": "artist", "limit": 3},
+            headers=headers,
+            timeout=10,
         )
         resp.raise_for_status()
     except requests.RequestException as e:
@@ -177,12 +232,16 @@ def spotify_search_artist(artist: str, client_id: str, client_secret: str) -> st
         return None
 
     items = resp.json().get("artists", {}).get("items", [])
+    if not items:
+        print(f"        → Spotify: no results returned")
+        return None
+
     for item in items:
-        name = item.get("name", "")
-        url  = item.get("external_urls", {}).get("spotify", "")
-        if not url:
-            continue
-        if not is_match(artist, name):
+        name  = item.get("name", "")
+        url   = item.get("external_urls", {}).get("spotify", "")
+        match = is_match(artist, name)
+        print(f"        → Spotify candidate: \"{name}\" (match={match})")
+        if not url or not match:
             continue
         return url
 
@@ -190,9 +249,12 @@ def spotify_search_artist(artist: str, client_id: str, client_secret: str) -> st
 
 # ── TSV helpers ───────────────────────────────────────────────────────────────
 
-def load_artists(path: str) -> list[dict]:
+def load_artists(path: str) -> tuple[list[dict], list[str]]:
     with open(path, encoding="utf-8", newline="") as f:
-        return list(csv.DictReader(f, delimiter="\t"))
+        reader = csv.DictReader(f, delimiter="\t")
+        rows = list(reader)
+        fieldnames = list(reader.fieldnames or [])
+    return rows, fieldnames
 
 
 def save_artists(path: str, rows: list[dict], fieldnames: list[str]) -> None:
@@ -205,8 +267,10 @@ def save_artists(path: str, rows: list[dict], fieldnames: list[str]) -> None:
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__,
-                                     formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     parser.add_argument("--dry-run",      action="store_true",
                         help="Print changes without writing to artists.tsv")
     parser.add_argument("--only-youtube", action="store_true",
@@ -218,9 +282,9 @@ def main() -> None:
     args = parser.parse_args()
 
     load_dotenv(DOTENV_PATH)
-    yt_key          = os.getenv("YOUTUBE_API_KEY", "")
-    spotify_id      = os.getenv("SPOTIFY_CLIENT_ID", "")
-    spotify_secret  = os.getenv("SPOTIFY_CLIENT_SECRET", "")
+    yt_key         = os.getenv("YOUTUBE_API_KEY", "")
+    spotify_id     = os.getenv("SPOTIFY_CLIENT_ID", "")
+    spotify_secret = os.getenv("SPOTIFY_CLIENT_SECRET", "")
 
     do_youtube = not args.only_spotify
     do_spotify = not args.only_youtube
@@ -233,26 +297,24 @@ def main() -> None:
               file=sys.stderr)
         do_spotify = False
 
-    rows = load_artists(ARTISTS_TSV)
+    rows, fieldnames = load_artists(ARTISTS_TSV)
     if not rows:
         print("artists.tsv is empty or missing.", file=sys.stderr)
         sys.exit(1)
 
-    fieldnames = list(rows[0].keys())
-
-    # Ensure columns exist
+    # Ensure columns exist in fieldnames and rows
     for col in ("YouTube Channel", "Spotify URL"):
         if col not in fieldnames:
             fieldnames.append(col)
-            for row in rows:
-                row.setdefault(col, "")
+        for row in rows:
+            row.setdefault(col, "")
 
-    artist_filter = args.artist.lower() if args.artist else None
-
+    artist_filter  = args.artist.lower() if args.artist else None
     yt_filled      = 0
     spotify_filled = 0
     yt_skipped     = 0
     spotify_skipped = 0
+    quota_hit      = False
 
     for row in rows:
         name = row["Artist"]
@@ -261,21 +323,35 @@ def main() -> None:
             continue
 
         # ── YouTube ──────────────────────────────────────────────────────────
-        if do_youtube:
+        if do_youtube and not quota_hit:
             existing_yt = row.get("YouTube Channel", "").strip()
             if existing_yt:
                 yt_skipped += 1
             else:
-                print(f"  [YT]  Searching: {name}")
-                handle = yt_search_channel(name, yt_key)
-                time.sleep(YT_DELAY)
-                if handle:
-                    print(f"        → {handle}")
+                print(f"\n[YT]  {name}")
+                try:
+                    handle = yt_search_channel(name, yt_key)
+                    time.sleep(YT_DELAY)
+                    if handle:
+                        print(f"        → writing: {handle}")
+                        if not args.dry_run:
+                            row["YouTube Channel"] = handle
+                            save_artists(ARTISTS_TSV, rows, fieldnames)
+                        yt_filled += 1
+                    else:
+                        print(f"        → no match — leaving blank")
+                except YouTubeQuotaError:
+                    print(
+                        "\n*** YouTube API quota exceeded. ***\n"
+                        "Progress saved. Re-run tomorrow (quota resets at midnight Pacific)\n"
+                        "or use --only-spotify to continue with Spotify in the meantime.",
+                        file=sys.stderr,
+                    )
+                    quota_hit = True
                     if not args.dry_run:
-                        row["YouTube Channel"] = handle
-                    yt_filled += 1
-                else:
-                    print(f"        → no match found")
+                        save_artists(ARTISTS_TSV, rows, fieldnames)
+                except requests.RequestException as e:
+                    print(f"        → [YT ERROR] {e}", file=sys.stderr)
 
         # ── Spotify ──────────────────────────────────────────────────────────
         if do_spotify:
@@ -283,29 +359,28 @@ def main() -> None:
             if existing_sp:
                 spotify_skipped += 1
             else:
-                print(f"  [SP]  Searching: {name}")
+                print(f"\n[SP]  {name}")
                 url = spotify_search_artist(name, spotify_id, spotify_secret)
                 time.sleep(SPOTIFY_DELAY)
                 if url:
-                    print(f"        → {url}")
+                    print(f"        → writing: {url}")
                     if not args.dry_run:
                         row["Spotify URL"] = url
+                        save_artists(ARTISTS_TSV, rows, fieldnames)
                     spotify_filled += 1
                 else:
-                    print(f"        → no match found")
+                    print(f"        → no match — leaving blank")
 
-    # ── Write ─────────────────────────────────────────────────────────────────
-    if not args.dry_run:
-        save_artists(ARTISTS_TSV, rows, fieldnames)
-        print(f"\nWrote {ARTISTS_TSV}")
-    else:
-        print("\n[dry-run] No changes written.")
-
-    print(f"\nSummary:")
+    # ── Summary ───────────────────────────────────────────────────────────────
+    print(f"\n{'─'*50}")
+    print(f"Summary:")
     if do_youtube:
-        print(f"  YouTube:  {yt_filled} filled, {yt_skipped} already had a value")
+        label = " (quota hit — incomplete)" if quota_hit else ""
+        print(f"  YouTube:  {yt_filled} filled, {yt_skipped} already had a value{label}")
     if do_spotify:
         print(f"  Spotify:  {spotify_filled} filled, {spotify_skipped} already had a value")
+    if args.dry_run:
+        print("  [dry-run] No changes written.")
 
 
 if __name__ == "__main__":
