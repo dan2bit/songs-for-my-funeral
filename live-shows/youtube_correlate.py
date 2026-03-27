@@ -63,6 +63,11 @@ def write_tsv(rows, fieldnames, filename):
         writer.writerows(rows)
 
 
+def _cell(row, key):
+    """Safely read a TSV cell — returns empty string for missing or None values."""
+    return (row.get(key) or "").strip()
+
+
 # ── Matching helpers ──────────────────────────────────────────────────────────
 
 def normalize(s):
@@ -140,7 +145,7 @@ def find_videos(date_str, videos):
         return []
     matches = []
     for v in videos:
-        desc = v.get("description", "")
+        desc = v.get("description", "") or ""
         if any(dv in desc for dv in date_vars):
             matches.append(v)
     return matches
@@ -255,9 +260,9 @@ def merge_into_history(corr_results, source_file):
     # Only include rows where correlation actually found a playlist
     corr_map = {}
     for r in corr_results:
-        url = r.get("Playlist URL", "").strip()
+        url = _cell(r, "Playlist URL")
         if url:
-            corr_map[(r["Show Date"], r["Artist"])] = url
+            corr_map[(_cell(r, "Show Date"), _cell(r, "Artist"))] = url
 
     if not corr_map:
         return 0
@@ -275,14 +280,10 @@ def merge_into_history(corr_results, source_file):
 
     updated = 0
     for row in rows:
-        # Build the lookup key — try (Show Date, Artist) first; for 2026 file the date
-        # column is also named "Show Date" after normalize_shows, so this works for both.
-        date   = row.get("Show Date", "").strip()
-        artist = row.get("Artist", "").strip()
-        key = (date, artist)
-
-        existing_url = row.get("Playlist URL", "").strip()
-        new_url = corr_map.get(key, "")
+        date         = _cell(row, "Show Date")
+        artist       = _cell(row, "Artist")
+        existing_url = _cell(row, "Playlist URL")
+        new_url      = corr_map.get((date, artist), "")
 
         if new_url and not existing_url:
             row["Playlist URL"] = new_url
