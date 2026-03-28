@@ -4,20 +4,6 @@ Collaborative task list for the live show archive project. Update status as task
 
 ---
 
-## ✅ Completed (this session)
-
-- Matched 9 playlist URLs from `youtube_playlists.tsv` into `live_shows_history.tsv`
-- Populated WORKLIST in `youtube_create_playlists.py` with 22 backfill shows
-- Fixed `live_shows_2026.tsv`: dropped duplicate `Notes` column, fixed column shift on upcoming rows
-- Added 27 YouTube channel handles to `artists.tsv` from `youtube_videos.tsv` cross-ref
-- Fixed quota burn bug in `youtube_create_playlists.py` (`--new-show` now checks `youtube_videos.tsv` before calling uploads API)
-- Added `youtube_audit_blanks.py` for loose-match scan of no-video blank shows
-- Committed `live_shows_history.tsv` playlist URL updates (Daniel Donato, DuPont Brass, LL Cool J, Buddy Guy 2025, + 9 from playlist cross-ref)
-- Merged PR #7 (`youtube_fetch.py --since`)
-- Resolved all 4 flagged ambiguous-attribution shows (see below)
-
----
-
 ## 🔧 Ready to Run (quota reset needed)
 
 ### 1. Create ZZ Ward 2026 playlist
@@ -86,7 +72,7 @@ The WORKLIST in `youtube_create_playlists.py` should then be cleared and entries
 
 ### 3. Audit 25 no-video blank shows
 
-25 shows have no playlist URL and no matching videos in `youtube_videos.tsv` using exact date matching. Use the new audit script to scan with a loose +30-day window and fuzzy artist-name title matching.
+25 shows have no playlist URL and no matching videos in `youtube_videos.tsv` using exact date matching. Use the audit script to scan with a loose +30-day window and fuzzy artist-name title matching.
 
 ```bash
 cd live-shows
@@ -105,7 +91,7 @@ python3 youtube_audit_blanks.py --output audit_blanks.tsv
 | 2021-09-23 | The Avett Brothers |
 | 2021-09-24 | Kingsley Flood |
 | 2021-10-22 | Rival Sons |
-| 2021-11-18 | Christone "Kingfish" Ingram |
+| 2021-11-18 | Christone 'Kingfish' Ingram |
 | 2022-01-21 | Keb' Mo' |
 | 2022-01-28 | Lucky Chops |
 | 2022-02-18 | Tedeschi Trucks Band |
@@ -189,19 +175,11 @@ source .venv/bin/activate
 python3 youtube_fetch.py --since 2021-07-01
 ```
 
-Then run `youtube_correlate.py --merge` to push any new URL correlations back into the history files.
+Then run `youtube_correlate.py --merge --sync-artists` to push any new URL correlations back into the history files and keep `artists.tsv` current.
 
 ---
 
-### 8. `artists.tsv` — `Most Recent Seen` column drift
-
-The `Most Recent Seen` column is manually maintained. As 2026 attended shows accumulate, it will drift out of date. Consider writing a sync script that derives `Times Seen`, `First Seen`, and `Most Recent Seen` directly from `live_shows_history.tsv` + `live_shows_2026.tsv` rather than maintaining them by hand.
-
-No script exists yet. Would need to be written.
-
----
-
-### 9. Venues TSV parking update
+### 8. Venues TSV parking update
 
 A parking cost update to `venues.tsv` was in-progress at the end of a previous session. Completion status unclear — worth checking the file.
 
@@ -209,25 +187,8 @@ A parking cost update to `venues.tsv` was in-progress at the end of a previous s
 
 ---
 
-## ⚠️ Known Issues
+### 9. Figure out year-end rollover
 
-### 10. `Christone "Kingfish" Ingram` quoting inconsistency
+At the end of 2026, `live_shows_2026.tsv` needs to be folded into `live_shows_history.tsv` and a new `live_shows_2027.tsv` created. The process for this hasn't been defined yet — figure out the right approach before year-end.
 
-The artist name uses inconsistent double-quote escaping across TSV files:
-- Sometimes `"Christone ""Kingfish"" Ingram"` (correct TSV escaping)
-- Sometimes `Christone "Kingfish" Ingram` (unescaped, breaks TSV parsing)
-
-This can cause artist lookup mismatches in scripts. Worth a find-and-replace cleanup pass across all TSV files.
-
----
-
-## ✅ Previously Flagged — Now Resolved
-
-These shows had ambiguous video attribution and were held back from the WORKLIST. All four have been resolved:
-
-| Date | Artist | Resolution |
-|------|--------|------------|
-| 2022-04-26 | Daniel Donato | Single video URL set in Playlist URL column |
-| 2023-09-09 | DuPont Brass | Single video URL set in Playlist URL column (1 DuPont video from shared Kingsley Flood show date) |
-| 2023-10-15 | LL Cool J | Playlist found in channel with non-canonical title; URL set in history |
-| 2025-06-21 | Buddy Guy | Playlist created manually; 2 Judith Hill videos from a later show were excluded |
+Things to consider: column schema consistency between the two files, how `youtube_correlate.py` handles the transition, whether the year file should be archived as-is or merged row-by-row, and whether `artists.tsv` needs a full `--sync-artists` run as part of rollover.
