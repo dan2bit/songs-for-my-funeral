@@ -23,11 +23,21 @@ Key improvements over v1:
   - find_videos uses date-only matching (no artist filter) to catch support act footage
 
 Usage:
-    python3 youtube_correlate.py [--merge]
+    python3 youtube_correlate.py [--merge] [--sync-artists]
 
-    --merge   After writing correlation TSVs, also patch any newly found playlist URLs
-              back into live_shows_history.tsv and live_shows_2026.tsv.
-              Only fills blank Playlist URL cells — never overwrites an existing URL.
+    --merge         After writing correlation TSVs, also patch any newly found playlist URLs
+                    back into live_shows_history.tsv and live_shows_2026.tsv.
+                    Only fills blank Playlist URL cells — never overwrites an existing URL.
+
+    --sync-artists  After processing attended shows, update artists.tsv:
+                      - If an artist is not yet in artists.tsv, add a new row.
+                      - If already present, increment Times Seen and update Most Recent Seen
+                        if the show date is newer.
+                    Can be used with or without --merge. Always does a dry-run preview
+                    first and asks for confirmation before writing.
+
+    --dry-run       Preview all changes without writing anything (applies to both
+                    --merge and --sync-artists).
 
 Input files (must be in same directory):
     youtube_videos.tsv
@@ -39,6 +49,7 @@ Output:
     history_youtube_correlation.tsv    — 2021-2025
     shows_2026_youtube_correlation.tsv — 2026 attended shows only
     (with --merge) live_shows_history.tsv and live_shows_2026.tsv are patched in-place
+    (with --sync-artists) artists.tsv is updated in-place
 """
 
 import argparse
@@ -322,6 +333,119 @@ def merge_into_history(corr_results, source_file):
     return updated
 
 
+# ── artists.tsv sync ──────────────────────────────────────────────────────────
+
+ARTISTS_TSV = "artists.tsv"
+ARTISTS_FIELDNAMES = [
+    "Artist", "Times Seen", "First Seen", "Most Recent Seen",
+    "YouTube Channel", "Spotify URL", "Photo", "Book Autograph",
+    "Hat Autograph", "VIP Ticket",
+]
+
+
+def sync_artists(all_attended_shows, dry_run=False):
+    """
+    Update artists.tsv from the full set of attended shows across all source files.
+
+    For each attended show's headliner:
+      - If not in artists.tsv: add a new row with Times Seen=1, First Seen and
+        Most Recent Seen both set to the show date. All other columns left blank.
+      - If already present: increment Times Seen by the number of newly seen shows,
+        update Most Recent Seen if a newer show date exists, update First Seen if
+        an older show date exists (handles shows added out of order).
+
+    Computes the full correct state by scanning ALL attended shows, not just new
+    ones — so it is safe to run repeatedly and will converge to the correct counts.
+
+    Prints a summary of all changes. With dry_run=True, prints but does not write.
+    Returns the number of rows added or updated.
+    """
+    if not os.path.exists(ARTISTS_TSV):
+        print(f"  WARNING: {ARTISTS_TSV} not found — skipping artist sync")
+        return 0
+
+    # Load current artists.tsv
+    with open(ARTISTS_TSV, encoding="utf-8", newline="") as f:
+        reader = csv.DictReader(f, delimiter="\t")
+        fieldnames = list(reader.fieldnames or ARTISTS_FIELDNAMES)
+        artists = list(reader)
+
+    # Build index: artist name → row
+    artist_index = {normalize_artist_name(r["Artist"]): r for r in artists}
+
+    # Aggregate all attended shows: artist → sorted list of dates
+    from collections import defaultdict
+    show_dates_by_artist = defaultdict(set)
+    for show in all_attended_shows:
+        artist = normalize_artist_name(show["Artist"])
+        date   = show["Show Date"]
+        if artist and date:
+            show_dates_by_artist[artist].add(date)
+
+    new_rows = []
+    updated_rows = []
+
+    for artist, dates in sorted(show_dates_by_artist.items()):
+        dates = sorted(dates)
+        first_seen  = dates[0]
+        most_recent = dates[-1]
+        times_seen  = len(dates)
+
+        if artist not in artist_index:
+            # New artist — add row
+            new_row = {fn: "" for fn in fieldnames}
+            new_row["Artist"]          = artist
+            new_row["Times Seen"]      = str(times_seen)
+            new_row["First Seen"]      = first_seen
+            new_row["Most Recent Seen"] = most_recent
+            new_rows.append(new_row)
+            print(f"  ADD  {artist}  (Times Seen={times_seen}, First={first_seen}, Recent={most_recent})")
+        else:
+            row = artist_index[artist]
+            current_seen      = int(row.get("Times Seen", "0") or "0")
+            current_first     = row.get("First Seen", "").strip()
+            current_recent    = row.get("Most Recent Seen", "").strip()
+
+            # Compute what the values should be
+            new_first  = min(filter(None, [first_seen, current_first])) if current_first else first_seen
+            new_recent = max(filter(None, [most_recent, current_recent])) if current_recent else most_recent
+            new_seen   = times_seen  # authoritative count from source files
+
+            changes = []
+            if new_seen != current_seen:
+                changes.append(f"Times Seen {current_seen}→{new_seen}")
+            if new_first != current_first:
+                changes.append(f"First Seen {current_first!r}→{new_first!r}")
+            if new_recent != current_recent:
+                changes.append(f"Most Recent Seen {current_recent!r}→{new_recent!r}")
+
+            if changes:
+                row["Times Seen"]       = str(new_seen)
+                row["First Seen"]       = new_first
+                row["Most Recent Seen"] = new_recent
+                updated_rows.append(artist)
+                print(f"  UPD  {artist}  ({', '.join(changes)})")
+
+    total_changes = len(new_rows) + len(updated_rows)
+    if total_changes == 0:
+        print("  artists.tsv is already up to date — no changes needed.")
+        return 0
+
+    print(f"\n  {len(new_rows)} new artist(s), {len(updated_rows)} updated.")
+
+    if dry_run:
+        print("  [dry-run] No changes written.")
+        return total_changes
+
+    # Append new rows and write back
+    artists.extend(new_rows)
+    # Re-sort by artist name for tidy output
+    artists.sort(key=lambda r: r.get("Artist", "").lower())
+    write_tsv(artists, fieldnames, ARTISTS_TSV)
+    print(f"  Written → {ARTISTS_TSV}")
+    return total_changes
+
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
@@ -338,14 +462,29 @@ def main():
             "Only fills blank Playlist URL cells — never overwrites an existing URL."
         ),
     )
+    parser.add_argument(
+        "--sync-artists",
+        action="store_true",
+        help=(
+            "Update artists.tsv from attended shows: add new artist rows and update "
+            "Times Seen / First Seen / Most Recent Seen for existing ones. "
+            "Computes correct counts from all source files, safe to re-run."
+        ),
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Preview all changes without writing anything.",
+    )
     args = parser.parse_args()
 
     videos    = load_tsv("youtube_videos.tsv")
     playlists = load_tsv("youtube_playlists.tsv")
     print(f"Loaded {len(videos)} videos, {len(playlists)} playlists")
 
-    all_results_history = []
-    all_results_2026    = []
+    all_results_history  = []
+    all_results_2026     = []
+    all_attended_shows   = []   # collected for --sync-artists
 
     # ── History file ──────────────────────────────────────────────────────────
     if os.path.exists("live_shows_history.tsv"):
@@ -356,6 +495,7 @@ def main():
         write_results(results_h, "history_youtube_correlation.tsv")
         print_summary("2021-2025 history", results_h, ph, vh)
         all_results_history = results_h
+        all_attended_shows.extend(history)
     else:
         print("live_shows_history.tsv not found — skipping")
 
@@ -369,6 +509,7 @@ def main():
         write_results(results_26, "shows_2026_youtube_correlation.tsv")
         print_summary("2026 attended shows", results_26, ph, vh)
         all_results_2026 = results_26
+        all_attended_shows.extend(shows_2026)
     else:
         print("live_shows_2026.tsv not found — skipping")
 
@@ -378,13 +519,27 @@ def main():
 
         if all_results_history:
             print("\nlive_shows_history.tsv:")
-            merge_into_history(all_results_history, "live_shows_history.tsv")
+            if not args.dry_run:
+                merge_into_history(all_results_history, "live_shows_history.tsv")
+            else:
+                print("  [dry-run] skipping write")
 
         if all_results_2026:
             print("\nlive_shows_2026.tsv:")
-            merge_into_history(all_results_2026, "live_shows_2026.tsv")
+            if not args.dry_run:
+                merge_into_history(all_results_2026, "live_shows_2026.tsv")
+            else:
+                print("  [dry-run] skipping write")
 
-        print("\nMerge complete. Review changes with: git diff live_shows_history.tsv live_shows_2026.tsv")
+        if not args.dry_run:
+            print("\nMerge complete. Review changes with: git diff live_shows_history.tsv live_shows_2026.tsv")
+
+    # ── Optional artists sync ─────────────────────────────────────────────────
+    if args.sync_artists:
+        print("\n── Syncing artists.tsv ──────────────────────────────────────────────────────")
+        sync_artists(all_attended_shows, dry_run=args.dry_run)
+        if not args.dry_run:
+            print("Review changes with: git diff artists.tsv")
 
 
 if __name__ == "__main__":
