@@ -61,8 +61,8 @@ USAGE:
     # Only fix descriptions for playlists matching specific dates
     python3 youtube_create_playlists.py --fix-descriptions --date 2023-06-11 2023-07-05
 
-OUTPUT LOG (always written regardless of flags):
-    playlist_creation_log.tsv — one row per show processed:
+OUTPUT LOG (always written, gitignored — lives in logs/ subdirectory):
+    logs/playlist_creation_log.tsv — one row per show processed:
         Show Date, Artist, Playlist Title, Playlist URL, Video Count,
         Setlist URL Checked, Setlist Order Used, Videos Added (titles)
 
@@ -148,7 +148,9 @@ CHANNEL_HANDLE = "dan2bit"
 VIDEOS_TSV     = "youtube_videos.tsv"
 HISTORY_TSV    = "live_shows_history.tsv"
 SHOWS_2026_TSV = "live_shows_2026.tsv"
-LOG_TSV        = "playlist_creation_log.tsv"
+
+# Log file — written to logs/ subdir which is gitignored
+LOG_TSV        = os.path.join("logs", "playlist_creation_log.tsv")
 
 # Default description template for --fix-descriptions
 DEFAULT_DESCRIPTION_TEMPLATE = "Select tracks from {setlist_url}"
@@ -609,6 +611,7 @@ def _write_playlist_url_to_file(filepath, date_str, artist, playlist_url,
 LOG_FIELDNAMES = ["Show Date", "Artist", "Playlist Title", "Playlist URL", "Video Count", "Setlist URL Checked", "Setlist Order Used", "Videos Added"]
 
 def write_log_row(log_rows):
+    os.makedirs(os.path.dirname(LOG_TSV), exist_ok=True)
     write_header = not os.path.exists(LOG_TSV)
     with open(LOG_TSV, "a", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=LOG_FIELDNAMES, delimiter="\t")
