@@ -1,9 +1,12 @@
 # Email Workflows — Live Show Archive
 
-Two standing routines for processing emails from the **redhat.bootlegs@gmail.com** inbox.
-Neither is automatic — you trigger each by starting a new conversation in this project
-and telling me there's an email to process (or by forwarding the email to the inbox and
-asking me to handle it).
+Three standing routines for processing emails from the **redhat.bootlegs@gmail.com** inbox.
+None are automatic — you trigger each by starting a new conversation in this project
+and telling me there's an email to process.
+
+**Pre-requisite:** Subscribe redhat.bootlegs@gmail.com to venue and artist mailing lists
+so that on-sale alerts, pre-sale codes, and newsletters arrive there directly. See the
+list of suggested subscriptions at the bottom of this file.
 
 ---
 
@@ -34,7 +37,7 @@ Extract:
 Default times and details if not explicit in the email:
 
 | Venue | Doors | Show | Notes |
-|-------|-------|------|-------|
+|-------|-------|------|----- |
 | The Birchmere | 5:00 PM | 7:30 PM | GA; seating begins 6:30 PM; always free parking |
 | Hamilton Live | 6:30 PM | 8:00 PM | $13 parking |
 | Ram's Head On Stage | 1 hr before show | — | — |
@@ -172,11 +175,67 @@ download and manual check-in.
 
 ---
 
+## Routine 3 — Pre-Sale / On-Sale Notification Email
+
+**Trigger:** An on-sale alert, pre-sale announcement, or venue/artist newsletter
+arrives in the redhat.bootlegs inbox with information about tickets going on sale
+(Ticketmaster, AXS, venue mailing list, artist fan club, etc.)
+
+### What I do
+
+**Step 1 — Parse the email**
+
+Extract:
+- Artist and venue
+- On-sale date and time (distinguish general on-sale vs. pre-sale window)
+- Pre-sale code (if present) and code expiry window
+- Ticket purchase URL
+- Any pricing or seat tier information mentioned
+
+**Step 2 — Check autograph books**
+
+Same lookup as Routine 1 — if the artist is in RHBS or APS, note it in the
+calendar event description as a reminder for when you actually buy tickets.
+
+**Step 3 — Create on-sale reminder calendar event**
+
+Calendar: `redhat.bootlegs@gmail.com` — Dan Concert Calendar
+
+Event title format: `🎟 ON SALE: [Artist]`
+
+Timing:
+- **Start:** 5 minutes before the on-sale/pre-sale time
+- **Duration:** 15 minutes
+- This keeps it visually distinct from actual show events in the calendar
+
+Description format:
+```
+📚 BRING RHBS — [Artist] p.[N]          ← only if in autograph book
+
+[Artist] tickets on sale [date] at [time]
+Buy here: [ticket URL]
+
+Pre-sale code: [CODE]                   ← only if present
+Pre-sale window: [start] – [end]        ← only if known
+[Venue] · [Show date if known]
+[Any pricing or seat tier notes]
+```
+
+Reminders:
+- 24 hours before (1440 min) — advance notice to plan
+- 5 minutes before (5 min) — fires right as you're sitting down to buy
+
+**No TSV row is created** — that comes when the ticket is actually purchased
+and processed via Routine 1.
+
+---
+
 ## Notes
 
 **Inbox monitoring is not automatic.** I don't poll the inbox. You trigger these
-routines by telling me "there's a ticket email" or "I just sent my post-show notes"
-in a new project conversation. I'll search the inbox and take it from there.
+routines by telling me "there's a ticket email", "I just sent my post-show notes",
+or "there's an on-sale alert" in a new project conversation. I'll search the inbox
+and take it from there.
 
 **Hat autograph gdoc is the completeness authority.** The Google Doc at the link
 above is more carefully maintained for hat autographs than the TSV files. If there
@@ -190,3 +249,31 @@ on macOS desktop. If calendar steps fail, switch to desktop before retrying.
 **YouTube pipeline is separate.** Neither routine touches `youtube_fetch.py`,
 `youtube_correlate.py`, or `youtube_create_playlists.py`. Those run on your own
 schedule after video uploads — see TASKS.md.
+
+---
+
+## Pre-Requisite: Mailing List Subscriptions
+
+Subscribe **redhat.bootlegs@gmail.com** to the following so that on-sale alerts
+and pre-sale codes arrive in the inbox for Routine 3 to process:
+
+**Venues:**
+- The Birchmere — birchmere.com (newsletter signup)
+- Hamilton Live — thehamiltiondc.com (newsletter)
+- Ram's Head On Stage — ramsheadonstage.com (newsletter)
+- Wolf Trap — wolftrap.org (email alerts)
+- 9:30 Club / Merriweather / other IMP venues — imppresents.com
+- Strathmore — strathmore.org
+- Kennedy Center — kennedy-center.org
+- Pearl Street Warehouse — pearlstreetwarehouse.com
+- Collective Encore — collectiveencore.com
+- Capital One Hall — capitalonehall.com
+- The Fillmore Silver Spring — fillmoresilverspring.com
+
+**Ticketing platforms:**
+- Ticketmaster / Live Nation artist alerts for followed artists
+- AXS — axs.com (artist follows)
+- Eventbrite — follow relevant organizers
+
+**Artist fan clubs / newsletters** (add as relevant for artists you plan to see):
+- Sign up via artist websites for fan pre-sale access, especially for high-demand shows

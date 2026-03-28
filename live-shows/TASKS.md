@@ -236,20 +236,30 @@ HereForTheBands.com (HFTB) is the primary source for DC/MD/VA show discovery. De
 
 ---
 
-### 11. Build pre-sale / on-sale notification email processing routine
+### 11. Subscribe redhat.bootlegs to venue and artist mailing lists
 
-A third email workflow to complement ticket purchase and post-show notes. Handles emails about upcoming on-sales — artist pre-sale codes, Ticketmaster/AXS on-sale alerts, venue newsletters, etc.
+**Pre-requisite for Routine 3** (pre-sale / on-sale email processing).
 
-**What the routine should do:**
+Subscribe redhat.bootlegs@gmail.com to mailing lists so that on-sale alerts and
+pre-sale codes arrive in the inbox automatically. See the full subscription list
+in `EMAIL_WORKFLOWS.md` → "Pre-Requisite: Mailing List Subscriptions".
 
-1. Parse the email for: artist, on-sale date and time, ticket URL, pre-sale code (if any), pre-sale window (start/end), venue
-2. Check `autograph_books_combined.tsv` for book reminder (same as ticket purchase routine)
-3. Create a calendar event on the on-sale date/time as a reminder to buy, with the ticket URL and any pre-sale code in the description
-4. If a pre-sale code is present, note the code expiry window so it doesn't get missed
-5. No TSV row yet — that comes when the ticket is actually purchased
+Priority venues to subscribe first: Birchmere, Hamilton Live, Ram's Head, Wolf Trap,
+9:30 Club / IMP venues. Then Ticketmaster and AXS artist follows for any artist
+you're actively tracking.
 
-**Design questions:**
-- Should the on-sale reminder event have a distinct title format (e.g. "🎟 ON SALE: [Artist]") to distinguish it from actual show events?
-- Pre-sale codes often have short windows (24–48 hrs) — should there be an additional short-fuse reminder (e.g. 30 min before pre-sale opens)?
-- Where do these emails typically arrive — forwarded from dan2bit, or direct to redhat.bootlegs?
-- Should this be documented in `EMAIL_WORKFLOWS.md` as Routine 3, or kept as a separate doc?
+---
+
+### 12. Build pre-sale / on-sale notification email processing routine
+
+Routine 3 is now documented in `EMAIL_WORKFLOWS.md`. The design is settled:
+
+- **Title format:** `🎟 ON SALE: [Artist]`
+- **Duration:** 15 minutes, starting 5 minutes before the on-sale time
+- **Reminders:** 24 hours out + 5 minutes out
+- **No TSV row** created — that's Routine 1's job after purchase
+- **Pre-sale codes** and expiry windows go in the event description
+- **Autograph book check** same as Routine 1
+
+This task is complete as a design — implement and test against the first on-sale
+email that arrives after mailing list subscriptions (task #11) are in place.
