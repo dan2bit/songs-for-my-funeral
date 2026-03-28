@@ -218,19 +218,31 @@ tagged `ticket-alert` arrives in the redhat.bootlegs inbox.
 
 **Step 1 — Find and parse the email**
 
-Search `label:ticket-alert -label:processed`, read each unprocessed alert, and extract:
-- Artist and venue
-- On-sale date and time (distinguish general on-sale vs. pre-sale window)
-- Pre-sale code (if present) and code expiry window
-- Ticket purchase URL
-- Any pricing or seat tier information mentioned
+Search `label:ticket-alert -label:processed`, read each unprocessed alert, and
+classify each artist mention as one of two cases:
+
+**Case A — Tickets already on sale** (no specific future on-sale time given):
+- Filter to artists on the Strong or Medium tiers (seen before, or in autograph books)
+- Check calendar for conflicts on the show date
+- Present a tiered list of open-date recommendations with direct Ticketmaster/AXS
+  search links — no calendar event created
+- Include autograph book note if applicable
+
+**Case B — Specific future on-sale time given** (pre-sale or general on-sale announced):
+- Only act on **Strong tier** artists (previously seen) with a confirmed open date
+- Check calendar for conflicts before proceeding
+- Create an on-sale reminder calendar event (see Step 3 below)
+
+For digest-style newsletters (multiple artists, no specific on-sale times), treat all
+entries as Case A and present the tiered list. Do not create calendar events for
+digest newsletters.
 
 **Step 2 — Check autograph books**
 
-Same lookup as Routine 1 — if the artist is in RHBS or APS, note it in the
-calendar event description as a reminder for when you actually buy tickets.
+Same lookup as Routine 1 — note book reminder in any recommendation or calendar
+event description.
 
-**Step 3 — Create on-sale reminder calendar event**
+**Step 3 — Create on-sale reminder event (Case B only)**
 
 Calendar: `redhat.bootlegs@gmail.com` — Dan Concert Calendar
 
@@ -239,7 +251,6 @@ Event title format: `🎟 ON SALE: [Artist]`
 Timing:
 - **Start:** 5 minutes before the on-sale/pre-sale time
 - **Duration:** 15 minutes
-- This keeps it visually distinct from actual show events in the calendar
 
 Description format:
 ```
@@ -294,23 +305,26 @@ and pre-sale codes arrive in the inbox for Routine 3 to process. Apply the
 `ticket-alert` label (manually or via a Gmail filter on the sender address) as
 each subscription is set up.
 
-**Venues:**
-- The Birchmere — birchmere.com (newsletter signup)
-- Hamilton Live — thehamiltiondc.com (newsletter)
-- Ram's Head On Stage — ramsheadonstage.com (newsletter)
+**Venues (subscribed ✅):**
+- The Birchmere ✅
+- Hamilton Live ✅
+- Ram's Head On Stage ✅
+- State Theatre ✅
+- Collective Encore ✅
+- Ticketmaster newsletter (forwarded from dan2bit) ✅
+
+**Venues (pending):**
 - Wolf Trap — wolftrap.org (email alerts)
 - 9:30 Club / Merriweather / other IMP venues — imppresents.com
 - Strathmore — strathmore.org
 - Kennedy Center — kennedy-center.org
 - Pearl Street Warehouse — pearlstreetwarehouse.com
-- Collective Encore — collectiveencore.com
 - Capital One Hall — capitalonehall.com
 - The Fillmore Silver Spring — fillmoresilverspring.com
 
 **Ticketing platforms:**
-- Ticketmaster / Live Nation artist alerts for followed artists
 - AXS — axs.com (artist follows)
 - Eventbrite — follow relevant organizers
 
-**Artist fan clubs / newsletters** (add as relevant for artists you plan to see):
+**Artist fan clubs / newsletters** (see TASKS.md #13 — priority list to build out):
 - Sign up via artist websites for fan pre-sale access, especially for high-demand shows

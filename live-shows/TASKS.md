@@ -240,13 +240,11 @@ HereForTheBands.com (HFTB) is the primary source for DC/MD/VA show discovery. De
 
 **Pre-requisite for Routine 3** (pre-sale / on-sale email processing).
 
-Subscribe redhat.bootlegs@gmail.com to mailing lists so that on-sale alerts and
-pre-sale codes arrive in the inbox automatically. See the full subscription list
-in `EMAIL_WORKFLOWS.md` → "Pre-Requisite: Mailing List Subscriptions".
+Venue subscriptions in place: Birchmere, Hamilton Live, Ram's Head, State Theatre,
+Collective Encore, Ticketmaster newsletter (forwarded). See `EMAIL_WORKFLOWS.md` for
+the full pending list.
 
-Priority venues to subscribe first: Birchmere, Hamilton Live, Ram's Head, Wolf Trap,
-9:30 Club / IMP venues. Then Ticketmaster and AXS artist follows for any artist
-you're actively tracking.
+Artist newsletter subscriptions are tracked separately — see task #13.
 
 ---
 
@@ -254,12 +252,33 @@ you're actively tracking.
 
 Routine 3 is now documented in `EMAIL_WORKFLOWS.md`. The design is settled:
 
+- **Already on sale (digest newsletters):** Present tiered Strong/Medium recommendations
+  for open dates with direct search links — no calendar event created
+- **Specific future on-sale time (Strong tier, open date only):** Create a `🎟 ON SALE:`
+  calendar event starting 5 min before on-sale, 15 min duration, with 24hr + 5min reminders
 - **Title format:** `🎟 ON SALE: [Artist]`
-- **Duration:** 15 minutes, starting 5 minutes before the on-sale time
-- **Reminders:** 24 hours out + 5 minutes out
 - **No TSV row** created — that's Routine 1's job after purchase
 - **Pre-sale codes** and expiry windows go in the event description
 - **Autograph book check** same as Routine 1
 
 This task is complete as a design — implement and test against the first on-sale
 email that arrives after mailing list subscriptions (task #11) are in place.
+
+---
+
+### 13. Subscribe to artist newsletters for Strong tier favorites
+
+Venue newsletters catch what's playing nearby, but artist newsletters are the best
+source for pre-sale codes and early access — especially for high-demand or smaller
+shows that sell out quickly.
+
+**Next steps:**
+- Identify your top Strong-tier artists (seen multiple times, likely to see again):
+  candidates from `artists.tsv` with `Times Seen >= 2` or particularly high priority
+- Sign up redhat.bootlegs@gmail.com via each artist's website or fan club
+- Apply the `ticket-alert` label (or create a Gmail filter) for each mailing list sender
+
+**Priority candidates to consider** (seen 2+ times):
+Allison Russell, Daniel Donato, Enter the Haggis, Eric Gales, Kingsley Flood,
+Keb' Mo', Larkin Poe, Oh He Dead, Sue Foley, Tab Benoit, Trombone Shorty,
+Vanessa Collier, ZZ Ward, The Lone Bellow, Suzanne Vega
