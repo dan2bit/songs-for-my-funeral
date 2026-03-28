@@ -212,3 +212,44 @@ Scripts and the email ticket workflow currently hardcode `live_shows_2026.tsv`. 
 - Migration trigger: manual on demand vs. a `--migrate` flag on `youtube_correlate.py` that sweeps rows older than ~90 days with `Status=attended`
 - What counts as "settled enough to migrate": `Status=attended` + `Playlist URL` filled or confirmed blank
 - `--sync-artists` should run as part of any migration
+
+---
+
+### 10. Define HFTB monitoring cadence and recommendation tiers
+
+HereForTheBands.com (HFTB) is the primary source for DC/MD/VA show discovery. Define a repeatable process for checking it and acting on potential buys.
+
+**Known HFTB limitations:**
+- Hamilton Live, Ram's Head On Stage, and Wolf Trap Filene are not covered
+
+**Recommendation tiers (already established):**
+- **Strong** — artist seen before at any venue
+- **Medium** — artist in autograph books at a previously attended venue
+- **Low** — artist in books at a new or distant venue
+
+**Questions to resolve:**
+- How often should HFTB be checked? (Weekly? After payday? Before each show?)
+- Should there be a calendar reminder to trigger the check?
+- Is there an existing script for parsing HFTB, and if so what does it output?
+- Should recommendations be presented as a tiered list in conversation, or logged to a file?
+- What's the action threshold — Strong always buy, Medium research first, Low ignore unless something stands out?
+
+---
+
+### 11. Build pre-sale / on-sale notification email processing routine
+
+A third email workflow to complement ticket purchase and post-show notes. Handles emails about upcoming on-sales — artist pre-sale codes, Ticketmaster/AXS on-sale alerts, venue newsletters, etc.
+
+**What the routine should do:**
+
+1. Parse the email for: artist, on-sale date and time, ticket URL, pre-sale code (if any), pre-sale window (start/end), venue
+2. Check `autograph_books_combined.tsv` for book reminder (same as ticket purchase routine)
+3. Create a calendar event on the on-sale date/time as a reminder to buy, with the ticket URL and any pre-sale code in the description
+4. If a pre-sale code is present, note the code expiry window so it doesn't get missed
+5. No TSV row yet — that comes when the ticket is actually purchased
+
+**Design questions:**
+- Should the on-sale reminder event have a distinct title format (e.g. "🎟 ON SALE: [Artist]") to distinguish it from actual show events?
+- Pre-sale codes often have short windows (24–48 hrs) — should there be an additional short-fuse reminder (e.g. 30 min before pre-sale opens)?
+- Where do these emails typically arrive — forwarded from dan2bit, or direct to redhat.bootlegs?
+- Should this be documented in `EMAIL_WORKFLOWS.md` as Routine 3, or kept as a separate doc?
