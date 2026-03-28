@@ -108,7 +108,7 @@ attending a show. The email should include:
 
 - Spending: food & bev, parking, merch amounts
 - Setlist.fm URL for the show
-- Autograph note (if you got one — book vs. hat, who signed)
+- Autograph note (if you got one — book vs. hat, who signed, and if a supporting act member)
 - Any show notes or memories worth recording
 - Artist interaction type (Autograph, Photo, Both, or none)
 
@@ -131,18 +131,28 @@ Setlist: [setlist.fm URL]
 [Notes / memories if notable]
 ```
 
-**Step 3 — Update autograph books (if applicable)**
+**Step 3 — Update autograph records (if applicable)**
 
-If the email mentions getting an autograph in a book (RHBS or APS):
+If the email mentions getting a **book autograph** (RHBS or APS):
 
 1. Read `autograph_books_combined.tsv` from Drive
    (Drive ID: `1ENPcmHxrbdMfJNuDlqy-RRBHkGm8Onyy`)
 2. Find the artist row
 3. Set the appropriate `RHBS Signed` or `APS Signed` column to `Yes`
-4. Add any notes to the `APS Autograph Notes` / `Hat Notes` column if relevant
+4. Add any notes to the `APS Autograph Notes` column if relevant
 
-Hat autographs are tracked in `artists.tsv` (`Hat Autograph` column) — update
-that too if a hat was signed.
+If the email mentions a **hat autograph**:
+
+1. Update `artists.tsv` — set `Hat Autograph` to `Y` for the signing artist
+2. Update `autograph_books_combined.tsv` — add signer name, show, and date to the
+   `Hat Notes` column for that artist row
+3. **Remind you to manually append the entry to the hat autograph Google Doc**
+   (https://docs.google.com/document/d/1haKMpfwPWosdPnZXBAAlLUzj3926hoTEH7icg6gTRA8/edit)
+   — no write connector is available for Google Docs, so this step is always manual.
+   Format to use: `**[Name]** [*of/w/ Act*] @ [Venue short name] [M/D/YY]`
+
+Note: hat signers are often supporting act members or band members rather than the
+headliner. The email should make clear who signed and in what capacity.
 
 **Step 4 — Open a PR with all file changes**
 
@@ -153,7 +163,7 @@ Create a branch named `post-show/[artist-slug]-[YYYY-MM-DD]` and open a PR to
   `Setlist.fm URL` filled, `Notes / Memories` filled, `Artist Interaction` filled
 - `artists.tsv` — `Hat Autograph` set to `Y` if hat was signed (omit file if no change)
 - `autograph_books_combined.tsv` — `RHBS Signed` / `APS Signed` set to `Yes`
-  if book was signed (omit file if no change)
+  and/or `Hat Notes` updated if applicable (omit file if no change)
 
 PR description summarises what changed so you can review the diff before merging.
 
@@ -167,6 +177,12 @@ download and manual check-in.
 **Inbox monitoring is not automatic.** I don't poll the inbox. You trigger these
 routines by telling me "there's a ticket email" or "I just sent my post-show notes"
 in a new project conversation. I'll search the inbox and take it from there.
+
+**Hat autograph gdoc is the completeness authority.** The Google Doc at the link
+above is more carefully maintained for hat autographs than the TSV files. If there
+is a discrepancy between the gdoc and the TSV, the gdoc wins for the list of signers;
+the TSV files win for show dates. No write connector exists for Google Docs — all
+gdoc updates are manual.
 
 **Google Calendar MCP fails on Android.** Calendar operations only work reliably
 on macOS desktop. If calendar steps fail, switch to desktop before retrying.
