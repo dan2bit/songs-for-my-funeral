@@ -187,18 +187,28 @@ A parking cost update to `venues.tsv` was in-progress at the end of a previous s
 
 ---
 
-### 9. Design and implement rolling migration from `live_shows_2026.tsv` to history
+### 9. Design and implement rolling migration + archive architecture
 
 ⚠️ **Must be designed before the first 2027 ticket purchase.**
 
-The goal is to reframe `live_shows_2026.tsv` (and future year files) as a **rolling "upcoming + recently attended" window** rather than a strict calendar-year file. Attended rows migrate to `live_shows_history.tsv` on a quarterly-ish cadence once they're settled — playlist URL populated, notes written, autograph books updated. The year file always stays lean: upcoming shows and a short tail of recent ones.
+The goal is to reframe `live_shows_2026.tsv` as a **rolling "upcoming + recently attended" window**. Attended rows migrate out on a quarterly-ish cadence once settled — playlist URL populated, notes written. The current file always stays lean.
 
-**Design questions to resolve:**
+This task has three distinct architectural problems to solve together:
 
-- What's the migration trigger? Options: manual on demand, quarterly sweep of rows older than ~90 days with `Status=attended`, or a new `--migrate` flag on `youtube_correlate.py`.
-- What's the cutoff for "settled enough to migrate"? Probably: `Status=attended` + `Playlist URL` is filled or confirmed blank. Notes/memories are nice to have but shouldn't block migration.
-- Does `live_shows_2026.tsv` get renamed (e.g. to `live_shows_current.tsv`) so the filename never needs updating in scripts, or does a new year file get created each January and the old one archived?
-- Column schema: `live_shows_2026.tsv` has spending and artist interaction columns that `live_shows_history.tsv` currently lacks. Migration either adds those columns to history or drops them — decide which.
-- Update `youtube_correlate.py` to handle the new structure.
-- Update the ticket purchase email workflow (currently hardcodes `live_shows_2026.tsv` by name).
-- Run `--sync-artists` as part of any migration to keep `artists.tsv` counts accurate.
+**Problem 1 — Spending data doesn't belong in the history file**
+
+Spending columns (Food & Bev, Parking, Merch, Artist Interaction) are present in `live_shows_2026.tsv` but not in `live_shows_history.tsv`. The data is worth preserving for budgeting across quarters and years, but it doesn't belong in the attendance record. The right answer is a separate `spending.tsv` (keyed by Show Date + Artist) that can be queried independently. Migration needs to extract spending into this file rather than either dropping it or bloating history.
+
+**Problem 2 — `live_shows_history.tsv` is already too large to manage via MCP**
+
+The file is ~95KB and already at the limit for reliable GitHub MCP pushes. Quarterly batch appends will make this worse. Options to consider: split into per-year archive files (e.g. `history/2021.tsv`, `history/2022.tsv`, ...) that are never modified once closed; or keep a single flat file but accept that it's always committed manually. Scripts that currently read history need to handle a multi-file layout if that path is chosen. The correlation and playlist scripts are the main consumers.
+
+**Problem 3 — Filename and workflow coupling**
+
+Scripts and the email ticket workflow currently hardcode `live_shows_2026.tsv`. Rename to `live_shows_current.tsv` so no script update is needed at rollover — the old year file just gets archived as `live_shows_2026.tsv` (read-only snapshot) and `live_shows_current.tsv` carries on.
+
+**Other questions to resolve during design:**
+
+- Migration trigger: manual on demand vs. a `--migrate` flag on `youtube_correlate.py` that sweeps rows older than ~90 days with `Status=attended`
+- What counts as "settled enough to migrate": `Status=attended` + `Playlist URL` filled or confirmed blank
+- `--sync-artists` should run as part of any migration
