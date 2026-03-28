@@ -48,6 +48,28 @@ import re
 from datetime import datetime
 
 
+# ── Artist name normalization ─────────────────────────────────────────────────
+# Maps incoming artist name variants (e.g. from Spotify/YouTube API responses)
+# to the canonical form used in artists.tsv and live_shows_history.tsv.
+# Apply normalize_artist_name() to any artist name read from an external source
+# before comparing or writing it to a TSV file.
+
+ARTIST_NAME_ALIASES = {
+    # Double-quote variants → canonical single-tick form
+    'Christone "Kingfish" Ingram':     "Christone 'Kingfish' Ingram",
+    'Christone ""Kingfish"" Ingram':   "Christone 'Kingfish' Ingram",
+    # Shorthand forms that appear in autograph book index
+    "Christone Ingram":                "Christone 'Kingfish' Ingram",
+    "Kingfish Ingram":                 "Christone 'Kingfish' Ingram",
+    "Kingfish":                        "Christone 'Kingfish' Ingram",
+}
+
+
+def normalize_artist_name(name: str) -> str:
+    """Return the canonical artist name, resolving known aliases."""
+    return ARTIST_NAME_ALIASES.get(name, name)
+
+
 # ── TSV helpers ───────────────────────────────────────────────────────────────
 
 def load_tsv(filename):
@@ -158,7 +180,7 @@ def normalize_shows(shows, artist_col, venue_col, date_col):
     for s in shows:
         out.append({
             "Show Date":        s.get(date_col, ""),
-            "Artist":           s.get(artist_col, ""),
+            "Artist":           normalize_artist_name(s.get(artist_col, "")),
             "Supporting Acts":  s.get("Supporting Acts", s.get("Supporting Artist", "")),
             "Venue":            s.get(venue_col, ""),
             "Setlist.fm URL":   s.get("Setlist.fm URL", ""),
@@ -281,7 +303,7 @@ def merge_into_history(corr_results, source_file):
     updated = 0
     for row in rows:
         date         = _cell(row, "Show Date")
-        artist       = _cell(row, "Artist")
+        artist       = normalize_artist_name(_cell(row, "Artist"))
         existing_url = _cell(row, "Playlist URL")
         new_url      = corr_map.get((date, artist), "")
 
