@@ -685,15 +685,20 @@ def process_show(youtube, date_str, headliner, title_override, videos, history_i
     # Never do a full-channel description scan: that causes cross-show
     # contamination when videos from multiple shows are uploaded on the
     # same day and date strings appear as substrings of each other.
-    date_vids = []
+date_vids = []
     if use_channel_uploads and youtube and not dry_run:
-        date_vids = fetch_uploads_by_date(youtube, date_str)
+        # Check youtube_videos.tsv first — saves quota for shows already ingested.
+        # Only fall back to the uploads API if the TSV has nothing for this date,
+        # meaning the videos are brand-new and haven't been ingested yet.
+        date_vids = find_videos_for_date(date_str, videos)
         if not date_vids:
-            print(f"  No uploads on {date_str} — falling back to youtube_videos.tsv")
-            date_vids = find_videos_for_date(date_str, videos)
+            print(f"  No videos in youtube_videos.tsv for {date_str} — trying channel uploads API")
+            date_vids = fetch_uploads_by_date(youtube, date_str)
+        else:
+            print(f"  Found {len(date_vids)} video(s) in youtube_videos.tsv — skipping uploads API")
     else:
         if use_channel_uploads and dry_run:
-            print("  [DRY RUN] Would try channel uploads first, then youtube_videos.tsv")
+            print("  [DRY RUN] Would check youtube_videos.tsv first, then channel uploads API if needed")
         date_vids = find_videos_for_date(date_str, videos)
 
     if not date_vids:
