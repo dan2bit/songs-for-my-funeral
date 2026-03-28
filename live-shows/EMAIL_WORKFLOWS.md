@@ -76,9 +76,11 @@ Doors: [time] · Show: [time]
 
 Reminders: 24 hours (1440 min) and 3 hours (180 min) popup.
 
-**Step 5 — Provide TSV row**
+**Step 5 — Commit new row to `live_shows_2026.tsv`**
 
-Output a complete tab-separated row for `live_shows_2026.tsv` (25 columns):
+Insert the new row in date order and commit directly to `main` via the GitHub MCP.
+
+Row format (25 columns):
 
 ```
 Show ID | Artist | Supporting Artist | Show Date | Doors Time | Start Time |
@@ -92,9 +94,10 @@ Artist Interaction | Playlist URL | Notes / Memories
 - `Status` = `upcoming`
 - Spending columns (Food & Bev, Parking, Merch, Artist Interaction) = blank
 - `Setlist.fm URL` = blank
-- `Notes / Memories` = any pre-show notes extracted from the ticket (order #, seat notes, etc.)
+- `Notes / Memories` = any pre-show notes from the ticket (order #, seat notes, etc.)
 
-**You handle:** Pasting the TSV row into `live_shows_2026.tsv` and committing.
+**If the commit fails:** present the full updated `live_shows_2026.tsv` in the
+conversation for download and manual check-in.
 
 ---
 
@@ -128,16 +131,7 @@ Setlist: [setlist.fm URL]
 [Notes / memories if notable]
 ```
 
-**Step 3 — Provide updated TSV row**
-
-Output the updated row for `live_shows_2026.tsv` with:
-- `Status` → `attended`
-- `Food & Bev`, `Parking`, `Merch` filled in
-- `Artist Interaction` filled in (Autograph / Photo / Both / none)
-- `Setlist.fm URL` filled in
-- `Notes / Memories` filled in with any notes from the email
-
-**Step 4 — Update autograph books (if applicable)**
+**Step 3 — Update autograph books (if applicable)**
 
 If the email mentions getting an autograph in a book (RHBS or APS):
 
@@ -146,15 +140,25 @@ If the email mentions getting an autograph in a book (RHBS or APS):
 2. Find the artist row
 3. Set the appropriate `RHBS Signed` or `APS Signed` column to `Yes`
 4. Add any notes to the `APS Autograph Notes` / `Hat Notes` column if relevant
-5. Present the updated file for you to upload back to Drive
 
-Hat autographs are tracked in `artists.tsv` (`Hat Autograph` column) — note that
-separately if a hat was signed.
+Hat autographs are tracked in `artists.tsv` (`Hat Autograph` column) — update
+that too if a hat was signed.
 
-**You handle:**
-- Committing the updated `live_shows_2026.tsv` row
-- Uploading the updated `autograph_books_combined.tsv` back to Drive
-- Running the YouTube scripts on your own timeline after videos are uploaded
+**Step 4 — Open a PR with all file changes**
+
+Create a branch named `post-show/[artist-slug]-[YYYY-MM-DD]` and open a PR to
+`main` containing:
+
+- `live_shows_2026.tsv` — row updated: `Status` → `attended`, spending filled,
+  `Setlist.fm URL` filled, `Notes / Memories` filled, `Artist Interaction` filled
+- `artists.tsv` — `Hat Autograph` set to `Y` if hat was signed (omit file if no change)
+- `autograph_books_combined.tsv` — `RHBS Signed` / `APS Signed` set to `Yes`
+  if book was signed (omit file if no change)
+
+PR description summarises what changed so you can review the diff before merging.
+
+**If the PR creation fails:** present each changed file in the conversation for
+download and manual check-in.
 
 ---
 
@@ -166,10 +170,6 @@ in a new project conversation. I'll search the inbox and take it from there.
 
 **Google Calendar MCP fails on Android.** Calendar operations only work reliably
 on macOS desktop. If calendar steps fail, switch to desktop before retrying.
-
-**TSV commits are manual.** `live_shows_2026.tsv` is small enough to push via MCP
-but given it's the active tracking file, you may prefer to commit it yourself to
-review the diff first.
 
 **YouTube pipeline is separate.** Neither routine touches `youtube_fetch.py`,
 `youtube_correlate.py`, or `youtube_create_playlists.py`. Those run on your own
