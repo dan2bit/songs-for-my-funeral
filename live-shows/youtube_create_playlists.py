@@ -38,11 +38,12 @@ USAGE:
     # Dry run — shows what would be created without calling the API
     python3 youtube_create_playlists.py --new-show 2026-03-29 --dry-run
 
-    # Process a single show by date using youtube_videos.tsv (legacy)
-    python3 youtube_create_playlists.py --date 2022-12-16
+    # Process shows in the WORKLIST (backfill shows with videos in youtube_videos.tsv)
+    python3 youtube_create_playlists.py --worklist --dry-run
+    python3 youtube_create_playlists.py --worklist --update-history
 
-    # Process all shows in the WORKLIST (deprecated — worklist is now empty)
-    python3 youtube_create_playlists.py --worklist
+    # Process a single show by date using youtube_videos.tsv
+    python3 youtube_create_playlists.py --date 2022-12-16
 
   ── Fixing playlist descriptions ────────────────────────────────────────────
 
@@ -161,21 +162,28 @@ SETLIST_HEADERS = {
 }
 SETLIST_DELAY = 2.0  # seconds between setlist.fm requests
 
-# ── WORKLIST (deprecated) ─────────────────────────────────────────────────────
-# The worklist workflow is superseded by --new-show for future shows.
-# Kept here for historical reference only. All entries have been processed.
+# ── WORKLIST ──────────────────────────────────────────────────────────────────
+# Backfill shows: videos are already in youtube_videos.tsv, no live API query needed.
+# Process with: python3 youtube_create_playlists.py --worklist --update-history
+# (Use --dry-run first to verify video matching looks correct.)
 #
-# Removed — playlists already exist in live_shows_history.tsv:
-#   2021-10-16  Larkin Poe           (PLJ7S-K0cjvGK28bYHf1SaivuMW6_vbtb4, incl. fan videos)
-#   2022-11-30  Kate Davis           (combined 3-show playlist PLJ7S-K0cjvGLY-DcEWxAOKJUfpnxH0OjA)
+# 4 flagged shows held back for manual review (ambiguous video attribution):
+#   2022-04-26  Daniel Donato        (only 1 video)
+#   2023-09-09  DuPont Brass         (1 DuPont video mixed in Kingsley Flood show)
+#   2023-10-15  LL Cool J            (6 of 7 videos are Queen Latifah)
+#   2025-06-21  Buddy Guy            (2 Judith Hill videos likely from different show)
+#
+# Completed — playlists already exist in live_shows_history.tsv:
+#   2021-10-16  Larkin Poe           (PLJ7S-K0cjvGK28bYHf1SaivuMW6_vbtb4)
+#   2022-11-30  Kate Davis           (PLJ7S-K0cjvGLY-DcEWxAOKJUfpnxH0OjA, combined 3-show)
 #   2022-12-16  They Might Be Giants (PLJ7S-K0cjvGL_4w7JPXDjdpVEyrdWMt7A)
 #   2022-12-29  The Pietasters       (PLJ7S-K0cjvGLSUDeAzh0kWdohvVdRgXwU)
 #   2023-01-28  Greensky Bluegrass   (PLJ7S-K0cjvGIwrytCDiiIwjYMp9Gu-dBU)
 #   2023-02-16  Gaelic Storm         (PLJ7S-K0cjvGJCuoPi7VNSx0axXv1HGFOu)
 #   2023-02-23  Buffalo Nichols      (PLJ7S-K0cjvGL3d6OIv6ko926yd1i6phA_)
 #   2023-03-09  Larkin Poe           (PLJ7S-K0cjvGITKvXJ5BP8bv4CKMnRkdiG)
-#   2023-06-15  Kate Davis           (combined 3-show playlist PLJ7S-K0cjvGLY-DcEWxAOKJUfpnxH0OjA)
-#   2023-06-20  Christone Kingfish Ingram (shared 2-show playlist PLJ7S-K0cjvGLFTXtHeMY5QzPncF8xiZP_)
+#   2023-06-15  Kate Davis           (PLJ7S-K0cjvGLY-DcEWxAOKJUfpnxH0OjA, combined 3-show)
+#   2023-06-20  Christone Kingfish Ingram (PLJ7S-K0cjvGLFTXtHeMY5QzPncF8xiZP_, shared 2-show)
 #   2023-11-26  The Lone Bellow      (PLJ7S-K0cjvGKRyNDy8v0VqJXIn3HkT39K)
 #   2024-06-27  Christone Kingfish Ingram (PLJ7S-K0cjvGLSwIQC01VwRxLlxqUnZBWz)
 #   2024-09-28  Soul Coughing        (PLJ7S-K0cjvGKJath7-jUYRE2EuuNFRgU7)
@@ -196,7 +204,33 @@ SETLIST_DELAY = 2.0  # seconds between setlist.fm requests
 #   2025-07-21  Amythyst Kiah
 #   2025-10-08  Judith Hill
 #   2022-10-27  Enter the Haggis
-WORKLIST = []  # Empty — all shows processed. Use --new-show going forward.
+WORKLIST = [
+    # (show_date, headliner, title_override)
+    # title_override=None means auto-generate from history venue + date
+    ("2021-07-11", "Oliver Wood",                          None),
+    ("2022-09-17", "Willie Nelson",                        None),
+    ("2022-11-17", "Tab Benoit",                           None),
+    ("2022-12-14", "Ana Popović",                          None),
+    ("2022-12-31", "George Clinton & Parliament-Funkadelic", None),
+    ("2023-06-28", "Ally Venable Band",                    None),
+    ("2023-09-02", "Oh He Dead",                           None),
+    ("2023-09-09", "Kingsley Flood",                       None),
+    ("2023-09-13", "Sonny Landreth",                       None),
+    ("2023-09-26", "Nas",                                  None),
+    ("2023-12-10", "Allison Russell",                      None),
+    ("2024-12-07", "New York's Finest",                    None),
+    ("2024-12-17", "Tab Benoit",                           None),
+    ("2025-01-24", "New York's Finest",                    None),
+    ("2025-01-31", "Vanessa Collier",                      None),
+    ("2025-02-07", "Yasmin Williams",                      None),
+    ("2025-07-11", "North Mississippi Allstars",           None),
+    ("2025-07-13", "J. P. Soars",                          None),
+    ("2025-07-16", "Barenaked Ladies",                     None),
+    ("2025-08-03", "Eric Johanson",                        None),
+    ("2025-08-28", "Robert Randolph",                      None),
+    ("2025-09-23", "Bywater Call",                         None),
+    ("2025-12-20", "Maggie Rose",                          None),
+]
 
 # ── auth ──────────────────────────────────────────────────────────────────────
 def get_authenticated_service():
@@ -797,9 +831,9 @@ def main():
     mode_group.add_argument("--fix-descriptions", action="store_true",
                             help="Find playlists with blank descriptions and fill in setlist.fm link.")
     mode_group.add_argument("--worklist",         action="store_true",
-                            help="(Deprecated) Process shows in WORKLIST. Use --new-show going forward.")
+                            help="Process shows in WORKLIST using youtube_videos.tsv (backfill mode).")
     mode_group.add_argument("--date",             nargs="+", metavar="DATE",
-                            help="(Legacy) Process show(s) by date from youtube_videos.tsv.")
+                            help="Process show(s) by date from youtube_videos.tsv.")
 
     parser.add_argument("--headliner",            metavar="NAME",
                         help="Override headliner name (single-date --new-show only).")
@@ -926,7 +960,7 @@ def main():
         print(f"\nResult: {url or 'skipped'}")
         return
 
-    # ── --worklist (deprecated) ──────────────────────────────────────────────
+    # ── --worklist ───────────────────────────────────────────────────────────
     if args.worklist:
         if not WORKLIST:
             print("WORKLIST is empty — nothing to process.")
@@ -935,7 +969,7 @@ def main():
         queue_tuples = [(d, a, t) for d, a, t in WORKLIST]
         print(f"Processing {len(queue_tuples)} shows from WORKLIST")
 
-    # ── --date (legacy) ──────────────────────────────────────────────────────
+    # ── --date ───────────────────────────────────────────────────────────────
     elif args.date:
         worklist_index = {d: (d, a, t) for d, a, t in WORKLIST}
         queue_tuples = []
