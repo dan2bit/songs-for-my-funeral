@@ -10,16 +10,45 @@ list of suggested subscriptions at the bottom of this file.
 
 ---
 
+## Gmail Label System
+
+Two labels are in use on the redhat.bootlegs inbox:
+
+**`processed`** — Applied manually by you after any email workflow completes. I always
+include `-label:processed` in my search queries so previously handled emails are never
+re-processed. At the end of each routine I will remind you to apply this label to the
+email(s) that were processed.
+
+**`ticket-alert`** — Applied manually (or via a Gmail filter) to incoming venue/artist
+newsletter emails once mailing list subscriptions are in place. Routine 3 searches
+`label:ticket-alert -label:processed` to find unprocessed on-sale alerts.
+
+**What I cannot do:** I can read labels and search by them, but I cannot apply, remove,
+or create labels, mark emails as read, or create Gmail filters. All label management
+is manual.
+
+**Search patterns used by each routine:**
+
+| Routine | Search query |
+|---------|-------------|
+| 1 — Ticket purchase | `from:dan2bit subject:[artist] -label:processed` (forwarded confirmation) |
+| 2 — Post-show notes | `from:dan2bit subject:[artist] notes -label:processed` |
+| 3 — On-sale alert | `label:ticket-alert -label:processed` |
+
+---
+
 ## Routine 1 — New Ticket Purchase Email
 
-**Trigger:** A ticket confirmation arrives in the redhat.bootlegs inbox (Ticketmaster,
-AXS, Eventbrite, See Tickets/Eventim, box office receipt image, etc.)
+**Trigger:** A ticket confirmation forwarded from dan2bit@gmail.com arrives in the
+redhat.bootlegs inbox (Ticketmaster, AXS, Eventbrite, See Tickets/Eventim, box office
+receipt image, etc.)
 
 ### What I do
 
-**Step 1 — Parse the email**
+**Step 1 — Find and parse the email**
 
-Extract:
+Search `from:dan2bit -label:processed` filtered to recent messages, identify the
+ticket confirmation, and extract:
 - Artist and supporting act(s)
 - Show date, doors time, show time
 - Venue name and full address
@@ -37,7 +66,7 @@ Extract:
 Default times and details if not explicit in the email:
 
 | Venue | Doors | Show | Notes |
-|-------|-------|------|----- |
+|-------|-------|------|-------|
 | The Birchmere | 5:00 PM | 7:30 PM | GA; seating begins 6:30 PM; always free parking |
 | Hamilton Live | 6:30 PM | 8:00 PM | $13 parking |
 | Ram's Head On Stage | 1 hr before show | — | — |
@@ -102,6 +131,8 @@ Artist Interaction | Playlist URL | Notes / Memories
 **If the commit fails:** present the full updated `live_shows_2026.tsv` in the
 conversation for download and manual check-in.
 
+**Final step:** Remind you to apply the `processed` label to the email.
+
 ---
 
 ## Routine 2 — Post-Show Notes Email
@@ -120,9 +151,10 @@ so I can find the matching calendar event and TSV row easily.
 
 ### What I do
 
-**Step 1 — Find the matching show**
+**Step 1 — Find the matching email and show**
 
-Search the calendar for the event and read the existing `live_shows_2026.tsv` row.
+Search `from:dan2bit subject:[artist] notes -label:processed`, read the email, then
+find the matching calendar event and `live_shows_2026.tsv` row.
 
 **Step 2 — Update the calendar event**
 
@@ -173,19 +205,20 @@ PR description summarises what changed so you can review the diff before merging
 **If the PR creation fails:** present each changed file in the conversation for
 download and manual check-in.
 
+**Final step:** Remind you to apply the `processed` label to the email.
+
 ---
 
 ## Routine 3 — Pre-Sale / On-Sale Notification Email
 
 **Trigger:** An on-sale alert, pre-sale announcement, or venue/artist newsletter
-arrives in the redhat.bootlegs inbox with information about tickets going on sale
-(Ticketmaster, AXS, venue mailing list, artist fan club, etc.)
+tagged `ticket-alert` arrives in the redhat.bootlegs inbox.
 
 ### What I do
 
-**Step 1 — Parse the email**
+**Step 1 — Find and parse the email**
 
-Extract:
+Search `label:ticket-alert -label:processed`, read each unprocessed alert, and extract:
 - Artist and venue
 - On-sale date and time (distinguish general on-sale vs. pre-sale window)
 - Pre-sale code (if present) and code expiry window
@@ -228,6 +261,8 @@ Reminders:
 **No TSV row is created** — that comes when the ticket is actually purchased
 and processed via Routine 1.
 
+**Final step:** Remind you to apply the `processed` label to the email.
+
 ---
 
 ## Notes
@@ -255,7 +290,9 @@ schedule after video uploads — see TASKS.md.
 ## Pre-Requisite: Mailing List Subscriptions
 
 Subscribe **redhat.bootlegs@gmail.com** to the following so that on-sale alerts
-and pre-sale codes arrive in the inbox for Routine 3 to process:
+and pre-sale codes arrive in the inbox for Routine 3 to process. Apply the
+`ticket-alert` label (manually or via a Gmail filter on the sender address) as
+each subscription is set up.
 
 **Venues:**
 - The Birchmere — birchmere.com (newsletter signup)
