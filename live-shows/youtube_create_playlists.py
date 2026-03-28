@@ -79,6 +79,12 @@ ORDERING LOGIC:
     5. Supporting act videos follow in their own setlist order (if available)
     6. Within each group, unordered videos sort by upload date as fallback
 
+VIDEO MATCHING (--new-show):
+    Primary: videos uploaded on the show date (publishedAt == show date).
+    Fallback: if no upload-date match, scans ALL channel uploads and matches by
+    show date string in the video description (same logic as youtube_videos.tsv).
+    This handles backfill cases where videos were uploaded weeks after the show.
+
 NOTE ON PRIVATE/DRAFT VIDEOS (--new-show):
     The YouTube Data API returns private videos when authenticated. Videos that are
     still processing or in a true draft state (never submitted) will NOT appear.
@@ -240,12 +246,10 @@ def load_history():
     history_rows = load_tsv(HISTORY_TSV)
     index = {}
 
-    # History rows — already have the right column names
     for r in history_rows:
         r["_source_file"] = HISTORY_TSV
         index[(r["Show Date"], r["Artist"])] = r
 
-    # 2026 rows — normalise column names, attended shows only
     if os.path.exists(SHOWS_2026_TSV):
         rows_2026 = load_tsv(SHOWS_2026_TSV)
         attended = [r for r in rows_2026 if r.get("Status", "") == "attended"]
@@ -439,14 +443,11 @@ def order_by_setlist(videos, songs):
     return ordered
 
 # ── YouTube API: channel uploads (including private) ──────────────────────────
-def fetch_channel_uploads(youtube, date_str=None):
+def _fetch_all_uploads(youtube):
     """
-    Fetch videos from the authenticated user's uploads playlist.
-    Returns list of dicts with keys: video_id, title, description, published.
-    Includes private videos. Does NOT include videos still processing.
-
-    If date_str (YYYY-MM-DD) is provided, filters to videos published on that date
-    (YouTube publishedAt reflects upload date for new uploads).
+    Fetch ALL videos from the authenticated user's uploads playlist.
+    Returns list of dicts: {video_id, title, description, published}.
+    Includes private videos. Does not include videos still processing.
     """
     channels_resp = youtube.channels().list(
         part="contentDetails",
@@ -458,73 +459,61 @@ def fetch_channel_uploads(youtube, date_str=None):
 
     videos = []
     page_token = None
-    target_date_prefix = date_str
-
     print(f"  Fetching uploads playlist {uploads_playlist_id}...")
     while True:
         kwargs = dict(
-            part="snippet,contentDetails",
+            part="snippet",
             playlistId=uploads_playlist_id,
             maxResults=50,
         )
         if page_token:
             kwargs["pageToken"] = page_token
-
         resp = youtube.playlistItems().list(**kwargs).execute()
-
         for item in resp.get("items", []):
             snippet = item["snippet"]
             vid_id = snippet["resourceId"]["videoId"]
-            published = snippet.get("publishedAt", "")[:10]
-            title = snippet.get("title", "")
-            description = snippet.get("description", "")
-
-            if target_date_prefix and published != target_date_prefix:
-                continue
-
-            videos.append({
-                "video_id":    vid_id,
-                "title":       title,
-                "description": description,
-                "published":   published,
-            })
-
-        page_token = resp.get("nextPageToken")
-
-        if target_date_prefix and resp.get("items"):
-            oldest_on_page = min(
-                item["snippet"].get("publishedAt", "")[:10]
-                for item in resp["items"]
-            )
-            if oldest_on_page < target_date_prefix:
-                break
-
-        if not page_token:
-            break
-
-    # Fall back to search.list for private videos not in uploads playlist
-    if not videos and date_str:
-        print("  No videos found in uploads playlist — trying search (includes private)...")
-        search_resp = youtube.search().list(
-            part="snippet",
-            forMine=True,
-            type="video",
-            maxResults=50,
-            publishedAfter=f"{date_str}T00:00:00Z",
-            publishedBefore=f"{date_str}T23:59:59Z",
-        ).execute()
-        for item in search_resp.get("items", []):
-            vid_id = item["id"]["videoId"]
-            snippet = item["snippet"]
             videos.append({
                 "video_id":    vid_id,
                 "title":       snippet.get("title", ""),
                 "description": snippet.get("description", ""),
                 "published":   snippet.get("publishedAt", "")[:10],
             })
-
-    print(f"  Found {len(videos)} video(s) uploaded on {date_str or 'channel'}")
+        page_token = resp.get("nextPageToken")
+        if not page_token:
+            break
+    print(f"  Fetched {len(videos)} total uploads from channel")
     return videos
+
+
+def fetch_channel_uploads(youtube, date_str=None):
+    """
+    Return channel upload videos relevant to show_date.
+
+    Strategy:
+      1. Fetch all uploads via playlistItems (private-safe, no API restrictions).
+      2. Primary match: videos whose publishedAt (upload date) == date_str.
+         Works well for shows processed the same day videos were uploaded.
+      3. Fallback: if primary returns nothing, match by show date string in the
+         video description (same date_variants logic as youtube_videos.tsv).
+         Handles backfill where videos were uploaded weeks after the show.
+    """
+    all_uploads = _fetch_all_uploads(youtube)
+
+    if date_str:
+        # Primary: upload-date match
+        by_upload_date = [v for v in all_uploads if v["published"] == date_str]
+        if by_upload_date:
+            print(f"  Found {len(by_upload_date)} video(s) uploaded on {date_str}")
+            return by_upload_date
+
+        # Fallback: description date-string match
+        print(f"  No uploads on {date_str} — falling back to description date match")
+        dvs = date_variants(date_str)
+        by_desc = [v for v in all_uploads if any(dv in v.get("description", "") for dv in dvs)]
+        print(f"  Found {len(by_desc)} video(s) with show date {date_str} in description")
+        return by_desc
+
+    return all_uploads
 
 # ── YouTube API: playlist operations ─────────────────────────────────────────
 def create_playlist(youtube, title, description=""):
@@ -863,7 +852,6 @@ def main():
             if args.headliner:
                 sys.exit("--headliner cannot be used with since: range mode.")
 
-            # Collect all shows on or after since_date with no playlist URL, sorted by date
             queue = sorted(
                 [
                     (date_str, artist, show)
