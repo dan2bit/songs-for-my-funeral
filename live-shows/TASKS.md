@@ -187,10 +187,18 @@ A parking cost update to `venues.tsv` was in-progress at the end of a previous s
 
 ---
 
-### 9. Figure out year-end rollover
+### 9. Design and implement rolling migration from `live_shows_2026.tsv` to history
 
-⚠️ **Must be resolved before the first 2027 ticket purchase** — not a year-end task.
+⚠️ **Must be designed before the first 2027 ticket purchase.**
 
-At rollover, `live_shows_2026.tsv` needs to be folded into `live_shows_history.tsv` and a new `live_shows_2027.tsv` created. The process for this hasn't been defined yet.
+The goal is to reframe `live_shows_2026.tsv` (and future year files) as a **rolling "upcoming + recently attended" window** rather than a strict calendar-year file. Attended rows migrate to `live_shows_history.tsv` on a quarterly-ish cadence once they're settled — playlist URL populated, notes written, autograph books updated. The year file always stays lean: upcoming shows and a short tail of recent ones.
 
-Things to consider: column schema consistency between the two files (they have diverged somewhat — 2026 has more spending columns), how `youtube_correlate.py` picks up the new year file automatically, whether attended 2026 rows get merged row-by-row into history or the file is appended wholesale, and whether `artists.tsv` needs a full `--sync-artists` run as part of rollover. Also: the ticket purchase email workflow commits directly to `live_shows_2026.tsv` by name — that will need updating to point at `live_shows_2027.tsv` once rollover happens.
+**Design questions to resolve:**
+
+- What's the migration trigger? Options: manual on demand, quarterly sweep of rows older than ~90 days with `Status=attended`, or a new `--migrate` flag on `youtube_correlate.py`.
+- What's the cutoff for "settled enough to migrate"? Probably: `Status=attended` + `Playlist URL` is filled or confirmed blank. Notes/memories are nice to have but shouldn't block migration.
+- Does `live_shows_2026.tsv` get renamed (e.g. to `live_shows_current.tsv`) so the filename never needs updating in scripts, or does a new year file get created each January and the old one archived?
+- Column schema: `live_shows_2026.tsv` has spending and artist interaction columns that `live_shows_history.tsv` currently lacks. Migration either adds those columns to history or drops them — decide which.
+- Update `youtube_correlate.py` to handle the new structure.
+- Update the ticket purchase email workflow (currently hardcodes `live_shows_2026.tsv` by name).
+- Run `--sync-artists` as part of any migration to keep `artists.tsv` counts accurate.
