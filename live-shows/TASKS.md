@@ -14,6 +14,7 @@ Collaborative task list for the live show archive project. Update status as task
 - Added `youtube_audit_blanks.py` for loose-match scan of no-video blank shows
 - Committed `live_shows_history.tsv` playlist URL updates (Daniel Donato, DuPont Brass, LL Cool J, Buddy Guy 2025, + 9 from playlist cross-ref)
 - Merged PR #7 (`youtube_fetch.py --since`)
+- Resolved all 4 flagged ambiguous-attribution shows (see below)
 
 ---
 
@@ -220,13 +221,13 @@ This can cause artist lookup mismatches in scripts. Worth a find-and-replace cle
 
 ---
 
-### 4 Flagged shows — held for manual review
+## ✅ Previously Flagged — Now Resolved
 
-These shows have videos in `youtube_videos.tsv` but were not added to the WORKLIST due to ambiguous video attribution. Decide what to do with each:
+These shows had ambiguous video attribution and were held back from the WORKLIST. All four have been resolved:
 
-| Date | Artist | Issue |
-|------|--------|-------|
-| 2022-04-26 | Daniel Donato | Only 1 video — single URL already set in Playlist URL |
-| 2023-09-09 | DuPont Brass | Only 1 DuPont video, mixed in with Kingsley Flood show — single URL already set |
-| 2023-10-15 | LL Cool J | 6 of 7 videos are Queen Latifah — playlist URL already set |
-| 2025-06-21 | Buddy Guy | Playlist created manually; 2 Judith Hill videos from a different show were excluded |
+| Date | Artist | Resolution |
+|------|--------|------------|
+| 2022-04-26 | Daniel Donato | Single video URL set in Playlist URL column |
+| 2023-09-09 | DuPont Brass | Single video URL set in Playlist URL column (1 DuPont video from shared Kingsley Flood show date) |
+| 2023-10-15 | LL Cool J | Playlist found in channel with non-canonical title; URL set in history |
+| 2025-06-21 | Buddy Guy | Playlist created manually; 2 Judith Hill videos from a later show were excluded |
