@@ -189,6 +189,8 @@ A parking cost update to `venues.tsv` was in-progress at the end of a previous s
 
 ### 9. Figure out year-end rollover
 
-At the end of 2026, `live_shows_2026.tsv` needs to be folded into `live_shows_history.tsv` and a new `live_shows_2027.tsv` created. The process for this hasn't been defined yet — figure out the right approach before year-end.
+⚠️ **Must be resolved before the first 2027 ticket purchase** — not a year-end task.
 
-Things to consider: column schema consistency between the two files, how `youtube_correlate.py` handles the transition, whether the year file should be archived as-is or merged row-by-row, and whether `artists.tsv` needs a full `--sync-artists` run as part of rollover.
+At rollover, `live_shows_2026.tsv` needs to be folded into `live_shows_history.tsv` and a new `live_shows_2027.tsv` created. The process for this hasn't been defined yet.
+
+Things to consider: column schema consistency between the two files (they have diverged somewhat — 2026 has more spending columns), how `youtube_correlate.py` picks up the new year file automatically, whether attended 2026 rows get merged row-by-row into history or the file is appended wholesale, and whether `artists.tsv` needs a full `--sync-artists` run as part of rollover. Also: the ticket purchase email workflow commits directly to `live_shows_2026.tsv` by name — that will need updating to point at `live_shows_2027.tsv` once rollover happens.
