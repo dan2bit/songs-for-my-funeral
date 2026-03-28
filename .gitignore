@@ -27,3 +27,6 @@ live-shows/token.json
 
 # Python virtual environment
 live-shows/.venv/
+
+# Local run logs — useful locally, not for repo
+live-shows/logs/
