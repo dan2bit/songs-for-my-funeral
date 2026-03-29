@@ -685,7 +685,7 @@ def process_show(youtube, date_str, headliner, title_override, videos, history_i
     # Never do a full-channel description scan: that causes cross-show
     # contamination when videos from multiple shows are uploaded on the
     # same day and date strings appear as substrings of each other.
-date_vids = []
+    date_vids = []
     if use_channel_uploads and youtube and not dry_run:
         # Check youtube_videos.tsv first — saves quota for shows already ingested.
         # Only fall back to the uploads API if the TSV has nothing for this date,
