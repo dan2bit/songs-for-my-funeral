@@ -6,24 +6,16 @@ Collaborative task list for the live show archive project. Update status as task
 
 ## 🔧 Ready to Run (quota reset needed)
 
-### 1. Create ZZ Ward 2026 playlist
+### 1. ~~Create ZZ Ward 2026 playlist~~ ✅ COMPLETE
 
-The dry run output was confirmed correct. Blocked only by YouTube API quota reset (resets daily at midnight Pacific).
-
-```bash
-cd live-shows
-source .venv/bin/activate
-python3 youtube_create_playlists.py --new-show 2026-03-21 --update-history
-```
-
-After completion: `live_shows_2026.tsv` will be updated with the playlist URL automatically.
+Playlist created manually. URL committed to `live_shows_2026.tsv`.
 
 ---
 
-### 2. Create 22 WORKLIST backfill playlists
+### 2. Create remaining WORKLIST backfill playlists (partial — quota hit after Nas)
 
-Videos are already in `youtube_videos.tsv` — no uploads API calls needed.
-Run dry run first to verify video matching, then run for real.
+Run got through 2023-09-26 Nas before exhausting quota. The 12 shows processed so far
+have playlists; the remaining 11 still need to be created on the next quota reset.
 
 ```bash
 cd live-shows
@@ -36,22 +28,12 @@ python3 youtube_create_playlists.py --worklist --dry-run
 python3 youtube_create_playlists.py --worklist --update-history
 ```
 
-After completion: `live_shows_history.tsv` will be updated with all 22 playlist URLs automatically.
+After completion: `live_shows_history.tsv` will be updated with remaining playlist URLs.
 The WORKLIST in `youtube_create_playlists.py` should then be cleared and entries moved to the "Completed" comment block.
 
-**WORKLIST shows (22):**
+**Remaining WORKLIST shows (11):**
 | Date | Artist |
 |------|--------|
-| 2021-07-11 | Oliver Wood |
-| 2022-09-17 | Willie Nelson |
-| 2022-11-17 | Tab Benoit |
-| 2022-12-14 | Ana Popović |
-| 2022-12-31 | George Clinton & Parliament-Funkadelic |
-| 2023-06-28 | Ally Venable Band |
-| 2023-09-02 | Oh He Dead |
-| 2023-09-09 | Kingsley Flood |
-| 2023-09-13 | Sonny Landreth |
-| 2023-09-26 | Nas |
 | 2023-12-10 | Allison Russell |
 | 2024-12-07 | New York's Finest |
 | 2024-12-17 | Tab Benoit |
@@ -167,7 +149,7 @@ A staging file of show notes/memories exists at `live-shows/notes_memories_draft
 
 ### 7. `live_shows_history.tsv` re-ingest after WORKLIST runs
 
-After task #2 creates the 22 WORKLIST playlists, run `youtube_fetch.py` to re-ingest the channel and populate the new playlist URLs into `youtube_videos.tsv` video descriptions.
+After task #2 completes all remaining playlists, run `youtube_fetch.py` to re-ingest the channel and populate the new playlist URLs into `youtube_videos.tsv` video descriptions.
 
 ```bash
 cd live-shows
@@ -179,11 +161,10 @@ Then run `youtube_correlate.py --merge --sync-artists` to push any new URL corre
 
 ---
 
-### 8. Venues TSV parking update
+### 8. ~~Venues TSV parking update~~ ✅ COMPLETE
 
-A parking cost update to `venues.tsv` was in-progress at the end of a previous session. Completion status unclear — worth checking the file.
-
-**Next step:** Open `live-shows/venues.tsv` and verify parking entries are current.
+`venues.tsv` now has a `Parking Cost` column. Ram's Head = $9.45, Hamilton Live = $13.00,
+Warner Theatre = $13.00 (same lot). All 2026 attended shows corrected accordingly.
 
 ---
 
