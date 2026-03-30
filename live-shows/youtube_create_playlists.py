@@ -49,18 +49,14 @@ USAGE:
 
     # Find playlists with blank descriptions and add the headliner setlist.fm link.
     # Scans all channel playlists, matches back to history/2026, fills in descriptions.
-    python3 youtube_create_playlists.py --fix-descriptions
-
-    # Preview what would be updated without writing
+    # ALWAYS use --dry-run first or --date to limit scope — avoids burning write quota.
     python3 youtube_create_playlists.py --fix-descriptions --dry-run
+    python3 youtube_create_playlists.py --fix-descriptions --date 2023-06-11 2023-07-05
 
     # Custom description template (use {setlist_url} and/or {venue} as placeholders)
     # Default: "Select tracks from {setlist_url}"
     python3 youtube_create_playlists.py --fix-descriptions \\
         --description-template "Select tracks from my vantage point center-left: {setlist_url}"
-
-    # Only fix descriptions for playlists matching specific dates
-    python3 youtube_create_playlists.py --fix-descriptions --date 2023-06-11 2023-07-05
 
 OUTPUT LOG (always written, gitignored — lives in logs/ subdirectory):
     logs/playlist_creation_log.tsv — one row per show processed:
@@ -174,31 +170,41 @@ SETLIST_DELAY = 2.0  # seconds between setlist.fm requests
 #   2025-06-21  Buddy Guy            (2 Judith Hill videos likely from different show)
 #
 # Completed — playlists already exist in live_shows_history.tsv:
-#   2021-10-16  Larkin Poe           (PLJ7S-K0cjvGK28bYHf1SaivuMW6_vbtb4)
-#   2022-11-30  Kate Davis           (PLJ7S-K0cjvGLY-DcEWxAOKJUfpnxH0OjA, combined 3-show)
-#   2022-12-16  They Might Be Giants (PLJ7S-K0cjvGL_4w7JPXDjdpVEyrdWMt7A)
-#   2022-12-29  The Pietasters       (PLJ7S-K0cjvGLSUDeAzh0kWdohvVdRgXwU)
-#   2023-01-28  Greensky Bluegrass   (PLJ7S-K0cjvGIwrytCDiiIwjYMp9Gu-dBU)
-#   2023-02-16  Gaelic Storm         (PLJ7S-K0cjvGJCuoPi7VNSx0axXv1HGFOu)
-#   2023-02-23  Buffalo Nichols      (PLJ7S-K0cjvGL3d6OIv6ko926yd1i6phA_)
-#   2023-03-09  Larkin Poe           (PLJ7S-K0cjvGITKvXJ5BP8bv4CKMnRkdiG)
-#   2023-06-15  Kate Davis           (PLJ7S-K0cjvGLY-DcEWxAOKJUfpnxH0OjA, combined 3-show)
-#   2023-06-20  Christone Kingfish Ingram (PLJ7S-K0cjvGLFTXtHeMY5QzPncF8xiZP_, shared 2-show)
-#   2023-11-26  The Lone Bellow      (PLJ7S-K0cjvGKRyNDy8v0VqJXIn3HkT39K)
-#   2024-06-27  Christone Kingfish Ingram (PLJ7S-K0cjvGLSwIQC01VwRxLlxqUnZBWz)
-#   2024-09-28  Soul Coughing        (PLJ7S-K0cjvGKJath7-jUYRE2EuuNFRgU7)
-#   2024-10-03  The Lone Bellow      (PLJ7S-K0cjvGJBpcSRwOfciHwhbssMAyAR)
-#   2024-11-20  Samantha Fish        (PLJ7S-K0cjvGKgmK7pARDcQrZ9p3FoNcCe)
-#   2025-04-11  The War and Treaty   (PLJ7S-K0cjvGJ0oxlwovpXG26gHAMR0ViG)
-#   2025-06-10  Suzanne Vega         (PLJ7S-K0cjvGK5nb1sCthFnLvqdYbJI_tD)
-#   2025-07-17  Jax Hollow           (PLJ7S-K0cjvGJqpoD9UT_BtMYghkC91Vqr)
-#   2025-08-19  D.K. Harrell         (PLJ7S-K0cjvGLG-WCQPCyCMvPy5mhfmOym)
-#   2025-09-19  Alabama Shakes       (PLJ7S-K0cjvGKuIHQkITzIRpAiSxah3hpx)
-#   2025-09-24  Christone Kingfish Ingram (PLJ7S-K0cjvGIRp58p0ZK_whWMsFRNnYmN)
-#   2025-10-15  Jackie Venson        (PLJ7S-K0cjvGKYTwXZMX8huYuTgbPF-_Qh)
-#   2025-10-21  Tommy Emmanuel       (PLJ7S-K0cjvGLOAzoPhVXBV1lHGD1YliMK)
-#   2025-10-26  Ruthie Foster        (PLJ7S-K0cjvGLZWb0lcUzPfC917AfzTCz0)
-#   2025-11-08  North Mississippi Allstars (PLJ7S-K0cjvGKXGlxcjXwWHadud4tZUOYn)
+#   2021-07-11  Oliver Wood                    (PLJ7S-K0cjvGKpKDhWEMnm1AhMb5Hqd5g)
+#   2021-10-16  Larkin Poe                     (PLJ7S-K0cjvGK28bYHf1SaivuMW6_vbtb4)
+#   2022-09-17  Willie Nelson                  (PLJ7S-K0cjvGK...)
+#   2022-11-17  Tab Benoit                     (PLJ7S-K0cjvGK...)
+#   2022-11-30  Kate Davis                     (PLJ7S-K0cjvGLY-DcEWxAOKJUfpnxH0OjA, combined 3-show)
+#   2022-12-14  Ana Popović                    (PLJ7S-K0cjvGK...)
+#   2022-12-16  They Might Be Giants           (PLJ7S-K0cjvGL_4w7JPXDjdpVEyrdWMt7A)
+#   2022-12-29  The Pietasters                 (PLJ7S-K0cjvGLSUDeAzh0kWdohvVdRgXwU)
+#   2022-12-31  George Clinton & Parliament-Funkadelic
+#   2023-01-28  Greensky Bluegrass             (PLJ7S-K0cjvGIwrytCDiiIwjYMp9Gu-dBU)
+#   2023-02-16  Gaelic Storm                   (PLJ7S-K0cjvGJCuoPi7VNSx0axXv1HGFOu)
+#   2023-02-23  Buffalo Nichols                (PLJ7S-K0cjvGL3d6OIv6ko926yd1i6phA_)
+#   2023-03-09  Larkin Poe                     (PLJ7S-K0cjvGITKvXJ5BP8bv4CKMnRkdiG)
+#   2023-06-15  Kate Davis                     (PLJ7S-K0cjvGLY-DcEWxAOKJUfpnxH0OjA, combined 3-show)
+#   2023-06-20  Christone Kingfish Ingram      (PLJ7S-K0cjvGLFTXtHeMY5QzPncF8xiZP_, shared 2-show)
+#   2023-06-28  Ally Venable Band
+#   2023-09-02  Oh He Dead
+#   2023-09-09  Kingsley Flood
+#   2023-09-13  Sonny Landreth
+#   2023-09-26  Nas
+#   2023-11-26  The Lone Bellow                (PLJ7S-K0cjvGKRyNDy8v0VqJXIn3HkT39K)
+#   2024-06-27  Christone Kingfish Ingram      (PLJ7S-K0cjvGLSwIQC01VwRxLlxqUnZBWz)
+#   2024-09-28  Soul Coughing                  (PLJ7S-K0cjvGKJath7-jUYRE2EuuNFRgU7)
+#   2024-10-03  The Lone Bellow                (PLJ7S-K0cjvGJBpcSRwOfciHwhbssMAyAR)
+#   2024-11-20  Samantha Fish                  (PLJ7S-K0cjvGKgmK7pARDcQrZ9p3FoNcCe)
+#   2025-04-11  The War and Treaty             (PLJ7S-K0cjvGJ0oxlwovpXG26gHAMR0ViG)
+#   2025-06-10  Suzanne Vega                   (PLJ7S-K0cjvGK5nb1sCthFnLvqdYbJI_tD)
+#   2025-07-17  Jax Hollow                     (PLJ7S-K0cjvGJqpoD9UT_BtMYghkC91Vqr)
+#   2025-08-19  D.K. Harrell                   (PLJ7S-K0cjvGLG-WCQPCyCMvPy5mhfmOym)
+#   2025-09-19  Alabama Shakes                 (PLJ7S-K0cjvGKuIHQkITzIRpAiSxah3hpx)
+#   2025-09-24  Christone Kingfish Ingram      (PLJ7S-K0cjvGIRp58p0ZK_whWMsFRNnYmN)
+#   2025-10-15  Jackie Venson                  (PLJ7S-K0cjvGKYTwXZMX8huYuTgbPF-_Qh)
+#   2025-10-21  Tommy Emmanuel                 (PLJ7S-K0cjvGLOAzoPhVXBV1lHGD1YliMK)
+#   2025-10-26  Ruthie Foster                  (PLJ7S-K0cjvGLZWb0lcUzPfC917AfzTCz0)
+#   2025-11-08  North Mississippi Allstars     (PLJ7S-K0cjvGKXGlxcjXwWHadud4tZUOYn)
 #   2021-11-18  Christone "Kingfish" Ingram (Sixth & I)
 #   2025-06-19  Eric Gales
 #   2025-07-21  Amythyst Kiah
@@ -207,16 +213,6 @@ SETLIST_DELAY = 2.0  # seconds between setlist.fm requests
 WORKLIST = [
     # (show_date, headliner, title_override)
     # title_override=None means auto-generate from history venue + date
-    ("2021-07-11", "Oliver Wood",                          None),
-    ("2022-09-17", "Willie Nelson",                        None),
-    ("2022-11-17", "Tab Benoit",                           None),
-    ("2022-12-14", "Ana Popović",                          None),
-    ("2022-12-31", "George Clinton & Parliament-Funkadelic", None),
-    ("2023-06-28", "Ally Venable Band",                    None),
-    ("2023-09-02", "Oh He Dead",                           None),
-    ("2023-09-09", "Kingsley Flood",                       None),
-    ("2023-09-13", "Sonny Landreth",                       None),
-    ("2023-09-26", "Nas",                                  None),
     ("2023-12-10", "Allison Russell",                      None),
     ("2024-12-07", "New York's Finest",                    None),
     ("2024-12-17", "Tab Benoit",                           None),
@@ -759,6 +755,10 @@ def run_fix_descriptions(youtube, history_index, description_template, date_filt
     Template placeholders:
         {setlist_url}  — the setlist.fm URL for the show
         {venue}        — short venue name
+
+    NOTE: Always use --dry-run first or --date to limit scope. Fetching all
+    channel playlists and updating descriptions uses write quota — running
+    without a date filter on a large channel will exhaust quota quickly.
     """
     print(f"\n{'[DRY RUN] ' if dry_run else ''}Fetching all channel playlists...")
     playlists = fetch_all_channel_playlists(youtube)
@@ -834,7 +834,7 @@ def main():
                                 "then falls back to youtube_videos.tsv."
                             ))
     mode_group.add_argument("--fix-descriptions", action="store_true",
-                            help="Find playlists with blank descriptions and fill in setlist.fm link.")
+                            help="Find playlists with blank descriptions and fill in setlist.fm link. Always use --dry-run first or --date to limit scope.")
     mode_group.add_argument("--worklist",         action="store_true",
                             help="Process shows in WORKLIST using youtube_videos.tsv (backfill mode).")
     mode_group.add_argument("--date",             nargs="+", metavar="DATE",
