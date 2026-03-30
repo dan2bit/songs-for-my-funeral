@@ -221,9 +221,11 @@ HereForTheBands.com (HFTB) is the primary source for DC/MD/VA show discovery. De
 
 **Pre-requisite for Routine 3** (pre-sale / on-sale email processing).
 
-Venue subscriptions in place: Birchmere, Hamilton Live, Ram's Head, State Theatre,
-Collective Encore, Ticketmaster newsletter (forwarded). See `EMAIL_WORKFLOWS.md` for
-the full pending list.
+See `EMAIL_WORKFLOWS.md` for the current subscription status. Venue subscriptions are
+largely in place; pending venues and artist newsletters still need attention.
+
+Seated.com ticket alert emails are now being forwarded to the inbox — see task #14 for
+the follow-up artist-follows audit on that service.
 
 Artist newsletter subscriptions are tracked separately — see task #13.
 
@@ -263,3 +265,38 @@ shows that sell out quickly.
 Allison Russell, Daniel Donato, Enter the Haggis, Eric Gales, Kingsley Flood,
 Keb' Mo', Larkin Poe, Oh He Dead, Sue Foley, Tab Benoit, Trombone Shorty,
 Vanessa Collier, ZZ Ward, The Lone Bellow, Suzanne Vega
+
+---
+
+### 14. Audit artist follows on Seated.com
+
+Seated.com ticket alert emails (rare) are now being forwarded to the redhat.bootlegs
+inbox and will flow into Routine 3 like other ticket-alert emails.
+
+**Next steps:**
+- Log into Seated.com and review which artists you currently follow
+- Cross-reference against `artists.tsv` Strong tier (Times Seen >= 1) to identify gaps
+- Add any missing Strong-tier artists
+- Remove any artists you're no longer interested in seeing
+- Ensure the forwarding rule stays active so alerts reach the inbox
+
+---
+
+### 15. Evaluate creating a narrowly focused Bandsintown account for redhat.bootlegs
+
+Currently following too many artists on the dan2bit Bandsintown account, making email
+alerts noisy and hard to act on. A separate redhat.bootlegs account with a tighter
+follow list could serve as a cleaner signal source for Routine 3.
+
+**Questions to resolve before acting:**
+- Does Bandsintown allow multiple accounts per person, or is one account per email sufficient?
+- What's the right follow list scope? Likely Strong tier only (artists seen before),
+  mirroring the Seated.com strategy — not the full autograph book population
+- Would a redhat.bootlegs Bandsintown account produce alerts different from what
+  venue/artist newsletters already cover, or would it be redundant?
+- Is the noise problem better solved by pruning the dan2bit follow list rather than
+  creating a new account?
+
+**Decision criteria:** Only create the new account if it would surface shows not already
+caught by venue newsletters, Seated, or artist direct subscriptions — and only if the
+follow list can be kept narrow enough to stay actionable.
