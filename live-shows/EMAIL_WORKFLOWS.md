@@ -54,6 +54,37 @@ Do not recommend a ticket purchase or create a show event on a date blocked by e
 
 ---
 
+## artists.tsv Counting Policy
+
+**Times Seen counts every appearance — headliner and supporting act alike.**
+
+When updating `artists.tsv` after a show, count the show for every artist in
+`artists.tsv` who was in the room, regardless of whether they headlined or opened.
+This applies to:
+
+- The headliner
+- Any named supporting act who is already in `artists.tsv`
+- Any named supporting act who reaches their **second** appearance across all shows
+  (see New Entry Rule below)
+
+**First Seen / Most Recent Seen** use the same inclusive logic: if an artist's earliest
+appearance was as a support act, that date is their First Seen. Most Recent Seen is
+updated whenever they appear, in any role.
+
+**New Entry Rule — support acts:** A supporting artist who is not yet in `artists.tsv`
+gets a new row added **only when their second appearance is recorded.** One-off openers
+do not get entries. The first time you see someone only as a support act, make a note
+in the post-show email if they seem worth tracking; on their second appearance, add the
+row at that time and backfill the first date. Carly Harvey is the reference example:
+three support appearances across Ana Popović and Selwyn Birchwood shows, added on
+reaching that threshold.
+
+**History file is the source of truth.** When in doubt about counts or dates, audit
+`live_shows_history.tsv` and `live_shows_2026.tsv` together rather than relying on
+the current `artists.tsv` values.
+
+---
+
 ## Routine 1 — New Ticket Purchase Email
 
 **Trigger:** A ticket confirmation forwarded from dan2bit@gmail.com arrives in the
@@ -213,8 +244,7 @@ Create a branch named `post-show/[artist-slug]-[YYYY-MM-DD]` and open a PR to
 
 - `live_shows_2026.tsv` — row updated: `Status` → `attended`, spending filled,
   `Setlist.fm URL` filled, `Notes / Memories` filled, `Artist Interaction` filled
-- `artists.tsv` — Times Seen and Most Recent Seen updated; `Hat Autograph` set to `Y`
-  if hat was signed
+- `artists.tsv` — always included; apply counting policy below
 - `autograph_books_combined.tsv` — `RHBS Signed` / `APS Signed` set to `Yes`
   and/or `Hat Notes` updated if applicable (omit file if no change)
 
@@ -224,6 +254,35 @@ PR description summarises what changed so you can review the diff before merging
 download and manual check-in.
 
 **Final step:** Remind you to apply the `processed` label to the email.
+
+### artists.tsv update rules for Routine 2
+
+Apply the following every time a post-show PR is built. `artists.tsv` is **always**
+included in the PR — never committed separately.
+
+**For the headliner:**
+- Increment `Times Seen` by 1
+- Update `Most Recent Seen` to the show date
+- `First Seen` only changes if this show predates the current value (rare)
+
+**For each named supporting act listed in the show's `Supporting Artist` field:**
+
+1. **Already in `artists.tsv`:** increment their `Times Seen` by 1, update
+   `Most Recent Seen`. Update `First Seen` if this show predates their current value.
+
+2. **Not yet in `artists.tsv` — first time seeing them:** do not add a row yet.
+   Note in the PR description that this artist appeared as support for the first time.
+   No action in the file until their second appearance.
+
+3. **Not yet in `artists.tsv` — second or subsequent time seeing them:** add a new
+   row now. `Times Seen` = total number of times seen across all shows (headliner and
+   support combined). `First Seen` = their earliest appearance date. `Most Recent Seen`
+   = their most recent appearance date (blank if only one appearance, which cannot
+   apply here since this is at least their second). Fill `YouTube Channel` and
+   `Spotify URL` if known; leave blank otherwise.
+
+**Hat Autograph / Book Autograph columns** are updated separately per the autograph
+rules above and are not affected by the counting policy change.
 
 ---
 
