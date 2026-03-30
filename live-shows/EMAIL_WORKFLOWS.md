@@ -37,6 +37,23 @@ is manual.
 
 ---
 
+## Calendar Availability Rule
+
+**A date is unavailable if it has a timed show event OR an all-day `NO SHOWS` block.**
+
+When checking whether a date is open — for conflict checking in Routine 1, for
+recommendations in Routine 3, or for any direct availability question — always query
+the calendar for both timed events and all-day events on that date. Treat either of
+the following as unavailable:
+
+- A timed event (any show already booked)
+- An all-day event titled **NO SHOWS** (a personal block marking a date off-limits
+  for any reason — travel, prior commitment, recovery day, etc.)
+
+Do not recommend a ticket purchase or create a show event on a date blocked by either.
+
+---
+
 ## Routine 1 — New Ticket Purchase Email
 
 **Trigger:** A ticket confirmation forwarded from dan2bit@gmail.com arrives in the
@@ -196,7 +213,8 @@ Create a branch named `post-show/[artist-slug]-[YYYY-MM-DD]` and open a PR to
 
 - `live_shows_2026.tsv` — row updated: `Status` → `attended`, spending filled,
   `Setlist.fm URL` filled, `Notes / Memories` filled, `Artist Interaction` filled
-- `artists.tsv` — `Hat Autograph` set to `Y` if hat was signed (omit file if no change)
+- `artists.tsv` — Times Seen and Most Recent Seen updated; `Hat Autograph` set to `Y`
+  if hat was signed
 - `autograph_books_combined.tsv` — `RHBS Signed` / `APS Signed` set to `Yes`
   and/or `Hat Notes` updated if applicable (omit file if no change)
 
@@ -223,14 +241,14 @@ classify each artist mention as one of two cases:
 
 **Case A — Tickets already on sale** (no specific future on-sale time given):
 - Filter to artists on the Strong or Medium tiers (seen before, or in autograph books)
-- Check calendar for conflicts on the show date
+- Check calendar for conflicts on the show date (apply Calendar Availability Rule above)
 - Present a tiered list of open-date recommendations with direct Ticketmaster/AXS
   search links — no calendar event created
 - Include autograph book note if applicable
 
 **Case B — Specific future on-sale time given** (pre-sale or general on-sale announced):
 - Only act on **Strong tier** artists (previously seen) with a confirmed open date
-- Check calendar for conflicts before proceeding
+- Check calendar for conflicts before proceeding (apply Calendar Availability Rule above)
 - Create an on-sale reminder calendar event (see Step 3 below)
 
 For digest-style newsletters (multiple artists, no specific on-sale times), treat all
@@ -312,13 +330,13 @@ each subscription is set up.
 - State Theatre ✅
 - Collective Encore ✅
 - Ticketmaster newsletter (forwarded from dan2bit) ✅
+  Union Stage Presents (Pearl Street, Jammin Java, Howard Theatre, Union Stage)✅
+- Wolf Trap — wolftrap.org (email alerts) ✅
+- 9:30 Club / Merriweather / other IMP venues — imppresents.com ✅
 
 **Venues (pending):**
-- Wolf Trap — wolftrap.org (email alerts)
-- 9:30 Club / Merriweather / other IMP venues — imppresents.com
+
 - Strathmore — strathmore.org
-- Kennedy Center — kennedy-center.org
-- Pearl Street Warehouse — pearlstreetwarehouse.com
 - Capital One Hall — capitalonehall.com
 - The Fillmore Silver Spring — fillmoresilverspring.com
 
