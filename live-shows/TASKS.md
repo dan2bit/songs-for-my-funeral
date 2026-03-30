@@ -360,3 +360,32 @@ research rather than a one-time pass.
   after AMA nominees in summer)? Or ad hoc when conversation warrants?
 - Should output be appended to `new_artist_research.tsv` or kept as a separate file?
 - Is there overlap with the Gnoosic excursion results that should be reconciled?
+
+---
+
+### 17. Review pre-pandemic show history for potential inclusion
+
+`live_shows_history.tsv` currently starts with 2021-07-11 (first post-pandemic show).
+There are approximately 22 shows from 2002–2019 that have never been included. Record
+keeping pre-pandemic was sparse and inconsistent, so this long tail is incomplete by
+nature.
+
+**Context:** The gap was discovered when Billy Strings was found in Seated.com follows
+but not in `artists.tsv` — his first appearance was as a supporting act at a 2019-02-02
+Greensky Bluegrass show at The Anthem, which predates the history file. This raised the
+question of whether backfilling the pre-pandemic shows would be worth doing given the
+data quality limitations.
+
+**Questions to decide:**
+
+- Is a sparse, incomplete pre-pandemic record worse than no record at all, or does
+  any data beat no data for the purposes of `artists.tsv` counts and first-seen dates?
+- If added, should pre-pandemic shows live in the same `live_shows_history.tsv` file,
+  or a separate `live_shows_pre_2021.tsv` to keep the quality distinction clear?
+- What sources exist to reconstruct the pre-pandemic list? (email receipts, setlist.fm
+  history, memory, photos, etc.)
+- Should `artists.tsv` Times Seen / First Seen be updated retroactively for any artists
+  who appear in the pre-pandemic shows? This could meaningfully change first-seen dates
+  and counts for artists like Greensky Bluegrass, Trombone Shorty, Keb' Mo', etc.
+- Are there any artists who would cross the "second appearance" threshold for a new
+  `artists.tsv` entry if pre-pandemic data were included (e.g. Billy Strings)?
