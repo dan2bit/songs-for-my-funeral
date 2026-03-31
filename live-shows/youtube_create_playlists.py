@@ -300,7 +300,7 @@ def load_history():
     return history_rows, index
 
 
-# ── date utilities ────────────────────────────────────────────────────────────────────────
+# ── date utilities ───────────────────────────────────────────────────────────────────────
 def date_variants(date_str):
     try:
         d = datetime.strptime(date_str, "%Y-%m-%d")
@@ -325,7 +325,7 @@ VENUE_SHORT = {
     "9:30 Club, Washington, DC, USA":                               "9:30 Club (DC)",
     "The Anthem, Washington, DC, USA":                              "The Anthem (DC)",
     "The Birchmere, Alexandria, VA, USA":                           "Birchmere (VA)",
-    "Rams Head On Stage, Annapolis, MD, USA":                       "Ram's Head (MD)",
+    "Rams Head On Stage, Annapolis, MD, USA":                       "Rams Head (MD)",
     "Wolf Trap Farm Park (Filene Center), Vienna, VA, USA":         "Wolf Trap (VA)",
     "Wolf Trap Farm Park (The Barns), Vienna, VA, USA":             "Wolf Trap Barns (VA)",
     "The Fillmore Silver Spring, Silver Spring, MD, USA":           "Fillmore Silver Spring (MD)",
@@ -362,7 +362,7 @@ VENUE_SHORT = {
     "Sixth & I Historic Synagogue, Washington, DC, USA":            "Sixth & I (DC)",
     "Filene Center at Wolf Trap, Vienna, VA, USA":                  "Wolf Trap (VA)",
     # live_shows_2026.tsv uses short venue names directly
-    "Rams Head On Stage":                                           "Ram's Head (MD)",
+    "Rams Head On Stage":                                           "Rams Head (MD)",
     "Hamilton Live":                                                "Hamilton Live (DC)",
     "The Birchmere":                                                "Birchmere (VA)",
     "Jammin' Java":                                                 "Jammin' Java (VA)",
