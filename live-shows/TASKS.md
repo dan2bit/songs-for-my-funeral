@@ -6,13 +6,7 @@ Collaborative task list for the live show archive project. Update status as task
 
 ## 🔧 Ready to Run (quota reset needed)
 
-### 1. ~~Create ZZ Ward 2026 playlist~~ ✅ COMPLETE
-
-Playlist created manually. URL committed to `live_shows_2026.tsv`.
-
----
-
-### 2. Create remaining WORKLIST backfill playlists (partial — quota hit after Nas)
+### 1. Create remaining WORKLIST backfill playlists (partial — quota hit after Nas)
 
 Run got through 2023-09-26 Nas before exhausting quota. The 12 shows processed so far
 have playlists; the remaining 11 still need to be created on the next quota reset.
@@ -52,7 +46,7 @@ The WORKLIST in `youtube_create_playlists.py` should then be cleared and entries
 
 ## 🔍 Research / Eyeball Tasks
 
-### 3. Audit 25 no-video blank shows
+### 2. Audit 25 no-video blank shows
 
 25 shows have no playlist URL and no matching videos in `youtube_videos.tsv` using exact date matching. Use the audit script to scan with a loose +30-day window and fuzzy artist-name title matching.
 
@@ -100,7 +94,7 @@ After reviewing output: for any confirmed matches, manually add the single video
 
 ---
 
-### 4. Fill blank playlist descriptions
+### 3. Fill blank playlist descriptions
 
 Playlists created by the script have no descriptions. This one-time run fills them with the setlist.fm URL using the default "Select tracks from {setlist_url}" template. Requires OAuth (YouTube write scope).
 
@@ -119,7 +113,7 @@ Note: only fills descriptions for playlists that (a) have a blank description an
 
 ---
 
-### 5. Find remaining blank artist YouTube handles
+### 4. Find remaining blank artist YouTube handles
 
 ~67 artists in `artists.tsv` still have no `YouTube Channel` value. The handles sourced from `youtube_videos.tsv` have been applied; the remainder need manual lookup.
 
@@ -137,7 +131,7 @@ python3 youtube_subscriptions_to_artists.py
 
 ## 📋 Manual / Pending Approval
 
-### 6. Merge `notes_memories_draft.tsv` into history
+### 5. Merge `notes_memories_draft.tsv` into history
 
 A staging file of show notes/memories exists at `live-shows/notes_memories_draft.tsv`. These have not been merged into `live_shows_history.tsv` pending explicit approval.
 
@@ -147,9 +141,9 @@ A staging file of show notes/memories exists at `live-shows/notes_memories_draft
 
 ## 🔄 Ongoing / Maintenance
 
-### 7. `live_shows_history.tsv` re-ingest after WORKLIST runs
+### 6. `live_shows_history.tsv` re-ingest after WORKLIST runs
 
-After task #2 completes all remaining playlists, run `youtube_fetch.py` to re-ingest the channel and populate the new playlist URLs into `youtube_videos.tsv` video descriptions.
+After task #1 completes all remaining playlists, run `youtube_fetch.py` to re-ingest the channel and populate the new playlist URLs into `youtube_videos.tsv` video descriptions.
 
 ```bash
 cd live-shows
@@ -161,14 +155,7 @@ Then run `youtube_correlate.py --merge --sync-artists` to push any new URL corre
 
 ---
 
-### 8. ~~Venues TSV parking update~~ ✅ COMPLETE
-
-`venues.tsv` now has a `Parking Cost` column. Ram's Head = $9.45, Hamilton Live = $13.00,
-Warner Theatre = $13.00 (same lot). All 2026 attended shows corrected accordingly.
-
----
-
-### 9. Design and implement rolling migration + archive architecture
+### 7. Design and implement rolling migration + archive architecture
 
 ⚠️ **Must be designed before the first 2027 ticket purchase.**
 
@@ -196,7 +183,7 @@ Scripts and the email ticket workflow currently hardcode `live_shows_2026.tsv`. 
 
 ---
 
-### 10. Define HFTB monitoring cadence and recommendation tiers
+### 8. Define HFTB monitoring cadence and recommendation tiers
 
 HereForTheBands.com (HFTB) is the primary source for DC/MD/VA show discovery. Define a repeatable process for checking it and acting on potential buys.
 
@@ -217,47 +204,19 @@ HereForTheBands.com (HFTB) is the primary source for DC/MD/VA show discovery. De
 
 ---
 
-### 11. Subscribe redhat.bootlegs to venue and artist mailing lists
+### 9. Subscribe redhat.bootlegs to venue mailing lists (pending venues)
 
-**Pre-requisite for Routine 3** (pre-sale / on-sale email processing).
+Venue subscriptions are largely in place. Remaining pending venues:
 
-See `EMAIL_WORKFLOWS.md` for the current subscription status. Venue subscriptions are
-largely in place; pending venues and artist newsletters still need attention.
+- Strathmore — strathmore.org
+- Capital One Hall — capitalonehall.com
+- The Fillmore Silver Spring — fillmoresilverspring.com
 
-Seated.com ticket alert emails are now being forwarded to the inbox — see task #14 for
-the follow-up artist-follows audit on that service.
-
-Artist newsletter subscriptions are tracked separately — see task #13.
+Apply the `ticket-alert` label (or Gmail filter) for each sender once subscribed.
 
 ---
 
-### 12. Build pre-sale / on-sale notification email processing routine
-
-Routine 3 is now documented in `EMAIL_WORKFLOWS.md`. The design is settled:
-
-- **Already on sale (digest newsletters):** Present tiered Strong/Medium recommendations
-  for open dates with direct search links — no calendar event created
-- **Specific future on-sale time (Strong tier, open date only):** Create a `🎟 ON SALE:`
-  calendar event starting 5 min before on-sale, 15 min duration, with 24hr + 5min reminders
-- **Title format:** `🎟 ON SALE: [Artist]`
-- **No TSV row** created — that's Routine 1's job after purchase
-- **Pre-sale codes** and expiry windows go in the event description
-- **Autograph book check** same as Routine 1
-
-This task is complete as a design — implement and test against the first on-sale
-email that arrives after mailing list subscriptions (task #11) are in place.
-
----
-
-### 13. ~~Subscribe to artist newsletters for Strong tier favorites~~ ✅ COMPLETE
-
-Artist newsletter subscriptions configured as of 2026-03-30. See Routine 4 in
-`EMAIL_WORKFLOWS.md` for the full subscriber list, non-subscribed exceptions, and
-processing workflow. Gmail label `artist-mail` is in use for this category.
-
----
-
-### 14. Audit artist follows on Seated.com
+### 10. Audit artist follows on Seated.com
 
 Seated.com ticket alert emails (rare) are now being forwarded to the redhat.bootlegs
 inbox and will flow into Routine 3 like other ticket-alert emails.
@@ -271,7 +230,7 @@ inbox and will flow into Routine 3 like other ticket-alert emails.
 
 ---
 
-### 15. Evaluate artist-follow alert services: Bandsintown and Songkick
+### 11. Evaluate artist-follow alert services: Bandsintown and Songkick
 
 Currently following too many artists on the dan2bit Bandsintown account, making email
 alerts noisy and hard to act on. Songkick is the primary Bandsintown alternative and
@@ -301,11 +260,11 @@ only if the follow list can be kept narrow enough to stay actionable.
 
 ---
 
-### 16. Mine festival and award lineups for new artist discovery
+### 12. Mine festival and award lineups for new artist discovery
 
-A complement to HFTB (task #10) and Gnoosic exploration. Blues cruises, major festivals,
+A complement to HFTB (task #8) and Gnoosic exploration. Blues cruises, major festivals,
 and annual award nominees are rich sources for discovering artists in your taste profile
-who aren't yet on your radar. Priority and scope are similar to task #10 — periodic
+who aren't yet on your radar. Priority and scope are similar to task #8 — periodic
 research rather than a one-time pass.
 
 **Primary sources to monitor:**
@@ -352,7 +311,7 @@ research rather than a one-time pass.
 
 ---
 
-### 17. Review pre-pandemic show history for potential inclusion
+### 13. Review pre-pandemic show history for potential inclusion
 
 `live_shows_history.tsv` currently starts with 2021-07-11 (first post-pandemic show).
 There are approximately 22 shows from 2002–2019 that have never been included. Record

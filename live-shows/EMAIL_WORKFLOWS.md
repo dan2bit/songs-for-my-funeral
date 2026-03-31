@@ -120,7 +120,7 @@ ticket confirmation, and extract:
 Default times and details if not explicit in the email:
 
 | Venue | Doors | Show | Notes |
-|-------|-------|------|---------|
+|-------|-------|------|-------|
 | The Birchmere | 5:00 PM | 7:30 PM | GA; seating begins 6:30 PM; always free parking |
 | Hamilton Live | 6:30 PM | 8:00 PM | $13 parking |
 | Ram's Head On Stage | 1 hr before show | — | — |
@@ -403,6 +403,13 @@ redhat.bootlegs inbox tagged `artist-mail`.
 **Step 1 — Find and read the emails**
 
 Search `label:artist-mail -label:processed`, read each unprocessed email.
+
+**⚠️ Gmail Promotions tab:** Artist welcome emails and newsletters sometimes land in
+the **Promotions** tab rather than Primary, bypassing the `artist-mail` label filter.
+When running Routine 4, also check `in:promotions -label:processed` for any unlabeled
+newsletters from subscribed artists. Move any found to Primary and apply the
+`artist-mail` label before processing. This cannot be done by Claude — it requires
+manual action in Gmail.
 
 **Step 2 — Classify and act on content**
 
