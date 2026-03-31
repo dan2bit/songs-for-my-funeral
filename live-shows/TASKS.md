@@ -204,15 +204,11 @@ HereForTheBands.com (HFTB) is the primary source for DC/MD/VA show discovery. De
 
 ---
 
-### 9. Subscribe redhat.bootlegs to venue mailing lists (pending venues)
+### 9. ~~Subscribe redhat.bootlegs to mailing lists~~ ✅ COMPLETE
 
-Venue subscriptions are largely in place. Remaining pending venues:
-
-- Strathmore — strathmore.org
-- Capital One Hall — capitalonehall.com
-- The Fillmore Silver Spring — fillmoresilverspring.com
-
-Apply the `ticket-alert` label (or Gmail filter) for each sender once subscribed.
+All venue and artist subscriptions in place as of 2026-03-30. See `EMAIL_WORKFLOWS.md`
+for the full subscription inventory — venues under the Pre-Requisite section, artist
+newsletters under Routine 4. Reopen if new venues or artists are added.
 
 ---
 
