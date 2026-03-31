@@ -123,7 +123,7 @@ Default times and details if not explicit in the email:
 |-------|-------|------|-------|
 | The Birchmere | 5:00 PM | 7:30 PM | GA; seating begins 6:30 PM; always free parking |
 | Hamilton Live | 6:30 PM | 8:00 PM | $13 parking |
-| Ram's Head On Stage | 1 hr before show | — | — |
+| Rams Head On Stage | 1 hr before show | — | — |
 | Wolf Trap Filene Center | — | — | Use ticket for times |
 | Wolf Trap Barns | — | — | Use ticket for times |
 
@@ -475,7 +475,7 @@ each subscription is set up.
 **Venues (subscribed ✅):**
 - The Birchmere ✅
 - Hamilton Live ✅
-- Ram's Head On Stage ✅
+- Rams Head On Stage ✅
 - State Theatre ✅
 - Collective Encore ✅
 - Ticketmaster newsletter (forwarded from dan2bit) ✅
