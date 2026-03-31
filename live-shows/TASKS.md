@@ -249,22 +249,11 @@ email that arrives after mailing list subscriptions (task #11) are in place.
 
 ---
 
-### 13. Subscribe to artist newsletters for Strong tier favorites
+### 13. ~~Subscribe to artist newsletters for Strong tier favorites~~ ✅ COMPLETE
 
-Venue newsletters catch what's playing nearby, but artist newsletters are the best
-source for pre-sale codes and early access — especially for high-demand or smaller
-shows that sell out quickly.
-
-**Next steps:**
-- Identify your top Strong-tier artists (seen multiple times, likely to see again):
-  candidates from `artists.tsv` with `Times Seen >= 2` or particularly high priority
-- Sign up redhat.bootlegs@gmail.com via each artist's website or fan club
-- Apply the `ticket-alert` label (or create a Gmail filter) for each mailing list sender
-
-**Priority candidates to consider** (seen 2+ times):
-Allison Russell, Daniel Donato, Enter the Haggis, Eric Gales, Kingsley Flood,
-Keb' Mo', Larkin Poe, Oh He Dead, Sue Foley, Tab Benoit, Trombone Shorty,
-Vanessa Collier, ZZ Ward, The Lone Bellow, Suzanne Vega
+Artist newsletter subscriptions configured as of 2026-03-30. See Routine 4 in
+`EMAIL_WORKFLOWS.md` for the full subscriber list, non-subscribed exceptions, and
+processing workflow. Gmail label `artist-mail` is in use for this category.
 
 ---
 

@@ -1,6 +1,6 @@
 # Email Workflows — Live Show Archive
 
-Three standing routines for processing emails from the **redhat.bootlegs@gmail.com** inbox.
+Four standing routines for processing emails from the **redhat.bootlegs@gmail.com** inbox.
 None are automatic — you trigger each by starting a new conversation in this project
 and telling me there's an email to process.
 
@@ -12,7 +12,7 @@ list of suggested subscriptions at the bottom of this file.
 
 ## Gmail Label System
 
-Two labels are in use on the redhat.bootlegs inbox:
+Three labels are in use on the redhat.bootlegs inbox:
 
 **`processed`** — Applied manually by you after any email workflow completes. I always
 include `-label:processed` in my search queries so previously handled emails are never
@@ -22,6 +22,11 @@ email(s) that were processed.
 **`ticket-alert`** — Applied manually (or via a Gmail filter) to incoming venue/artist
 newsletter emails once mailing list subscriptions are in place. Routine 3 searches
 `label:ticket-alert -label:processed` to find unprocessed on-sale alerts.
+
+**`artist-mail`** — Applied manually (or via Gmail filter) to emails from artist
+newsletter subscriptions. Routine 4 searches `label:artist-mail -label:processed`
+to find unprocessed artist mail. The primary things to mine are: tour announcements,
+artist pre-sale codes, and new music releases.
 
 **What I cannot do:** I can read labels and search by them, but I cannot apply, remove,
 or create labels, mark emails as read, or create Gmail filters. All label management
@@ -34,6 +39,7 @@ is manual.
 | 1 — Ticket purchase | `from:dan2bit subject:[artist] -label:processed` (forwarded confirmation) |
 | 2 — Post-show notes | `from:dan2bit subject:[artist] notes -label:processed` |
 | 3 — On-sale alert | `label:ticket-alert -label:processed` |
+| 4 — Artist newsletter | `label:artist-mail -label:processed` |
 
 ---
 
@@ -114,7 +120,7 @@ ticket confirmation, and extract:
 Default times and details if not explicit in the email:
 
 | Venue | Doors | Show | Notes |
-|-------|-------|------|-------|
+|-------|-------|------|---------|
 | The Birchmere | 5:00 PM | 7:30 PM | GA; seating begins 6:30 PM; always free parking |
 | Hamilton Live | 6:30 PM | 8:00 PM | $13 parking |
 | Ram's Head On Stage | 1 hr before show | — | — |
@@ -353,12 +359,89 @@ and processed via Routine 1.
 
 ---
 
+## Routine 4 — Artist Newsletter Email
+
+**Trigger:** An email from an artist mailing list subscription arrives in the
+redhat.bootlegs inbox tagged `artist-mail`.
+
+### Subscribed artists (as of 2026-03-30)
+
+| Artist | Notes |
+|--------|-------|
+| Allison Russell | |
+| Amythyst Kiah | |
+| Albert Castiglia | |
+| Buffalo Nichols | |
+| Bywater Call | |
+| Daniel Donato | |
+| Ghalia Volt | |
+| Jackie Venson | |
+| Judith Hill | |
+| Larkin Poe | |
+| Lone Bellow, The | |
+| Mike Zito | |
+| Robert Randolph | |
+| Ruthie Foster | |
+| Samantha Fish | |
+| Shemekia Copeland | |
+| Southern Avenue | |
+| Sue Foley | |
+| Taj Farrant | |
+| Tal Wilkenfeld | |
+| Trombone Shorty & Orleans Avenue | |
+| Vanessa Collier | |
+| War and Treaty, The | |
+
+**Not subscribed — known reasons:**
+- Enter the Haggis — defunct
+- Eric Gales, Selwyn Birchwood, Valerie June, Ana Popović — no email list found
+- Kingsley Flood, Oh He Dead — too small/hyperlocal; shows already caught by venue newsletters
+- Ally Venable — uses Patreon instead of email list
+
+### What I do
+
+**Step 1 — Find and read the emails**
+
+Search `label:artist-mail -label:processed`, read each unprocessed email.
+
+**Step 2 — Classify and act on content**
+
+For each email, look for three things:
+
+**Tour announcements / new show dates:**
+- Check if any announced show is in the DC/MD/VA area (or a driveable venue you've
+  attended before)
+- Check calendar for conflicts on the show date (apply Calendar Availability Rule)
+- If open date + Strong tier artist + DC/MD/VA venue: present as a buy recommendation
+  with the ticket link
+- If specific on-sale time is given: create a `🎟 ON SALE:` calendar event exactly
+  as in Routine 3 Step 3
+
+**Pre-sale codes:**
+- If a pre-sale code is included for a show on an open date: create a `🎟 ON SALE:`
+  calendar event with the code prominently in the description
+- If no show date is yet announced alongside the code: note the code and artist in
+  the response so you can act when the date is confirmed
+
+**New music releases:**
+- Note the release (title, format, release date) in the response
+- No calendar event or TSV action needed — just surfacing the information
+
+**Step 3 — Autograph book check**
+
+For any DC/MD/VA show recommendation, check `autograph_books_combined.tsv` and
+include the book reminder in the recommendation exactly as in Routine 1.
+
+**Final step:** Remind you to apply the `processed` label to each email processed.
+
+---
+
 ## Notes
 
 **Inbox monitoring is not automatic.** I don't poll the inbox. You trigger these
 routines by telling me "there's a ticket email", "I just sent my post-show notes",
-or "there's an on-sale alert" in a new project conversation. I'll search the inbox
-and take it from there.
+"there's an on-sale alert", or "process my artist mail" in a new project conversation.
+I'll search the inbox and take it from there.
 
 **Hat autograph gdoc is the completeness authority.** The Google Doc at the link
 above is more carefully maintained for hat autographs than the TSV files. If there
@@ -389,12 +472,11 @@ each subscription is set up.
 - State Theatre ✅
 - Collective Encore ✅
 - Ticketmaster newsletter (forwarded from dan2bit) ✅
-  Union Stage Presents (Pearl Street, Jammin Java, Howard Theatre, Union Stage)✅
+  Union Stage Presents (Pearl Street, Jammin Java, Howard Theatre, Union Stage) ✅
 - Wolf Trap — wolftrap.org (email alerts) ✅
 - 9:30 Club / Merriweather / other IMP venues — imppresents.com ✅
 
 **Venues (pending):**
-
 - Strathmore — strathmore.org
 - Capital One Hall — capitalonehall.com
 - The Fillmore Silver Spring — fillmoresilverspring.com
@@ -403,5 +485,4 @@ each subscription is set up.
 - AXS — axs.com (artist follows)
 - Eventbrite — follow relevant organizers
 
-**Artist fan clubs / newsletters** (see TASKS.md #13 — priority list to build out):
-- Sign up via artist websites for fan pre-sale access, especially for high-demand shows
+**Artist newsletters** — see Routine 4 subscriber list above. ✅ Complete as of 2026-03-30.
