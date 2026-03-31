@@ -6,10 +6,10 @@ Collaborative task list for the live show archive project. Update status as task
 
 ## 🔧 Ready to Run (quota reset needed)
 
-### 1. Create remaining WORKLIST backfill playlists (partial — quota hit after Nas)
+### 1. Create remaining WORKLIST backfill playlists (partial — quota hit after J. P. Soars)
 
-Run got through 2023-09-26 Nas before exhausting quota. The 12 shows processed so far
-have playlists; the remaining 11 still need to be created on the next quota reset.
+Run got through 2025-07-13 J. P. Soars before exhausting quota. 8 shows were completed
+this session; 5 remain starting at Barenaked Ladies.
 
 ```bash
 cd live-shows
@@ -25,17 +25,9 @@ python3 youtube_create_playlists.py --worklist --update-history
 After completion: `live_shows_history.tsv` will be updated with remaining playlist URLs.
 The WORKLIST in `youtube_create_playlists.py` should then be cleared and entries moved to the "Completed" comment block.
 
-**Remaining WORKLIST shows (11):**
+**Remaining WORKLIST shows (5):**
 | Date | Artist |
 |------|--------|
-| 2023-12-10 | Allison Russell |
-| 2024-12-07 | New York's Finest |
-| 2024-12-17 | Tab Benoit |
-| 2025-01-24 | New York's Finest |
-| 2025-01-31 | Vanessa Collier |
-| 2025-02-07 | Yasmin Williams |
-| 2025-07-11 | North Mississippi Allstars |
-| 2025-07-13 | J. P. Soars |
 | 2025-07-16 | Barenaked Ladies |
 | 2025-08-03 | Eric Johanson |
 | 2025-08-28 | Robert Randolph |
@@ -44,11 +36,41 @@ The WORKLIST in `youtube_create_playlists.py` should then be cleared and entries
 
 ---
 
+### 2. Fix `Ram's Head` → `Rams Head` in 54 video descriptions
+
+54 videos in `youtube_videos.tsv` have `Ram's Head` in their description field. These
+need to be corrected to `Rams Head` to match the standardized venue name. Requires a
+quota-bearing script since YouTube video descriptions must be updated via the Data API.
+
+**Run after task #1 and the WORKLIST quota tasks complete** — don't burn quota on this
+before the playlist backfill is done.
+
+```bash
+cd live-shows
+source .venv/bin/activate
+
+# Preview first (dry run)
+python3 youtube_fix_descriptions.py --search "Ram's Head" --replace "Rams Head" --dry-run
+
+# Then apply
+python3 youtube_fix_descriptions.py --search "Ram's Head" --replace "Rams Head"
+```
+
+Note: `youtube_fix_descriptions.py` does not yet exist — needs to be written. It should:
+- Authenticate via OAuth (same token.json as other scripts)
+- Iterate over all channel videos
+- Find those with the old string in their description
+- Update descriptions in-place, replacing only the target substring
+- Log all changes to `logs/description_fix_log.tsv`
+- Support `--dry-run` to preview without writing
+
+---
+
 ## 🔍 Research / Eyeball Tasks
 
-### 2. Audit 25 no-video blank shows
+### 3. Audit 24 no-video blank shows
 
-25 shows have no playlist URL and no matching videos in `youtube_videos.tsv` using exact date matching. Use the audit script to scan with a loose +30-day window and fuzzy artist-name title matching.
+24 shows have no playlist URL and no matching videos in `youtube_videos.tsv` using exact date matching. Use the audit script to scan with a loose +30-day window and fuzzy artist-name title matching.
 
 ```bash
 cd live-shows
@@ -61,7 +83,7 @@ python3 youtube_audit_blanks.py
 python3 youtube_audit_blanks.py --output audit_blanks.tsv
 ```
 
-**The 25 shows:**
+**The 24 shows:**
 | Date | Artist |
 |------|--------|
 | 2021-09-23 | The Avett Brothers |
@@ -81,7 +103,6 @@ python3 youtube_audit_blanks.py --output audit_blanks.tsv
 | 2024-06-16 | Shaw Davis & The Black Ties |
 | 2024-10-14 | David Moore |
 | 2024-10-17 | Ana Popovic |
-| 2024-11-17 | Lindsay Lou |
 | 2024-12-06 | Oh He Dead |
 | 2025-06-07 | Selwyn Birchwood |
 | 2025-06-15 | Sue Foley |
@@ -94,7 +115,7 @@ After reviewing output: for any confirmed matches, manually add the single video
 
 ---
 
-### 3. Fill blank playlist descriptions
+### 4. Fill blank playlist descriptions
 
 Playlists created by the script have no descriptions. This one-time run fills them with the setlist.fm URL using the default "Select tracks from {setlist_url}" template. Requires OAuth (YouTube write scope).
 
@@ -113,7 +134,7 @@ Note: only fills descriptions for playlists that (a) have a blank description an
 
 ---
 
-### 4. Find remaining blank artist YouTube handles
+### 5. Find remaining blank artist YouTube handles
 
 ~67 artists in `artists.tsv` still have no `YouTube Channel` value. The handles sourced from `youtube_videos.tsv` have been applied; the remainder need manual lookup.
 
@@ -131,7 +152,7 @@ python3 youtube_subscriptions_to_artists.py
 
 ## 📋 Manual / Pending Approval
 
-### 5. Merge `notes_memories_draft.tsv` into history
+### 6. Merge `notes_memories_draft.tsv` into history
 
 A staging file of show notes/memories exists at `live-shows/notes_memories_draft.tsv`. These have not been merged into `live_shows_history.tsv` pending explicit approval.
 
@@ -141,7 +162,7 @@ A staging file of show notes/memories exists at `live-shows/notes_memories_draft
 
 ## 🔄 Ongoing / Maintenance
 
-### 6. `live_shows_history.tsv` re-ingest after WORKLIST runs
+### 7. `live_shows_history.tsv` re-ingest after WORKLIST runs
 
 After task #1 completes all remaining playlists, run `youtube_fetch.py` to re-ingest the channel and populate the new playlist URLs into `youtube_videos.tsv` video descriptions.
 
@@ -155,7 +176,7 @@ Then run `youtube_correlate.py --merge --sync-artists` to push any new URL corre
 
 ---
 
-### 7. Design and implement rolling migration + archive architecture
+### 8. Design and implement rolling migration + archive architecture
 
 ⚠️ **Must be designed before the first 2027 ticket purchase.**
 
@@ -183,12 +204,12 @@ Scripts and the email ticket workflow currently hardcode `live_shows_2026.tsv`. 
 
 ---
 
-### 8. Define HFTB monitoring cadence and recommendation tiers
+### 9. Define HFTB monitoring cadence and recommendation tiers
 
 HereForTheBands.com (HFTB) is the primary source for DC/MD/VA show discovery. Define a repeatable process for checking it and acting on potential buys.
 
 **Known HFTB limitations:**
-- Hamilton Live, Ram's Head On Stage, and Wolf Trap Filene are not covered
+- Hamilton Live, Rams Head On Stage, and Wolf Trap Filene are not covered
 
 **Recommendation tiers (already established):**
 - **Strong** — artist seen before at any venue
@@ -204,7 +225,7 @@ HereForTheBands.com (HFTB) is the primary source for DC/MD/VA show discovery. De
 
 ---
 
-### 9. ~~Subscribe redhat.bootlegs to mailing lists~~ ✅ COMPLETE
+### 10. ~~Subscribe redhat.bootlegs to mailing lists~~ ✅ COMPLETE
 
 All venue and artist subscriptions in place as of 2026-03-30. See `EMAIL_WORKFLOWS.md`
 for the full subscription inventory — venues under the Pre-Requisite section, artist
@@ -212,7 +233,7 @@ newsletters under Routine 4. Reopen if new venues or artists are added.
 
 ---
 
-### 10. Audit artist follows on Seated.com
+### 11. Audit artist follows on Seated.com
 
 Seated.com ticket alert emails (rare) are now being forwarded to the redhat.bootlegs
 inbox and will flow into Routine 3 like other ticket-alert emails.
@@ -226,7 +247,7 @@ inbox and will flow into Routine 3 like other ticket-alert emails.
 
 ---
 
-### 11. Evaluate artist-follow alert services: Bandsintown and Songkick
+### 12. Evaluate artist-follow alert services: Bandsintown and Songkick
 
 Currently following too many artists on the dan2bit Bandsintown account, making email
 alerts noisy and hard to act on. Songkick is the primary Bandsintown alternative and
@@ -243,7 +264,7 @@ purchase triggers — the latency problem alone disqualifies it for this workflo
   rather than creating a new account? Does Bandsintown allow multiple accounts (one per
   email address)?
 - **Songkick:** Does it surface DC/MD/VA shows at smaller venues (Collective Encore,
-  Hamilton Live, Ram's Head) that aren't already caught by venue newsletters or Seated?
+  Hamilton Live, Rams Head) that aren't already caught by venue newsletters or Seated?
   Would following Strong-tier artists there add signal or just duplicate existing sources?
 - **Both:** What's the right follow list scope for either service — likely Strong tier
   only (artists seen before), not the full autograph book population
@@ -256,11 +277,11 @@ only if the follow list can be kept narrow enough to stay actionable.
 
 ---
 
-### 12. Mine festival and award lineups for new artist discovery
+### 13. Mine festival and award lineups for new artist discovery
 
-A complement to HFTB (task #8) and Gnoosic exploration. Blues cruises, major festivals,
+A complement to HFTB (task #9) and Gnoosic exploration. Blues cruises, major festivals,
 and annual award nominees are rich sources for discovering artists in your taste profile
-who aren't yet on your radar. Priority and scope are similar to task #8 — periodic
+who aren't yet on your radar. Priority and scope are similar to task #9 — periodic
 research rather than a one-time pass.
 
 **Primary sources to monitor:**
@@ -307,7 +328,7 @@ research rather than a one-time pass.
 
 ---
 
-### 13. Review pre-pandemic show history for potential inclusion
+### 14. Review pre-pandemic show history for potential inclusion
 
 `live_shows_history.tsv` currently starts with 2021-07-11 (first post-pandemic show).
 There are approximately 22 shows from 2002–2019 that have never been included. Record
