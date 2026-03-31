@@ -6,7 +6,7 @@ Collaborative task list for the live show archive project. Update status as task
 
 ## 🔧 Ready to Run (quota reset needed)
 
-### 1. Create remaining WORKLIST backfill playlists (partial — quota hit after J. P. Soars)
+### 1. Create remaining WORKLIST backfill playlists — 📅 4/1/26
 
 Run got through 2025-07-13 J. P. Soars before exhausting quota. 8 shows were completed
 this session; 5 remain starting at Barenaked Ladies.
@@ -36,41 +36,74 @@ The WORKLIST in `youtube_create_playlists.py` should then be cleared and entries
 
 ---
 
-### 2. Fix `Ram's Head` → `Rams Head` in 54 video descriptions
+### 2. Fix `Ram's Head` → `Rams Head` in 54 video descriptions — 📅 4/3/26 (bundle with task #4)
 
-54 videos in `youtube_videos.tsv` have `Ram's Head` in their description field. These
-need to be corrected to `Rams Head` to match the standardized venue name. Requires a
-quota-bearing script since YouTube video descriptions must be updated via the Data API.
-
-**Run after task #1 and the WORKLIST quota tasks complete** — don't burn quota on this
-before the playlist backfill is done.
+54 videos have `Ram's Head` in their description. ~2,700 quota units (54 × 50). Can be
+bundled with task #4 on the same day — combined ~7,700 units, well under the 10k daily
+limit. Merge PR #12 (`youtube_fix_descriptions.py`) before running.
 
 ```bash
 cd live-shows
 source .venv/bin/activate
 
-# Preview first (dry run)
-python3 youtube_fix_descriptions.py --search "Ram's Head" --replace "Rams Head" --dry-run
+# Preview first — use title-filter to limit reads to relevant videos
+python3 youtube_fix_descriptions.py \
+    --search "Ram's Head" --replace "Rams Head" \
+    --target videos --title-filter "Rams Head" --cap 60 --dry-run
 
 # Then apply
-python3 youtube_fix_descriptions.py --search "Ram's Head" --replace "Rams Head"
+python3 youtube_fix_descriptions.py \
+    --search "Ram's Head" --replace "Rams Head" \
+    --target videos --title-filter "Rams Head" --cap 60
 ```
 
-Note: `youtube_fix_descriptions.py` does not yet exist — needs to be written. It should:
-- Authenticate via OAuth (same token.json as other scripts)
-- Iterate over all channel videos
-- Find those with the old string in their description
-- Update descriptions in-place, replacing only the target substring
-- Log all changes to `logs/description_fix_log.tsv`
-- Support `--dry-run` to preview without writing
+Also check whether any **playlist descriptions** contain `Ram's Head` (~11 playlists,
+~550 units) — can bundle in the same run with `--target both`.
 
 ---
 
-## 🔍 Research / Eyeball Tasks
+### 4. Fill blank playlist descriptions — 📅 4/3/26 (bundle with task #2)
 
-### 3. Audit 24 no-video blank shows
+Playlists created by the script have no descriptions. ~5,000 quota units (100 playlists
+× 50). Bundle with task #2 on the same day — combined ~7,700 units total.
 
-24 shows have no playlist URL and no matching videos in `youtube_videos.tsv` using exact date matching. Use the audit script to scan with a loose +30-day window and fuzzy artist-name title matching.
+```bash
+cd live-shows
+source .venv/bin/activate
+
+# Preview first
+python3 youtube_create_playlists.py --fix-descriptions --dry-run
+
+# Then apply
+python3 youtube_create_playlists.py --fix-descriptions
+```
+
+Note: only fills descriptions for playlists that (a) have a blank description and (b)
+have a matching row in history/2026 with a setlist.fm URL. Playlists without a setlist
+URL are skipped and logged.
+
+---
+
+### 5. Find remaining blank artist YouTube handles — 📅 4/4/26 (run alone)
+
+~67 artists in `artists.tsv` still have no `YouTube Channel` value. The subscriptions
+script uses `search.list` (100 units/call) — up to ~6,700 units for 67 artists. Run
+alone on its own quota day to be safe; confirm whether the script uses search API calls
+or pulls handles directly from subscription data before running.
+
+```bash
+cd live-shows
+source .venv/bin/activate
+python3 youtube_subscriptions_to_artists.py
+```
+
+---
+
+## 🔍 Research / Eyeball Tasks (anytime — reads only)
+
+### 3. Audit 24 no-video blank shows — 📅 anytime
+
+Pure reads, no quota cost. Run whenever convenient — before or after any quota day.
 
 ```bash
 cd live-shows
@@ -111,48 +144,14 @@ python3 youtube_audit_blanks.py --output audit_blanks.tsv
 | 2025-10-17 | New York's Finest |
 | 2025-12-04 | The Wood Brothers |
 
-After reviewing output: for any confirmed matches, manually add the single video URL or playlist URL to `live_shows_history.tsv` in the `Playlist URL` column.
-
----
-
-### 4. Fill blank playlist descriptions
-
-Playlists created by the script have no descriptions. This one-time run fills them with the setlist.fm URL using the default "Select tracks from {setlist_url}" template. Requires OAuth (YouTube write scope).
-
-```bash
-cd live-shows
-source .venv/bin/activate
-
-# Preview first
-python3 youtube_create_playlists.py --fix-descriptions --dry-run
-
-# Then apply
-python3 youtube_create_playlists.py --fix-descriptions
-```
-
-Note: only fills descriptions for playlists that (a) have a blank description and (b) have a matching row in history/2026 with a setlist.fm URL. Playlists without a setlist URL are skipped and logged.
-
----
-
-### 5. Find remaining blank artist YouTube handles
-
-~67 artists in `artists.tsv` still have no `YouTube Channel` value. The handles sourced from `youtube_videos.tsv` have been applied; the remainder need manual lookup.
-
-**Next steps:**
-- Run `youtube_subscriptions_to_artists.py` to pull any handles from your YouTube subscriptions that might map to artists in `artists.tsv`
-- Manually look up remaining artists on YouTube and fill in `artists.tsv`
-
-```bash
-cd live-shows
-source .venv/bin/activate
-python3 youtube_subscriptions_to_artists.py
-```
+After reviewing output: for any confirmed matches, manually add the single video URL or
+playlist URL to `live_shows_history.tsv` in the `Playlist URL` column.
 
 ---
 
 ## 📋 Manual / Pending Approval
 
-### 6. Merge `notes_memories_draft.tsv` into history
+### 6. Merge `notes_memories_draft.tsv` into history — 📅 anytime
 
 A staging file of show notes/memories exists at `live-shows/notes_memories_draft.tsv`. These have not been merged into `live_shows_history.tsv` pending explicit approval.
 
@@ -162,9 +161,11 @@ A staging file of show notes/memories exists at `live-shows/notes_memories_draft
 
 ## 🔄 Ongoing / Maintenance
 
-### 7. `live_shows_history.tsv` re-ingest after WORKLIST runs
+### 7. `live_shows_history.tsv` re-ingest after WORKLIST runs — 📅 4/1/26 or 4/2/26 (free reads)
 
-After task #1 completes all remaining playlists, run `youtube_fetch.py` to re-ingest the channel and populate the new playlist URLs into `youtube_videos.tsv` video descriptions.
+After task #1 completes all remaining playlists, run `youtube_fetch.py` to re-ingest
+the channel and populate the new playlist URLs into `youtube_videos.tsv` video
+descriptions. Pure reads — no quota cost, can run same day as task #1 or next day.
 
 ```bash
 cd live-shows
@@ -172,7 +173,8 @@ source .venv/bin/activate
 python3 youtube_fetch.py --since 2021-07-01
 ```
 
-Then run `youtube_correlate.py --merge --sync-artists` to push any new URL correlations back into the history files and keep `artists.tsv` current.
+Then run `youtube_correlate.py --merge --sync-artists` to push any new URL correlations
+back into the history files and keep `artists.tsv` current. Also reads only.
 
 ---
 
@@ -272,7 +274,7 @@ purchase triggers — the latency problem alone disqualifies it for this workflo
   so alerts flow directly into Routine 3 without forwarding friction
 
 **Decision criteria:** Only set up or restructure an account if it would surface shows
-not already caught by venue newsletters, Seated, or artist direct subscriptions — and
+nnot already caught by venue newsletters, Seated, or artist direct subscriptions — and
 only if the follow list can be kept narrow enough to stay actionable.
 
 ---
