@@ -20,7 +20,7 @@ FIRST-TIME SETUP:
 
 USAGE:
 
-  ── Creating playlists ──────────────────────────────────────────────────────
+  ── Creating playlists ─────────────────────────────────────────────
 
     # Create a playlist for a single show (primary workflow).
     # Show is looked up in live_shows_history.tsv OR live_shows_2026.tsv automatically.
@@ -45,7 +45,7 @@ USAGE:
     # Process a single show by date using youtube_videos.tsv
     python3 youtube_create_playlists.py --date 2022-12-16
 
-  ── Fixing playlist descriptions ────────────────────────────────────────────
+  ── Fixing playlist descriptions ────────────────────────────────────
 
     # Find playlists with blank descriptions and add the headliner setlist.fm link.
     # Scans all channel playlists, matches back to history/2026, fills in descriptions.
@@ -103,7 +103,7 @@ import sys
 import time
 from datetime import datetime
 
-# ── dependency check ──────────────────────────────────────────────────────────
+# ── dependency check ──────────────────────────────────────────────────────────────────────────────
 try:
     from dotenv import load_dotenv
 except ImportError:
@@ -135,7 +135,7 @@ except ImportError:
 # Load .env from the same directory as this script
 load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
 
-# ── constants ─────────────────────────────────────────────────────────────────
+# ── constants ─────────────────────────────────────────────────────────────────────────────
 SCOPES = ["https://www.googleapis.com/auth/youtube"]
 CLIENT_SECRETS = os.environ.get("YOUTUBE_CLIENT_SECRETS", "client_secrets.json")
 TOKEN_FILE     = os.environ.get("YOUTUBE_TOKEN_FILE",     "token.json")
@@ -158,7 +158,7 @@ SETLIST_HEADERS = {
 }
 SETLIST_DELAY = 2.0  # seconds between setlist.fm requests
 
-# ── WORKLIST ──────────────────────────────────────────────────────────────────
+# ── WORKLIST ──────────────────────────────────────────────────────────────────────────────
 # Backfill shows: videos are already in youtube_videos.tsv, no live API query needed.
 # Process with: python3 youtube_create_playlists.py --worklist --update-history
 # (Use --dry-run first to verify video matching looks correct.)
@@ -210,17 +210,17 @@ SETLIST_DELAY = 2.0  # seconds between setlist.fm requests
 #   2025-07-21  Amythyst Kiah
 #   2025-10-08  Judith Hill
 #   2022-10-27  Enter the Haggis
+#   2023-12-10  Allison Russell                (PLJ7S-K0cjvGKiu9D23lUv6bKPDFn4yeF0)
+#   2024-12-07  New York's Finest              (PLJ7S-K0cjvGKiwUTspiwAj7wnnVWQgKpE)
+#   2024-12-17  Tab Benoit                     (PLJ7S-K0cjvGKYz7J-iKrhJWbVvxkBCVbK)
+#   2025-01-24  New York's Finest              (PLJ7S-K0cjvGL5ue9R0AwEi0lm4oDO9TJz)
+#   2025-01-31  Vanessa Collier                (PLJ7S-K0cjvGInas_WA9iBbgWHQnn3BS5b)
+#   2025-02-07  Yasmin Williams                (PLJ7S-K0cjvGITzWjn5xZ1ipXgr0iHKuRa)
+#   2025-07-11  North Mississippi Allstars     (PLJ7S-K0cjvGKW6qYwcL6OAURkxZM2bBXg)
+#   2025-07-13  J. P. Soars                    (PLJ7S-K0cjvGL98faCVXHXqwCbpeLztqWO)
 WORKLIST = [
     # (show_date, headliner, title_override)
     # title_override=None means auto-generate from history venue + date
-    ("2023-12-10", "Allison Russell",                      None),
-    ("2024-12-07", "New York's Finest",                    None),
-    ("2024-12-17", "Tab Benoit",                           None),
-    ("2025-01-24", "New York's Finest",                    None),
-    ("2025-01-31", "Vanessa Collier",                      None),
-    ("2025-02-07", "Yasmin Williams",                      None),
-    ("2025-07-11", "North Mississippi Allstars",           None),
-    ("2025-07-13", "J. P. Soars",                          None),
     ("2025-07-16", "Barenaked Ladies",                     None),
     ("2025-08-03", "Eric Johanson",                        None),
     ("2025-08-28", "Robert Randolph",                      None),
@@ -228,7 +228,7 @@ WORKLIST = [
     ("2025-12-20", "Maggie Rose",                          None),
 ]
 
-# ── auth ──────────────────────────────────────────────────────────────────────
+# ── auth ──────────────────────────────────────────────────────────────────────────────
 def get_authenticated_service():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     client_secrets_path = os.path.join(script_dir, CLIENT_SECRETS)
@@ -253,7 +253,7 @@ def get_authenticated_service():
             f.write(creds.to_json())
     return build("youtube", "v3", credentials=creds)
 
-# ── data loading ──────────────────────────────────────────────────────────────
+# ── data loading ────────────────────────────────────────────────────────────────────────────
 def load_tsv(filename):
     with open(filename, encoding="utf-8") as f:
         return list(csv.DictReader(f, delimiter="\t"))
@@ -300,7 +300,7 @@ def load_history():
     return history_rows, index
 
 
-# ── date utilities ────────────────────────────────────────────────────────────
+# ── date utilities ────────────────────────────────────────────────────────────────────────
 def date_variants(date_str):
     try:
         d = datetime.strptime(date_str, "%Y-%m-%d")
@@ -318,7 +318,7 @@ def format_date_short(date_str):
     d = datetime.strptime(date_str, "%Y-%m-%d")
     return f"{d.month}/{d.day}/{d.strftime('%y')}"
 
-# ── venue short name ──────────────────────────────────────────────────────────
+# ── venue short name ─────────────────────────────────────────────────────────────────────────
 VENUE_SHORT = {
     "Lincoln Theatre, Washington, DC, USA":                         "Lincoln Theatre (DC)",
     "The Hamilton Live, Washington, DC, USA":                       "Hamilton Live (DC)",
@@ -362,7 +362,7 @@ VENUE_SHORT = {
     "Sixth & I Historic Synagogue, Washington, DC, USA":            "Sixth & I (DC)",
     "Filene Center at Wolf Trap, Vienna, VA, USA":                  "Wolf Trap (VA)",
     # live_shows_2026.tsv uses short venue names directly
-    "Ram's Head Live on Stage":                                     "Ram's Head (MD)",
+    "Rams Head On Stage":                                           "Ram's Head (MD)",
     "Hamilton Live":                                                "Hamilton Live (DC)",
     "The Birchmere":                                                "Birchmere (VA)",
     "Jammin' Java":                                                 "Jammin' Java (VA)",
@@ -378,12 +378,12 @@ def venue_short(venue_str):
     parts = venue_str.split(",")
     return parts[0].strip()
 
-# ── playlist title generation ─────────────────────────────────────────────────
+# ── playlist title generation ────────────────────────────────────────────────────────────────
 def make_playlist_title(headliner, venue_str, date_str):
     name = re.sub(r'\s*"[^"]+"\s*', ' ', headliner).strip()
     return f"{name} LIVE @ {venue_short(venue_str)} {format_date_short(date_str)}"
 
-# ── video matching ────────────────────────────────────────────────────────────
+# ── video matching ───────────────────────────────────────────────────────────────────────────
 def find_videos_for_date(date_str, videos):
     dvs = date_variants(date_str)
     return [v for v in videos if any(dv in v.get("description", "") for dv in dvs)]
@@ -424,7 +424,7 @@ def partition_videos(show_date, headliner, supporting_acts_str, all_date_videos)
                 unattributed.append(v)
     return headliner_vids, support_vids, unattributed
 
-# ── setlist.fm ordering ───────────────────────────────────────────────────────
+# ── setlist.fm ordering ───────────────────────────────────────────────────────────────────────
 def fetch_setlist_songs(setlist_url):
     if not setlist_url:
         return [], "no setlist URL"
@@ -478,7 +478,7 @@ def order_by_setlist(videos, songs):
     ordered += sorted(unmatched, key=lambda v: v.get("published", ""))
     return ordered
 
-# ── YouTube API: channel uploads (upload-date match only) ─────────────────────
+# ── YouTube API: channel uploads (upload-date match only) ───────────────────────────────
 def fetch_uploads_by_date(youtube, date_str):
     """
     Fetch videos from the authenticated user's uploads playlist that were
@@ -540,7 +540,7 @@ def fetch_uploads_by_date(youtube, date_str):
     print(f"  Found {len(videos)} video(s) uploaded on {date_str}")
     return videos
 
-# ── YouTube API: playlist operations ─────────────────────────────────────────
+# ── YouTube API: playlist operations ──────────────────────────────────────────────────
 def create_playlist(youtube, title, description=""):
     resp = youtube.playlists().insert(
         part="snippet,status",
@@ -591,7 +591,7 @@ def update_playlist_description(youtube, playlist_id, title, new_description):
         }
     ).execute()
 
-# ── show file write-back ───────────────────────────────────────────────────────
+# ── show file write-back ─────────────────────────────────────────────────────────────────────────
 def update_history_playlist_url(date_str, artist, playlist_url, show_row=None):
     """
     Write the playlist URL back to the appropriate source file.
@@ -637,7 +637,7 @@ def _write_playlist_url_to_file(filepath, date_str, artist, playlist_url,
     else:
         print(f"  WARNING: could not find {date_str} / {artist} in {filepath}")
 
-# ── log ───────────────────────────────────────────────────────────────────────
+# ── log ──────────────────────────────────────────────────────────────────────────────────
 LOG_FIELDNAMES = ["Show Date", "Artist", "Playlist Title", "Playlist URL", "Video Count", "Setlist URL Checked", "Setlist Order Used", "Videos Added"]
 
 def write_log_row(log_rows):
@@ -650,7 +650,7 @@ def write_log_row(log_rows):
         for row in log_rows:
             writer.writerow(row)
 
-# ── core per-show processing ──────────────────────────────────────────────────
+# ── core per-show processing ────────────────────────────────────────────────────────────────
 def process_show(youtube, date_str, headliner, title_override, videos, history_index,
                  dry_run=False, update_history=False, use_channel_uploads=False):
     print(f"\n{'[DRY RUN] ' if dry_run else ''}Processing: {date_str} — {headliner}")
@@ -672,7 +672,7 @@ def process_show(youtube, date_str, headliner, title_override, videos, history_i
     supporting_str = show.get("Supporting Acts", "")
     setlist_url    = show.get("Setlist.fm URL", "")
 
-    # ── Video source resolution ───────────────────────────────────────────────
+    # ── Video source resolution ───────────────────────────────────────────────────
     # For --new-show: try the channel uploads API first (catches brand-new
     # private videos not yet in youtube_videos.tsv). If nothing found on that
     # upload date, fall back to youtube_videos.tsv — the same reliable
@@ -745,7 +745,7 @@ def process_show(youtube, date_str, headliner, title_override, videos, history_i
     write_log_row([log_row])
     return playlist_url
 
-# ── fix-descriptions mode ─────────────────────────────────────────────────────
+# ── fix-descriptions mode ────────────────────────────────────────────────────────────────────
 def run_fix_descriptions(youtube, history_index, description_template, date_filter=None, dry_run=False):
     """
     Find channel playlists with blank descriptions and fill them in using
@@ -818,7 +818,7 @@ def run_fix_descriptions(youtube, history_index, description_template, date_filt
     print(f"  No history match:     {skipped_no_match}")
     print(f"  No setlist URL:       {skipped_no_setlist}")
 
-# ── main ──────────────────────────────────────────────────────────────────────
+# ── main ──────────────────────────────────────────────────────────────────────────────────
 def main():
     import argparse
     parser = argparse.ArgumentParser(description="Create/manage YouTube playlists for @dan2bit shows")
@@ -872,7 +872,7 @@ def main():
     history_rows, history_index = load_history()
     print(f"Loaded {len(history_rows)} history shows")
 
-    # ── --fix-descriptions ───────────────────────────────────────────────────
+    # ── --fix-descriptions ───────────────────────────────────────────────────────────────────
     if args.fix_descriptions:
         if not youtube and not args.dry_run:
             sys.exit("--fix-descriptions requires authentication (no --dry-run override available without auth)")
@@ -885,11 +885,11 @@ def main():
         )
         return
 
-    # ── --new-show ───────────────────────────────────────────────────────────
+    # ── --new-show ───────────────────────────────────────────────────────────────────
     if args.new_show:
         new_show_arg = args.new_show
 
-        # ── since:DATE range mode ────────────────────────────────────────────
+        # ── since:DATE range mode ─────────────────────────────────────────────────────────────
         if new_show_arg.startswith("since:"):
             since_date = new_show_arg[len("since:"):]
             try:
@@ -937,7 +937,7 @@ def main():
                 print("Source files updated with playlist URLs")
             return
 
-        # ── single date mode ─────────────────────────────────────────────────
+        # ── single date mode ─────────────────────────────────────────────────────────────────
         date_str = new_show_arg
         headliner = args.headliner
         if not headliner:
@@ -965,7 +965,7 @@ def main():
         print(f"\nResult: {url or 'skipped'}")
         return
 
-    # ── --worklist ───────────────────────────────────────────────────────────
+    # ── --worklist ─────────────────────────────────────────────────────────────────────────
     if args.worklist:
         if not WORKLIST:
             print("WORKLIST is empty — nothing to process.")
@@ -974,7 +974,7 @@ def main():
         queue_tuples = [(d, a, t) for d, a, t in WORKLIST]
         print(f"Processing {len(queue_tuples)} shows from WORKLIST")
 
-    # ── --date ───────────────────────────────────────────────────────────────
+    # ── --date ─────────────────────────────────────────────────────────────────────────────
     elif args.date:
         worklist_index = {d: (d, a, t) for d, a, t in WORKLIST}
         queue_tuples = []

@@ -6,10 +6,10 @@ Collaborative task list for the live show archive project. Update status as task
 
 ## 🔧 Ready to Run (quota reset needed)
 
-### 1. Create remaining WORKLIST backfill playlists (partial — quota hit after Nas)
+### 1. Create remaining WORKLIST backfill playlists (partial — quota hit after J. P. Soars)
 
-Run got through 2023-09-26 Nas before exhausting quota. The 12 shows processed so far
-have playlists; the remaining 11 still need to be created on the next quota reset.
+Run got through 2025-07-13 J. P. Soars before exhausting quota. 8 shows were completed
+this session; 5 remain starting at Barenaked Ladies.
 
 ```bash
 cd live-shows
@@ -25,17 +25,9 @@ python3 youtube_create_playlists.py --worklist --update-history
 After completion: `live_shows_history.tsv` will be updated with remaining playlist URLs.
 The WORKLIST in `youtube_create_playlists.py` should then be cleared and entries moved to the "Completed" comment block.
 
-**Remaining WORKLIST shows (11):**
+**Remaining WORKLIST shows (5):**
 | Date | Artist |
 |------|--------|
-| 2023-12-10 | Allison Russell |
-| 2024-12-07 | New York's Finest |
-| 2024-12-17 | Tab Benoit |
-| 2025-01-24 | New York's Finest |
-| 2025-01-31 | Vanessa Collier |
-| 2025-02-07 | Yasmin Williams |
-| 2025-07-11 | North Mississippi Allstars |
-| 2025-07-13 | J. P. Soars |
 | 2025-07-16 | Barenaked Ladies |
 | 2025-08-03 | Eric Johanson |
 | 2025-08-28 | Robert Randolph |
@@ -81,7 +73,6 @@ python3 youtube_audit_blanks.py --output audit_blanks.tsv
 | 2024-06-16 | Shaw Davis & The Black Ties |
 | 2024-10-14 | David Moore |
 | 2024-10-17 | Ana Popovic |
-| 2024-11-17 | Lindsay Lou |
 | 2024-12-06 | Oh He Dead |
 | 2025-06-07 | Selwyn Birchwood |
 | 2025-06-15 | Sue Foley |
