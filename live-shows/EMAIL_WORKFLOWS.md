@@ -328,6 +328,17 @@ For digest-style newsletters (multiple artists, no specific on-sale times), trea
 entries as Case A and present the tiered list. Do not create calendar events for
 digest newsletters.
 
+**Non-Ticketmaster forwarded emails:** If the email is tagged `ticket-alert` but was
+forwarded from `dan2bit@gmail.com` (rather than arriving directly from a ticketing
+platform), it means the subscription is still pointed at the dan2bit address and needs
+to be re-targeted. After processing the content as normal, scan the email body for a
+subscription management link — typically labeled "Update Profile", "Manage
+Preferences", "Update email address", or similar, often in the footer. Present that
+link so you can re-subscribe under `redhat.bootlegs@gmail.com`. Common providers:
+Constant Contact ("Update Profile"), Mailchimp ("Update your preferences"), and venue
+box office systems vary. If no such link is found, note the sender address so you can
+locate the subscription settings manually.
+
 **IMP newsletter special rule:** When processing an IMP newsletter (9:30 Club,
 The Anthem, Lincoln Theatre, The Atlantis, Merriweather), apply the standard tiering
 above and additionally flag any **The Atlantis** show featuring a local DC artist as a
