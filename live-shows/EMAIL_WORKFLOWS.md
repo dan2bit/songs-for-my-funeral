@@ -159,15 +159,16 @@ Payment: [card/method] · Face $X.XX · Fees $X.XX · Total $X.XX
 [Seat / GA info]
 Doors: [time] · Show: [time]
 
-💸 High ticket cost — cool it on merch tonight   ← only if total ≥ $100 and NOT a VIP ticket
+💸 High ticket cost — cool it on merch tonight   ← only if total ≥ $100, NOT a VIP ticket, and NOT Wolf Trap Filene Center
 ```
 
 Reminders: 24 hours (1440 min) and 3 hours (180 min) popup.
 
 **Merch caution rule:** If the ticket total is ≥ $100 and the ticket is **not** a VIP
 package, append `💸 High ticket cost — cool it on merch tonight` to the event
-description. VIP tickets are excluded because the premium is expected and factored in
-at purchase time.
+description. Two exceptions — do **not** add this note for:
+- **VIP tickets** — the premium is expected and factored in at purchase time
+- **Wolf Trap Filene Center** — venue/lawn context makes merch spend a different calculus
 
 **Step 5 — Commit new row to `live_shows_2026.tsv`**
 
@@ -327,6 +328,15 @@ For digest-style newsletters (multiple artists, no specific on-sale times), trea
 entries as Case A and present the tiered list. Do not create calendar events for
 digest newsletters.
 
+**IMP newsletter special rule:** When processing an IMP newsletter (9:30 Club,
+The Anthem, Lincoln Theatre, The Atlantis, Merriweather), apply the standard tiering
+above and additionally flag any **The Atlantis** show featuring a local DC artist as a
+gift card opportunity — even for artists below the Strong/Medium threshold. There is a
+$35.50 IMP gift card credit available, redeemable in person at any IMP box office
+(The Anthem has the longest hours and is the closest). Atlantis shows are low-cost
+enough that the gift card can cover them outright, making this a "take a chance"
+budget for supporting the local DC scene.
+
 **Step 2 — Check autograph books**
 
 Same lookup as Routine 1 — note book reminder in any recommendation or calendar
@@ -416,7 +426,7 @@ the **Promotions** tab rather than Primary, bypassing the `artist-mail` label fi
 When running Routine 4, also check `in:promotions -label:processed` for any unlabeled
 newsletters from subscribed artists. Move any found to Primary and apply the
 `artist-mail` label before processing. This cannot be done by Claude — it requires
-manual action in Gmail. 
+manual action in Gmail.
 
 **Step 2 — Classify and act on content**
 
