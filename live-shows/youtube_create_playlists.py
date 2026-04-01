@@ -163,6 +163,10 @@ SETLIST_DELAY = 2.0  # seconds between setlist.fm requests
 # Process with: python3 youtube_create_playlists.py --worklist --update-history
 # (Use --dry-run first to verify video matching looks correct.)
 #
+# NO-VIDEO SHOWS — confirmed no footage, do not add to worklist:
+#   2022-10-22  ZZ Top               (seated last row — too far; videos matched are Larkin Poe/Enter the Haggis/Tab Benoit support acts from nearby dates)
+#   2024-06-16  Shaw Davis & The Black Ties  (microphone technical difficulties — no usable footage)
+#
 # 4 flagged shows held back for manual review (ambiguous video attribution):
 #   2022-04-26  Daniel Donato        (only 1 video)
 #   2023-09-09  DuPont Brass         (1 DuPont video mixed in Kingsley Flood show)
@@ -172,10 +176,10 @@ SETLIST_DELAY = 2.0  # seconds between setlist.fm requests
 # Completed — playlists already exist in live_shows_history.tsv:
 #   2021-07-11  Oliver Wood                    (PLJ7S-K0cjvGKpKDhWEMnm1AhMb5Hqd5g)
 #   2021-10-16  Larkin Poe                     (PLJ7S-K0cjvGK28bYHf1SaivuMW6_vbtb4)
-#   2022-09-17  Willie Nelson                  (PLJ7S-K0cjvGK...)
-#   2022-11-17  Tab Benoit                     (PLJ7S-K0cjvGK...)
+#   2022-09-17  Willie Nelson
+#   2022-11-17  Tab Benoit
 #   2022-11-30  Kate Davis                     (PLJ7S-K0cjvGLY-DcEWxAOKJUfpnxH0OjA, combined 3-show)
-#   2022-12-14  Ana Popović                    (PLJ7S-K0cjvGK...)
+#   2022-12-14  Ana Popović
 #   2022-12-16  They Might Be Giants           (PLJ7S-K0cjvGL_4w7JPXDjdpVEyrdWMt7A)
 #   2022-12-29  The Pietasters                 (PLJ7S-K0cjvGLSUDeAzh0kWdohvVdRgXwU)
 #   2022-12-31  George Clinton & Parliament-Funkadelic
@@ -218,14 +222,16 @@ SETLIST_DELAY = 2.0  # seconds between setlist.fm requests
 #   2025-02-07  Yasmin Williams                (PLJ7S-K0cjvGITzWjn5xZ1ipXgr0iHKuRa)
 #   2025-07-11  North Mississippi Allstars     (PLJ7S-K0cjvGKW6qYwcL6OAURkxZM2bBXg)
 #   2025-07-13  J. P. Soars                    (PLJ7S-K0cjvGL98faCVXHXqwCbpeLztqWO)
+#   2025-07-16  Barenaked Ladies
+#   2025-08-03  Eric Johanson
+#   2025-08-28  Robert Randolph
+#   2025-09-23  Bywater Call
+#   2025-12-20  Maggie Rose
 WORKLIST = [
     # (show_date, headliner, title_override)
     # title_override=None means auto-generate from history venue + date
-    ("2025-07-16", "Barenaked Ladies",                     None),
-    ("2025-08-03", "Eric Johanson",                        None),
-    ("2025-08-28", "Robert Randolph",                      None),
-    ("2025-09-23", "Bywater Call",                         None),
-    ("2025-12-20", "Maggie Rose",                          None),
+    ("2025-06-07", "Selwyn Birchwood",                      None),
+    ("2025-12-04", "The Wood Brothers",                     None),
 ]
 
 # ── auth ──────────────────────────────────────────────────────────────────────────────

@@ -26,8 +26,12 @@ INPUT FILES (same directory):
 OUTPUT COLUMNS (TSV):
     Show Date, Artist, Days After Show, Video Published, Video Title, Video URL
 
-The output is intentionally verbose so you can eyeball each candidate and
-decide whether it's a real match. No changes are made to any file.
+Every scanned show appears in the output — those with no matches get a sentinel
+row with "NO CANDIDATES" in the Video Title column and the window size noted in
+Days After Show, so the TSV is a complete audit record rather than just hits.
+
+In stdout mode, zero-match shows are explicitly flagged as "— NO CANDIDATES in
+window" so you know they were checked, not silently skipped.
 
 MATCHING LOGIC:
     Date window:  video published date must be in range (show_date, show_date + window]
@@ -43,13 +47,14 @@ import argparse
 import csv
 import os
 import re
-import sys
 from datetime import datetime, timedelta
 
 # ── constants ─────────────────────────────────────────────────────────────────
-HISTORY_TSV   = "live_shows_history.tsv"
-VIDEOS_TSV    = "youtube_videos.tsv"
+HISTORY_TSV    = "live_shows_history.tsv"
+VIDEOS_TSV     = "youtube_videos.tsv"
 DEFAULT_WINDOW = 30  # days after show date
+
+NO_CANDIDATES_SENTINEL = "NO CANDIDATES"
 
 # Words that appear too frequently in video titles to be useful discriminators
 NOISE_WORDS = {
@@ -93,14 +98,21 @@ def parse_date(s):
 # ── core scan ─────────────────────────────────────────────────────────────────
 def scan(target_dates=None, window_days=DEFAULT_WINDOW):
     """
-    Returns list of result dicts, one per candidate video found.
+    Returns list of result dicts, one per row in output (candidates + sentinels).
+
+    Shows with candidate videos produce one row per video.
+    Shows with no candidates produce one sentinel row:
+        Days After Show = "window={window_days}"
+        Video Title     = NO_CANDIDATES_SENTINEL
+        Video Published = ""
+        Video URL       = ""
+
     target_dates: set of YYYY-MM-DD strings to restrict scan, or None for all.
     """
     history = load_tsv(HISTORY_TSV)
     videos  = load_tsv(VIDEOS_TSV)
 
     # Build index of videos by published date for fast lookup
-    # videos_by_date: date -> list of video dicts
     videos_by_date = {}
     for v in videos:
         pub = parse_date(v.get("published", ""))
@@ -130,14 +142,24 @@ def scan(target_dates=None, window_days=DEFAULT_WINDOW):
                 if title_matches_artist(v.get("title", ""), artist):
                     candidates.append((offset, check_date, v))
 
-        for days_after, pub_date, v in candidates:
+        if candidates:
+            for days_after, pub_date, v in candidates:
+                results.append({
+                    "Show Date":       row["Show Date"],
+                    "Artist":          artist,
+                    "Days After Show": days_after,
+                    "Video Published": str(pub_date),
+                    "Video Title":     v.get("title", ""),
+                    "Video URL":       v.get("url", ""),
+                })
+        else:
             results.append({
-                "Show Date":      row["Show Date"],
-                "Artist":         artist,
-                "Days After Show": days_after,
-                "Video Published": str(pub_date),
-                "Video Title":    v.get("title", ""),
-                "Video URL":      v.get("url", ""),
+                "Show Date":       row["Show Date"],
+                "Artist":          artist,
+                "Days After Show": f"window={window_days}",
+                "Video Published": "",
+                "Video Title":     NO_CANDIDATES_SENTINEL,
+                "Video URL":       "",
             })
 
     return results
@@ -153,28 +175,48 @@ def write_tsv(results, path):
         writer = csv.DictWriter(f, fieldnames=FIELDNAMES, delimiter="\t")
         writer.writeheader()
         writer.writerows(results)
+    candidates  = [r for r in results if r["Video Title"] != NO_CANDIDATES_SENTINEL]
+    no_match    = [r for r in results if r["Video Title"] == NO_CANDIDATES_SENTINEL]
+    shows_with  = len({(r["Show Date"], r["Artist"]) for r in candidates})
     print(f"Written {len(results)} rows to {path}")
+    print(f"  {shows_with} show(s) with candidates  |  "
+          f"{len(no_match)} show(s) with no matches  |  "
+          f"{len(candidates)} total candidate video(s)")
 
 
-def print_results(results):
+def print_results(results, window_days):
     if not results:
-        print("No candidates found.")
+        print("No shows scanned.")
         return
 
-    current_show = None
     for r in results:
-        show_key = (r["Show Date"], r["Artist"])
-        if show_key != current_show:
-            current_show = show_key
+        is_sentinel = r["Video Title"] == NO_CANDIDATES_SENTINEL
+        # Print show header for first row of each show
+        if not hasattr(print_results, "_last_key") or \
+                print_results._last_key != (r["Show Date"], r["Artist"]):
             print(f"\n{'─'*70}")
             print(f"  {r['Show Date']}  {r['Artist']}")
-        print(f"    +{r['Days After Show']:>3}d  [{r['Video Published']}]  {r['Video Title'][:60]}")
-        print(f"           {r['Video URL']}")
+            print_results._last_key = (r["Show Date"], r["Artist"])
 
-    # Summary
-    shows = {(r["Show Date"], r["Artist"]) for r in results}
+        if is_sentinel:
+            print(f"    — NO CANDIDATES in +{window_days}-day window")
+        else:
+            print(f"    +{r['Days After Show']:>3}d  [{r['Video Published']}]  {r['Video Title'][:60]}")
+            print(f"           {r['Video URL']}")
+
+    # Reset state for future calls
+    if hasattr(print_results, "_last_key"):
+        del print_results._last_key
+
+    candidates = [r for r in results if r["Video Title"] != NO_CANDIDATES_SENTINEL]
+    no_match   = [r for r in results if r["Video Title"] == NO_CANDIDATES_SENTINEL]
+    shows_with = len({(r["Show Date"], r["Artist"]) for r in candidates})
+    total_shows = len({(r["Show Date"], r["Artist"]) for r in results})
     print(f"\n{'='*70}")
-    print(f"  {len(shows)} show(s) with candidates  |  {len(results)} total video(s)")
+    print(f"  {total_shows} show(s) scanned  |  "
+          f"{shows_with} with candidates  |  "
+          f"{len(no_match)} with no matches  |  "
+          f"{len(candidates)} total candidate video(s)")
 
 
 # ── main ──────────────────────────────────────────────────────────────────────
@@ -192,11 +234,8 @@ def main():
     )
     parser.add_argument(
         "--output", metavar="FILE",
-        help="Write results to this TSV file instead of stdout"
-    )
-    parser.add_argument(
-        "--all-blanks", action="store_true",
-        help="Scan all blank-playlist rows (default: only rows with Match Type 'No match')"
+        help="Write results to this TSV file. Includes NO CANDIDATES sentinel rows "
+             "for zero-match shows with window size noted in Days After Show column."
     )
     args = parser.parse_args()
 
@@ -214,7 +253,7 @@ def main():
     if args.output:
         write_tsv(results, args.output)
     else:
-        print_results(results)
+        print_results(results, args.window)
 
 
 if __name__ == "__main__":
