@@ -6,33 +6,12 @@ Collaborative task list for the live show archive project. Update status as task
 
 ## 🔧 Ready to Run (quota reset needed)
 
-### 1. Create remaining WORKLIST backfill playlists — 📅 4/1/26
+### ~~1. Create remaining WORKLIST backfill playlists~~ ✅ COMPLETE — 4/1/26
 
-Run got through 2025-07-13 J. P. Soars before exhausting quota. 8 shows were completed
-this session; 5 remain starting at Barenaked Ladies.
-
-```bash
-cd live-shows
-source .venv/bin/activate
-
-# Preview first
-python3 youtube_create_playlists.py --worklist --dry-run
-
-# Then create
-python3 youtube_create_playlists.py --worklist --update-history
-```
-
-After completion: `live_shows_history.tsv` will be updated with remaining playlist URLs.
-The WORKLIST in `youtube_create_playlists.py` should then be cleared and entries moved to the "Completed" comment block.
-
-**Remaining WORKLIST shows (5):**
-| Date | Artist |
-|------|--------|
-| 2025-07-16 | Barenaked Ladies |
-| 2025-08-03 | Eric Johanson |
-| 2025-08-28 | Robert Randolph |
-| 2025-09-23 | Bywater Call |
-| 2025-12-20 | Maggie Rose |
+All 5 remaining shows (Barenaked Ladies, Eric Johanson, Robert Randolph, Bywater Call,
+Maggie Rose) completed. WORKLIST updated: those 5 moved to completed comments, 2 new
+entries added (Selwyn Birchwood 2025-06-07, The Wood Brothers 2025-12-04). ZZ Top and
+Shaw Davis confirmed no-video and documented in script comments.
 
 ---
 
@@ -116,7 +95,14 @@ python3 youtube_audit_blanks.py
 python3 youtube_audit_blanks.py --output audit_blanks.tsv
 ```
 
-**The 24 shows:**
+**Audit results (partial — reviewed 4/1/26):**
+- 2022-10-22 ZZ Top — no videos (seated last row, too far)
+- 2024-06-16 Shaw Davis & The Black Ties — no videos (microphone technical difficulties)
+- 2024-10-14 David Moore — setlist.fm bug now fixed; video already in 2024-10-13 Jake Xerxes Fussell playlist
+- 2025-06-07 Selwyn Birchwood — has videos → added to WORKLIST
+- 2025-12-04 The Wood Brothers — has videos → added to WORKLIST
+
+**Remaining shows to review:**
 | Date | Artist |
 |------|--------|
 | 2021-09-23 | The Avett Brothers |
@@ -129,20 +115,15 @@ python3 youtube_audit_blanks.py --output audit_blanks.tsv
 | 2022-02-27 | Lyle Lovett |
 | 2022-07-16 | Daniel Donato |
 | 2022-08-16 | Roger Waters |
-| 2022-10-22 | ZZ Top |
 | 2022-10-24 | Violent Femmes |
 | 2023-06-18 | Trombone Shorty & Orleans Avenue |
 | 2024-06-01 | Bonnie Raitt |
-| 2024-06-16 | Shaw Davis & The Black Ties |
-| 2024-10-14 | David Moore |
 | 2024-10-17 | Ana Popovic |
 | 2024-12-06 | Oh He Dead |
-| 2025-06-07 | Selwyn Birchwood |
 | 2025-06-15 | Sue Foley |
 | 2025-07-24 | Trombone Shorty & Orleans Avenue |
 | 2025-08-10 | AJR |
 | 2025-10-17 | New York's Finest |
-| 2025-12-04 | The Wood Brothers |
 
 After reviewing output: for any confirmed matches, manually add the single video URL or
 playlist URL to `live_shows_history.tsv` in the `Playlist URL` column.
