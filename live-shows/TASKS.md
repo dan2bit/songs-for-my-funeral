@@ -8,10 +8,12 @@ Collaborative task list for the live show archive project. Update status as task
 
 ### ~~1. Create remaining WORKLIST backfill playlists~~ ✅ COMPLETE — 4/1/26
 
-All 5 remaining shows (Barenaked Ladies, Eric Johanson, Robert Randolph, Bywater Call,
-Maggie Rose) completed. WORKLIST updated: those 5 moved to completed comments, 2 new
-entries added (Selwyn Birchwood 2025-06-07, The Wood Brothers 2025-12-04). ZZ Top and
-Shaw Davis confirmed no-video and documented in script comments.
+All WORKLIST shows complete. Barenaked Ladies, Eric Johanson, Robert Randolph, Bywater
+Call, Maggie Rose completed first; then Selwyn Birchwood (2025-06-07) and The Wood
+Brothers (2025-12-04) completed after fixing description date mismatch via
+`youtube_fetch.py --since 2025-06-07 --force` (new `--force` flag added this session).
+ZZ Top and Shaw Davis confirmed no-video and documented in script comments. WORKLIST
+is now empty.
 
 ---
 
@@ -20,6 +22,8 @@ Shaw Davis confirmed no-video and documented in script comments.
 54 videos have `Ram's Head` in their description. ~2,700 quota units (54 × 50). Can be
 bundled with task #4 on the same day — combined ~7,700 units, well under the 10k daily
 limit. Merge PR #12 (`youtube_fix_descriptions.py`) before running.
+
+After editing descriptions, use `--force` to re-ingest them:
 
 ```bash
 cd live-shows
@@ -34,6 +38,10 @@ python3 youtube_fix_descriptions.py \
 python3 youtube_fix_descriptions.py \
     --search "Ram's Head" --replace "Rams Head" \
     --target videos --title-filter "Rams Head" --cap 60
+
+# Re-ingest updated descriptions (--force overwrites existing rows in window)
+python3 youtube_fetch.py --since 2021-07-01 --force
+python3 youtube_correlate.py --merge
 ```
 
 Also check whether any **playlist descriptions** contain `Ram's Head` (~11 playlists,
@@ -78,31 +86,19 @@ python3 youtube_subscriptions_to_artists.py
 
 ---
 
-## 🔍 Research / Eyeball Tasks (anytime — reads only)
+## 🔍 Research / Eyeball Tasks (anytime — no quota cost)
 
-### 3. Audit 24 no-video blank shows — 📅 anytime
+### 3. Review Google Photos for 19 no-candidate shows — 📅 anytime
 
-Pure reads, no quota cost. Run whenever convenient — before or after any quota day.
+`youtube_audit_blanks.py` found no videos in the channel for these 19 shows. The next
+step is a manual review of the **dan2bit Google Photos account** to check whether any
+videos from these dates exist there but never made it to the YouTube channel. Unlikely
+but possible — data cleanliness is hard.
 
-```bash
-cd live-shows
-source .venv/bin/activate
+**How to check:** Open Google Photos, search by date for each show below, look for any
+video files shot at a live music venue.
 
-# Print to terminal
-python3 youtube_audit_blanks.py
-
-# Or save to TSV for easier review
-python3 youtube_audit_blanks.py --output audit_blanks.tsv
-```
-
-**Audit results (partial — reviewed 4/1/26):**
-- 2022-10-22 ZZ Top — no videos (seated last row, too far)
-- 2024-06-16 Shaw Davis & The Black Ties — no videos (microphone technical difficulties)
-- 2024-10-14 David Moore — setlist.fm bug now fixed; video already in 2024-10-13 Jake Xerxes Fussell playlist
-- 2025-06-07 Selwyn Birchwood — has videos → added to WORKLIST
-- 2025-12-04 The Wood Brothers — has videos → added to WORKLIST
-
-**Remaining shows to review:**
+**Shows to check (19):**
 | Date | Artist |
 |------|--------|
 | 2021-09-23 | The Avett Brothers |
@@ -125,8 +121,15 @@ python3 youtube_audit_blanks.py --output audit_blanks.tsv
 | 2025-08-10 | AJR |
 | 2025-10-17 | New York's Finest |
 
-After reviewing output: for any confirmed matches, manually add the single video URL or
-playlist URL to `live_shows_history.tsv` in the `Playlist URL` column.
+**If videos are found:** Upload to YouTube channel, then run:
+```bash
+python3 youtube_fetch.py --since <earliest show date> --force
+python3 youtube_correlate.py --merge
+python3 youtube_create_playlists.py --worklist --update-history  # after adding to WORKLIST
+```
+
+**If nothing is found:** These shows can be considered confirmed no-video and documented
+in the WORKLIST no-video comment block (like ZZ Top and Shaw Davis).
 
 ---
 
@@ -142,20 +145,11 @@ A staging file of show notes/memories exists at `live-shows/notes_memories_draft
 
 ## 🔄 Ongoing / Maintenance
 
-### 7. `live_shows_history.tsv` re-ingest after WORKLIST runs — 📅 4/1/26 or 4/2/26 (free reads)
+### ~~7. `live_shows_history.tsv` re-ingest after WORKLIST runs~~ ✅ COMPLETE — 4/1/26
 
-After task #1 completes all remaining playlists, run `youtube_fetch.py` to re-ingest
-the channel and populate the new playlist URLs into `youtube_videos.tsv` video
-descriptions. Pure reads — no quota cost, can run same day as task #1 or next day.
-
-```bash
-cd live-shows
-source .venv/bin/activate
-python3 youtube_fetch.py --since 2021-07-01
-```
-
-Then run `youtube_correlate.py --merge --sync-artists` to push any new URL correlations
-back into the history files and keep `artists.tsv` current. Also reads only.
+Re-ingest completed via `youtube_fetch.py --since 2025-06-07 --force` and
+`youtube_correlate.py --merge` as part of the Selwyn Birchwood / Wood Brothers
+playlist fix. Also used to validate the new `--force` flag on `youtube_fetch.py`.
 
 ---
 
@@ -255,7 +249,7 @@ purchase triggers — the latency problem alone disqualifies it for this workflo
   so alerts flow directly into Routine 3 without forwarding friction
 
 **Decision criteria:** Only set up or restructure an account if it would surface shows
-nnot already caught by venue newsletters, Seated, or artist direct subscriptions — and
+not already caught by venue newsletters, Seated, or artist direct subscriptions — and
 only if the follow list can be kept narrow enough to stay actionable.
 
 ---
