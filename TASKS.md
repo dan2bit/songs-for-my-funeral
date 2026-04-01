@@ -31,3 +31,28 @@ Currently the chapter break (title, rule, epigraph) sits as a free-standing bloc
 - Chapter nav anchors at the top of the page
 
 **Constraint:** changes should be CSS/HTML only, no JavaScript required. The private `liner-notes.html` is the canonical source; `index.html` (public) is derived from it.
+
+---
+
+## 3. Curate & import historical and family photos
+
+Import personal and family photos into the same Google Photos account (`redhat.bootlegs@gmail.com`) as the Guitar Gods album, in separate albums. These will feed the slideshow alongside the gig photos.
+
+**Destination:** Google Photos, `redhat.bootlegs@gmail.com`  
+**Structure:** separate albums from Guitar Gods & Goddesses and Me — e.g. one album per era or category  
+**Note:** captions entered in Google Photos survive within the account but are lost on Takeout export — caption as you go.
+
+---
+
+## 4. Begin seeding actual photos into the slide deck
+
+Replace the placeholder photo templates in `slides-songs-for-my-funeral.pptx` with real photos. This is a one-way door — once photos are in, future changes to the slide template (layout, fonts, hat watermark position, chapter references) become significantly harder to apply without re-doing the photo work.
+
+**Recommended order of operations:**
+1. Complete tasks 2 and 3 first — finalize the template and have the full photo library ready
+2. Work track by track, landscape vs. portrait template as appropriate
+3. Keep a copy of the blank template (`build-slides.js` + `node build-slides.js`) for reference in case layout changes are still needed
+
+**Photo sources once ready:**
+- Guitar Gods & Goddesses and Me (Google Photos, public album)
+- Historical/family photos (task 3)
