@@ -158,9 +158,16 @@ Payment: [card/method] · Face $X.XX · Fees $X.XX · Total $X.XX
 
 [Seat / GA info]
 Doors: [time] · Show: [time]
+
+💸 High ticket cost — cool it on merch tonight   ← only if total ≥ $100 and NOT a VIP ticket
 ```
 
 Reminders: 24 hours (1440 min) and 3 hours (180 min) popup.
+
+**Merch caution rule:** If the ticket total is ≥ $100 and the ticket is **not** a VIP
+package, append `💸 High ticket cost — cool it on merch tonight` to the event
+description. VIP tickets are excluded because the premium is expected and factored in
+at purchase time.
 
 **Step 5 — Commit new row to `live_shows_2026.tsv`**
 
@@ -409,7 +416,7 @@ the **Promotions** tab rather than Primary, bypassing the `artist-mail` label fi
 When running Routine 4, also check `in:promotions -label:processed` for any unlabeled
 newsletters from subscribed artists. Move any found to Primary and apply the
 `artist-mail` label before processing. This cannot be done by Claude — it requires
-manual action in Gmail.
+manual action in Gmail. 
 
 **Step 2 — Classify and act on content**
 
