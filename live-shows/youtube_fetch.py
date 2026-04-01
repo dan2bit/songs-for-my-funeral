@@ -4,7 +4,7 @@ dan2bit YouTube channel metadata fetcher
 Pulls all videos and playlists and outputs TSVs for correlation with show history.
 
 Usage:
-    python3 youtube_fetch.py [--since DATE|auto|full]
+    python3 youtube_fetch.py [--since DATE|auto|full] [--force]
 
     --since auto   (default) Read the newest published date already in the TSV
                    files and only fetch items published after that date. Makes
@@ -13,6 +13,19 @@ Usage:
     --since full   Fetch everything regardless of existing TSV content.
                    Use this to rebuild from scratch or after a long gap.
     --since DATE   Only fetch items published after DATE (YYYY-MM-DD).
+
+    --force        Re-fetch and overwrite existing rows for any video published
+                   within the --since window. Requires --since DATE (not auto
+                   or full). Use this when video descriptions have been edited
+                   after initial ingest and the changes haven't propagated to
+                   the TSV yet.
+
+                   Example — refresh descriptions for videos uploaded after
+                   editing Ram's Head descriptions:
+                       python3 youtube_fetch.py --since 2023-01-01 --force
+
+                   Without --force, re-running with --since is safe and
+                   idempotent — existing rows are never overwritten.
 
 New rows are merged into existing TSV files (deduplicated by ID). Existing rows
 are never deleted, so a partial quota-exhausted run is safe to resume.
@@ -23,7 +36,7 @@ Output files:
 
 Credentials:
     Copy live-shows/.env.example to live-shows/.env and set YOUTUBE_API_KEY.
-    See utils/HOWTO.md → "YouTube API credentials" for setup instructions.
+    See utils/HOWTO.md -> "YouTube API credentials" for setup instructions.
 """
 
 import argparse
@@ -57,7 +70,7 @@ if not API_KEY or API_KEY == "your_api_key_here":
     sys.exit(
         "ERROR: YOUTUBE_API_KEY is not set.\n"
         "Copy live-shows/.env.example to live-shows/.env and fill in your API key.\n"
-        "See utils/HOWTO.md → \"YouTube API credentials\" for instructions."
+        "See utils/HOWTO.md -> \"YouTube API credentials\" for instructions."
     )
 
 CHANNEL_HANDLE = "dan2bit"
@@ -69,7 +82,7 @@ VIDEO_FIELDS    = ["published", "title", "duration", "url", "description", "vide
 PLAYLIST_FIELDS = ["published", "title", "item_count", "url", "description", "playlist_id"]
 
 
-# ── TSV helpers ───────────────────────────────────────────────────────────────
+# -- TSV helpers ---------------------------------------------------------------
 
 def read_tsv(path: str) -> list[dict]:
     if not os.path.exists(path):
@@ -84,27 +97,49 @@ def write_tsv(rows: list[dict], fieldnames: list[str], path: str) -> None:
                                 lineterminator="\n", extrasaction="ignore")
         writer.writeheader()
         writer.writerows(rows)
-    print(f"Wrote {len(rows)} rows → {path}")
+    print(f"Wrote {len(rows)} rows -> {path}")
 
 
-def merge_rows(existing: list[dict], new_rows: list[dict], id_col: str) -> list[dict]:
+def merge_rows(existing: list[dict], new_rows: list[dict], id_col: str,
+               force_since: str | None = None) -> tuple[list[dict], int, int]:
     """
     Merge new_rows into existing, deduplicating by id_col.
-    Existing rows take precedence (new rows for the same ID are ignored).
-    Returns the merged list sorted by 'published' ascending.
+
+    Normal behaviour (force_since=None): existing rows take precedence —
+    new rows for the same ID are ignored. This keeps a partial
+    quota-exhausted run resumable and makes re-runs idempotent.
+
+    force_since (YYYY-MM-DD): existing rows whose 'published' date is on
+    or after this date are replaced with the freshly fetched row. Use this
+    after editing video descriptions so the updated text is picked up.
+    Only rows actually present in new_rows can be overwritten; rows outside
+    the fetch window are untouched.
+
+    Returns (merged_list, added_count, overwritten_count).
     """
-    seen = {r[id_col] for r in existing}
+    force_cutoff = force_since  # YYYY-MM-DD string or None
+
+    # Build a mutable index of existing rows keyed by ID
+    index = {r[id_col]: r for r in existing}
+
     added = 0
+    overwritten = 0
+
     for r in new_rows:
-        if r[id_col] not in seen:
-            existing.append(r)
-            seen.add(r[id_col])
+        vid_id = r[id_col]
+        if vid_id not in index:
+            index[vid_id] = r
             added += 1
-    existing.sort(key=lambda r: r.get("published", ""))
-    return existing, added
+        elif force_cutoff and r.get("published", "") >= force_cutoff:
+            index[vid_id] = r
+            overwritten += 1
+        # else: keep existing row, skip new one
+
+    merged = sorted(index.values(), key=lambda r: r.get("published", ""))
+    return merged, added, overwritten
 
 
-# ── Since-date logic ──────────────────────────────────────────────────────────
+# -- Since-date logic ----------------------------------------------------------
 
 def max_published(rows: list[dict]) -> str | None:
     """Return the newest 'published' date (YYYY-MM-DD) in a list of rows, or None."""
@@ -120,9 +155,9 @@ def resolve_cutoff(since_arg: str,
     or None for a full fetch.
 
     since_arg:
-      'full'      → None (fetch everything)
-      'auto'      → newest date across both existing TSVs; None if both empty
-      YYYY-MM-DD  → use that date explicitly
+      'full'      -> None (fetch everything)
+      'auto'      -> newest date across both existing TSVs; None if both empty
+      YYYY-MM-DD  -> use that date explicitly
     """
     if since_arg == "full":
         return None
@@ -164,7 +199,7 @@ def is_after_cutoff(published_at: str, cutoff_rfc3339: str | None) -> bool:
         return True  # if we can't parse, include it
 
 
-# ── YouTube API ───────────────────────────────────────────────────────────────
+# -- YouTube API ---------------------------------------------------------------
 
 def get_channel_id(youtube):
     resp = youtube.channels().list(
@@ -301,7 +336,7 @@ def fetch_new_playlists(youtube, channel_id: str,
     return playlists
 
 
-# ── Main ──────────────────────────────────────────────────────────────────────
+# -- Main ----------------------------------------------------------------------
 
 def main():
     parser = argparse.ArgumentParser(
@@ -319,7 +354,28 @@ def main():
             "YYYY-MM-DD uses an explicit cutoff date."
         ),
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help=(
+            "Overwrite existing TSV rows for videos published within the "
+            "--since window. Requires --since DATE (not auto or full). "
+            "Use after editing video descriptions to pick up the changes."
+        ),
+    )
     args = parser.parse_args()
+
+    # --force requires an explicit date, not auto/full
+    if args.force:
+        if args.since in ("auto", "full"):
+            sys.exit(
+                "ERROR: --force requires an explicit --since DATE (YYYY-MM-DD).\n"
+                "Example: python3 youtube_fetch.py --since 2023-01-01 --force"
+            )
+        force_since = args.since
+        print(f"--force enabled: existing rows published on or after {force_since} will be overwritten.")
+    else:
+        force_since = None
 
     youtube = build("youtube", "v3", developerKey=API_KEY)
 
@@ -334,31 +390,43 @@ def main():
     print("\nFetching channel info...")
     channel_id, uploads_playlist_id = get_channel_id(youtube)
 
-    # ── Videos ───────────────────────────────────────────────────────────────
+    # -- Videos ----------------------------------------------------------------
     print("\nFetching new videos...")
     new_videos = fetch_new_videos(youtube, uploads_playlist_id, cutoff)
-    print(f"Found {len(new_videos)} new video(s).")
+    print(f"Found {len(new_videos)} video(s) in fetch window.")
 
     if new_videos:
-        print("Fetching durations for new videos...")
+        print("Fetching durations for videos...")
         new_videos = enrich_videos_with_duration(youtube, new_videos)
-        merged_videos, added = merge_rows(existing_videos, new_videos, "video_id")
-        print(f"Merged: {added} new video(s) added ({len(merged_videos)} total).")
+        merged_videos, added, overwritten = merge_rows(
+            existing_videos, new_videos, "video_id", force_since=force_since
+        )
+        msg = f"Merged: {added} new video(s) added"
+        if overwritten:
+            msg += f", {overwritten} existing row(s) overwritten"
+        msg += f" ({len(merged_videos)} total)."
+        print(msg)
         write_tsv(merged_videos, VIDEO_FIELDS, VIDEOS_TSV)
     else:
-        print("No new videos — youtube_videos.tsv unchanged.")
+        print("No videos in fetch window — youtube_videos.tsv unchanged.")
 
-    # ── Playlists ─────────────────────────────────────────────────────────────
+    # -- Playlists -------------------------------------------------------------
     print("\nFetching new playlists...")
     new_playlists = fetch_new_playlists(youtube, channel_id, cutoff)
-    print(f"Found {len(new_playlists)} new playlist(s).")
+    print(f"Found {len(new_playlists)} playlist(s) in fetch window.")
 
     if new_playlists:
-        merged_playlists, added = merge_rows(existing_playlists, new_playlists, "playlist_id")
-        print(f"Merged: {added} new playlist(s) added ({len(merged_playlists)} total).")
+        merged_playlists, added, overwritten = merge_rows(
+            existing_playlists, new_playlists, "playlist_id", force_since=force_since
+        )
+        msg = f"Merged: {added} new playlist(s) added"
+        if overwritten:
+            msg += f", {overwritten} existing row(s) overwritten"
+        msg += f" ({len(merged_playlists)} total)."
+        print(msg)
         write_tsv(merged_playlists, PLAYLIST_FIELDS, PLAYLISTS_TSV)
     else:
-        print("No new playlists — youtube_playlists.tsv unchanged.")
+        print("No playlists in fetch window — youtube_playlists.tsv unchanged.")
 
     print("\nDone! Next step: run youtube_correlate.py --merge to update show history.")
 
