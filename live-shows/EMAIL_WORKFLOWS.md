@@ -335,9 +335,11 @@ to be re-targeted. After processing the content as normal, scan the email body f
 subscription management link — typically labeled "Update Profile", "Manage
 Preferences", "Update email address", or similar, often in the footer. Present that
 link so you can re-subscribe under `redhat.bootlegs@gmail.com`. Common providers:
-Constant Contact ("Update Profile"), Mailchimp ("Update your preferences"), and venue
-box office systems vary. If no such link is found, note the sender address so you can
-locate the subscription settings manually.
+- **Constant Contact** — "Update Profile" link in footer; allows direct email change
+- **Mailchimp** — "Update your preferences" link in footer; may or may not allow email
+  change depending on list settings. If the email field is locked, a fresh signup at
+  the venue's website under `redhat.bootlegs@gmail.com` is required instead.
+- Venue box office systems vary — note the sender address if no management link is found
 
 **IMP newsletter special rule:** When processing an IMP newsletter (9:30 Club,
 The Anthem, Lincoln Theatre, The Atlantis, Merriweather), apply the standard tiering
@@ -510,8 +512,10 @@ each subscription is set up.
   Union Stage Presents (Pearl Street, Jammin Java, Howard Theatre, Union Stage) ✅
 - Wolf Trap — wolftrap.org (email alerts) ✅
 - 9:30 Club / Merriweather / other IMP venues — imppresents.com ✅
+- Bethesda Theater — bethesdatheater.com ✅ (re-targeted 4/1/26 via Constant Contact)
 
-**Venues (pending):**
+**Venues (pending — fresh signup needed under redhat.bootlegs):**
+- Hub City Vinyl (Hagerstown) — liveathubcityvinyl.com (Mailchimp; email change not supported, requires new signup)
 - Strathmore — strathmore.org
 - Capital One Hall — capitalonehall.com
 - The Fillmore Silver Spring — fillmoresilverspring.com
