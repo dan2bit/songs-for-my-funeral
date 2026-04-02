@@ -1,0 +1,84 @@
+Action	Artist	Tier	Notes
+ADD	AJR	Strong	seen
+ADD	Alabama Shakes	Strong	seen
+ADD	Albert Castiglia	Strong	seen 2x
+ADD	Albert Cummings	Strong	seen 2x
+ADD	Alicia Keys	Strong	override strong
+ADD	Ally Venable	Strong	seen 4x
+ADD	Amythyst Kiah	Strong	seen 2x
+ADD	Angelique Francis	Strong	seen + research
+ADD	The Avett Brothers	Strong	seen 3x
+ADD	Beth Hart	Strong	seen + bandcamp
+ADD	Bill Murray and His Blood Brothers	Strong	seen (ticket Jun 2026)
+ADD	Billy Gibbons	Strong	seen + VIP
+ADD	boygenius	Strong	override strong
+ADD	Billy Strings	Strong	bandcamp + 3 sources
+ADD	Bonnie Raitt	Strong	seen
+ADD	Brittany Howard	Strong	seen
+ADD	Buddy Guy	Strong	seen 2x
+ADD	Buffalo Nichols	Strong	seen 3x
+ADD	Bywater Call	Strong	seen
+ADD	D.K. Harrell	Strong	seen
+ADD	Danielle Nicole	Strong	seen 3x
+ADD	Danny Burns	Strong	bandcamp
+ADD	The Devil Makes Three	Strong	seen
+ADD	Eric Johanson	Strong	seen 2x
+ADD	Gary Clark Jr.	Strong	seen
+ADD	Greensky Bluegrass	Strong	seen
+ADD	Haggis X-1	Strong	Enter the Haggis successor
+ADD	Heavy Heavy	Strong	seen + book
+ADD	Hozier	Strong	seen
+ADD	Jackie Venson	Strong	seen 2x + bandcamp
+ADD	Jake Blount	Strong	seen + bandcamp
+ADD	Jake Xerxes Fussell	Strong	seen
+ADD	Jax Hollow	Strong	seen + book
+ADD	Jimmie Vaughan	Strong	seen + book
+ADD	Joanne Shaw Taylor	Strong	seen 2x
+ADD	Joe Bonamassa	Strong	seen + book
+ADD	Judith Hill	Strong	seen 3x
+ADD	Kate Davis	Strong	seen 3x
+ADD	Keb' Mo'	Strong	seen 2x
+ADD	Kenny Wayne Shepherd	Strong	seen + book
+ADD	Kingsley Flood	Strong	seen 5x
+ADD	Langhorne Slim	Strong	seen
+ADD	Lucinda Williams	Strong	pending buy
+ADD	Lyle Lovett	Strong	seen
+ADD	Maggie Rose	Strong	seen
+ADD	Mark Knopfler	Strong	override strong
+ADD	Matteo Mancuso	Strong	seen
+ADD	Mavis Staples	Strong	seen (support Jul 2026)
+ADD	Mikaela Davis	Strong	seen + book
+ADD	Mike Zito	Strong	seen 2x
+ADD	Mohini Dey	Strong	seen
+ADD	Muireann Bradley	Strong	seen + book + bandcamp
+ADD	Oliver Wood	Strong	seen 3x
+ADD	Orianthi	Strong	seen (ticket Jun 2026)
+ADD	Peter Gabriel	Strong	override strong
+ADD	The Pietasters	Strong	seen
+ADD	Robert Jon & The Wreck	Strong	seen (ticket Jul 2026)
+ADD	Samantha Fish	Strong	seen 2x
+ADD	Selwyn Birchwood	Strong	seen 4x
+ADD	Shakey Graves	Strong	seen + book
+ADD	Shaw Davis & The Black Ties	Strong	seen
+ADD	Shawn James	Strong	seen
+ADD	Shemekia Copeland	Strong	seen
+ADD	Shovels & Rope	Strong	seen 2x
+ADD	Sonny Landreth	Strong	seen 2x
+ADD	Southern Avenue	Strong	seen + bandcamp
+ADD	Sparkbird	Strong	seen + bandcamp
+ADD	Steve Vai	Strong	seen (ticket May 2026)
+ADD	Sue Foley	Strong	seen 4x
+ADD	Suzanne Vega	Strong	seen 3x
+ADD	Taj Farrant	Strong	seen
+ADD	Taj Mahal	Strong	pending buy
+ADD	The Teskey Brothers	Medium	blues-soul; all services
+ADD	Tommy Emmanuel	Strong	seen
+ADD	Vanessa Collier	Strong	seen 6x
+ADD	Walter Trout	Strong	seen
+ADD	Yasmin Williams	Strong	seen + book
+ADD	Young Dubliners	Strong	seen
+ADD	ZZ Ward	Strong	seen 4x
+REMOVE	Robert Randolph & The Family Band	N/A	use Robert Randolph (already on Seated as Robert Randolph)
+REMOVE	Susan Tedeschi	N/A	follow as Tedeschi Trucks Band (already present)
+REMOVE	The Marcus King Band	N/A	follow as Marcus King (add above)
+REMOVE	Trombone Shorty	N/A	follow as Trombone Shorty & Orleans Avenue (already present)
