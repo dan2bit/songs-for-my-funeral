@@ -1,8 +1,12 @@
+# Fresh start on redhat.bootlegs Bandsintown account (dan2bit account to be retired)
+# This is an ADD-only list — start from zero, no removes needed
+# ~120 artists total; search BIT by name and follow
+
 Action	Artist	Tier	Notes
 ADD	Adia Victoria	Strong	
 ADD	AJR	Strong	
 ADD	Alabama Shakes	Strong	
-ADD	Albert Castiglia	Strong	use Albert Castiglia not Albert Castiglia Band
+ADD	Albert Castiglia	Strong	search "Albert Castiglia" not "Albert Castiglia Band"
 ADD	Albert Cummings	Strong	
 ADD	Alicia Keys	Strong	override strong
 ADD	Alison Krauss	Lower	
@@ -16,7 +20,7 @@ ADD	Ariel Posen	Medium
 ADD	The Avett Brothers	Strong	
 ADD	Beth Hart	Strong	
 ADD	Bill Murray and His Blood Brothers	Strong	
-ADD	Billy Gibbons	Strong	already in BIT as Billy F Gibbons
+ADD	Billy Gibbons	Strong	search "Billy F Gibbons"
 ADD	boygenius	Strong	override strong
 ADD	Billy Strings	Strong	
 ADD	Bonnie Raitt	Strong	
@@ -26,10 +30,10 @@ ADD	Buffalo Nichols	Strong
 ADD	Bywater Call	Strong	
 ADD	Cage the Elephant	Medium	override medium
 ADD	Cedric Burnside	Medium	
-ADD	Christone Kingfish Ingram	Strong	
+ADD	Christone Kingfish Ingram	Strong	search "Christone KINGFISH Ingram"
 ADD	D.K. Harrell	Strong	
 ADD	Daniel Donato	Strong	
-ADD	Danielle Nicole	Strong	
+ADD	Danielle Nicole	Strong	search "Danielle Nicole Band"
 ADD	Danny Burns	Strong	
 ADD	The Devil Makes Three	Strong	
 ADD	Dumpstaphunk	Lower	
@@ -43,9 +47,9 @@ ADD	Galactic	Strong
 ADD	Gary Clark Jr.	Strong	
 ADD	Gov't Mule	Medium	
 ADD	Greensky Bluegrass	Strong	
-ADD	Haggis X-1	Strong	
-ADD	Heavy Heavy	Strong	
-ADD	House of Hamill	Medium	
+ADD	Haggis X-1	Strong	Enter the Haggis successor
+ADD	Heavy Heavy	Strong	search "The Heavy Heavy"
+ADD	House of Hamill	Medium	Enter the Haggis successor
 ADD	Hozier	Strong	
 ADD	Jackie Venson	Strong	
 ADD	Jaime Wyatt	Medium	
@@ -92,13 +96,13 @@ ADD	Peter Gabriel	Strong	override strong
 ADD	The Pietasters	Strong	
 ADD	Rebirth Brass Band	Lower	
 ADD	Rhiannon Giddens	Strong	
-ADD	Robert Jon & The Wreck	Strong	
+ADD	Robert Jon & the Wreck	Strong	
 ADD	Robert Randolph	Strong	
 ADD	Ruthie Foster	Strong	
 ADD	Samantha Fish	Strong	
 ADD	Selwyn Birchwood	Strong	
 ADD	Shakey Graves	Strong	
-ADD	Shaw Davis & The Black Ties	Strong	
+ADD	Shaw Davis & the Black Ties	Strong	
 ADD	Shawn James	Strong	
 ADD	Shemekia Copeland	Strong	
 ADD	Shovels & Rope	Strong	
@@ -111,7 +115,7 @@ ADD	Suzanne Vega	Strong
 ADD	Tab Benoit	Strong	
 ADD	Taj Farrant	Strong	
 ADD	Taj Mahal	Strong	
-ADD	Tal Wilkenfeld	Lower	
+ADD	Tal Wilkenfeld	Lower	follow for headline shows
 ADD	Tedeschi Trucks Band	Strong	
 ADD	The Teskey Brothers	Medium	
 ADD	Tommy Emmanuel	Strong	
@@ -128,48 +132,3 @@ ADD	The Wood Brothers	Strong
 ADD	Yasmin Williams	Strong	
 ADD	Young Dubliners	Strong	
 ADD	ZZ Ward	Strong	
-REMOVE	10000 Maniacs	Nostalgia	
-REMOVE	Alanis Morissette	Nostalgia	
-REMOVE	Albert Castiglia Band	Duplicate	keep Albert Castiglia
-REMOVE	Ally Venable Band	Duplicate	keep Ally Venable
-REMOVE	Arctic Monkeys	Nostalgia	
-REMOVE	Beck	Nostalgia	
-REMOVE	Big Boi	Nostalgia	
-REMOVE	Blues Traveler	Nostalgia	
-REMOVE	Barenaked Ladies	Seen-once-done	
-REMOVE	Cage the Elephant	Nostalgia	apply override medium entry separately
-REMOVE	Cat Power	Nostalgia	
-REMOVE	Cavetown	Nostalgia	
-REMOVE	Cowboy Junkies	Seen-once-done	
-REMOVE	Cyndi Lauper	Nostalgia	
-REMOVE	Elvis Costello	Seen-once-done	
-REMOVE	Enter The Haggis	Defunct	replace with Haggis X-1
-REMOVE	Everything but the Girl	Nostalgia	
-REMOVE	Fiona Apple	Nostalgia	
-REMOVE	Greta Van Fleet	Nostalgia	
-REMOVE	H.E.R.	Nostalgia	
-REMOVE	Indigo Girls	Seen-once-done	
-REMOVE	Jane's Addiction	Nostalgia	
-REMOVE	KALEO	Nostalgia	
-REMOVE	Kim Carnes	Nostalgia	
-REMOVE	Lovejoy	Nostalgia	
-REMOVE	Modest Mouse	Nostalgia	
-REMOVE	Muse	Nostalgia	
-REMOVE	Nick Cave & The Bad Seeds	Nostalgia	
-REMOVE	P!nk	Nostalgia	apply override medium entry separately
-REMOVE	Pearl Jam	Nostalgia	
-REMOVE	Peter Gabriel	Nostalgia	apply override strong entry separately
-REMOVE	SHAED	Nostalgia	
-REMOVE	Sarah McLachlan	Seen-once-done	
-REMOVE	Sheila E.	Nostalgia	
-REMOVE	Steve Earle	Seen-once-done	
-REMOVE	Tori Amos	Nostalgia	
-REMOVE	Tracy Chapman	Nostalgia	apply override medium entry separately
-REMOVE	Violent Femmes	Nostalgia	
-REMOVE	Waxahatchee	Nostalgia	apply override medium entry separately
-REMOVE	Wu-Tang Clan	Seen-once-done	
-boygenius	Nostalgia	apply override strong entry separately
-REMOVE	Carl Perkins	Deceased	
-REMOVE	Justin Townes Earle	Deceased	
-REMOVE	Sam Cooke	Deceased	
-REMOVE	ZZ Top	Deceased/Defunct	Billy Hill died 2021; follow Billy Gibbons instead

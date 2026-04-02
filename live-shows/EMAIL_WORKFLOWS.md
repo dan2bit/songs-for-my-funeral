@@ -423,7 +423,7 @@ redhat.bootlegs inbox tagged `artist-mail`.
 | War and Treaty, The | |
 
 **Not subscribed — known reasons:**
-- Enter the Haggis — defunct
+- Enter the Haggis — defunct; follow Haggis X-1 and House of Hamill instead
 - Eric Gales, Selwyn Birchwood, Valerie June, Ana Popović — no email list found
 - Kingsley Flood, Oh He Dead — too small/hyperlocal; shows already caught by venue newsletters
 - Ally Venable — uses Patreon instead of email list
@@ -523,5 +523,10 @@ each subscription is set up.
 **Ticketing platforms:**
 - AXS — axs.com (artist follows)
 - Eventbrite — follow relevant organizers
+
+**Bandsintown** — redhat.bootlegs account (fresh start; dan2bit account to be retired).
+  Artist follow list managed via `worklist_bandsintown.tsv` and `follows_master.tsv`.
+  BIT sends email alerts for followed artists directly to the registered account email,
+  making redhat.bootlegs the correct home for this. ~120 artists per the worklist.
 
 **Artist newsletters** — see Routine 4 subscriber list above. ✅ Complete as of 2026-03-30.
