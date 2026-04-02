@@ -16,6 +16,7 @@
     --fade: #706860;
     --rule: #c8bfaa;
     --body: #3a3530;
+    --chapter-bg: #ece2d8;
   }
 
   @media (prefers-color-scheme: dark) {
@@ -27,6 +28,7 @@
       --fade: #9a9088;
       --rule: #3a332c;
       --body: #ccc4b4;
+      --chapter-bg: #291e17;
     }
 
     .track-art {
@@ -335,12 +337,14 @@
   .chapter-break--first {
     margin-top: 0;
     padding-top: 56px;
+    padding-bottom: 56px;
   }
 
   .chapter-break {
-    margin: 72px 0 64px;
-    padding: 0;
+    margin: 0 0 48px;
+    padding: 20px 0 32px;
     text-align: center;
+    background: var(--chapter-bg);
   }
 
   .chapter-title {
@@ -381,6 +385,36 @@
     margin-bottom: 0;
   }
 
+
+  /* ── Chapter section wrapper + sticky label ── */
+  .chapter-section {
+    position: relative;
+  }
+
+  .chapter-sticky {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--chapter-bg);
+    border-bottom: 1px solid var(--rule);
+    padding: 7px 0 6px;
+    margin-bottom: 0;
+    text-align: center;
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--rust);
+    opacity: 0;
+    transition: opacity 0.15s;
+    pointer-events: none;
+  }
+
+  .chapter-section.is-scrolled .chapter-sticky {
+    opacity: 1;
+  }
+
 </style>
 </head>
 <body>
@@ -394,6 +428,8 @@
     <p><a class="rust-link" href="https://youtube.com/playlist?list=PLJ7S-K0cjvGJHuI-kagxZUfN9fOaVV2ET&amp;si=0DAeMtMY3Dl6gmcd" target="_blank">Watch as a YouTube playlist</a></p>
   </header>
 
+  <div class="chapter-section">
+    <div class="chapter-sticky">Chapter 1: I Am Where I'm Meant to Be - 3 tracks</div>
   <div class="chapter-break chapter-break--first">
     <div class="chapter-title">I Am Where I'm Meant to Be</div>
     <div class="chapter-rule"></div>
@@ -463,6 +499,9 @@
     </div>
   </div>
 
+  </div><!-- /.chapter-section -->
+  <div class="chapter-section">
+    <div class="chapter-sticky">Chapter 2: You'll Be Okay (Grief Sucks) - 6 tracks</div>
   <div class="chapter-break">
     <div class="chapter-title">You'll Be Okay (Grief Sucks)</div>
     <div class="chapter-rule"></div>
@@ -566,7 +605,7 @@
     <div class="track-body">
       <p>Luke Winslow-King wrote this in 2014 — a New Orleans songwriter working in the old tradition. Playing for Change then did what they do: layered musicians from across the world into a single recording, turning a song about being held up into an act of exactly that. Dr. John is the emotional anchor — his voice, his piano, his city's long tradition of turning grief into music that insists on moving forward.</p>
       <p class="provenance">Playing for Change records musicians separately, each in their own space — a porch in New Orleans, a studio in Cape Town, a living room in Mumbai. The video is edited so they appear to be playing together in the same room. They never are, but somehow it works.</p>
-      <p class="lyric-pull">You can lean on me stranger, I believe you’ve carried too long<br>It’s such a long, long way, back home</p>
+      <p class="lyric-pull">You can lean on me stranger, I believe you've carried too long<br>It's such a long, long way, back home</p>
     </div>
   </div>
 
@@ -589,6 +628,9 @@
     </div>
   </div>
 
+  </div><!-- /.chapter-section -->
+  <div class="chapter-section">
+    <div class="chapter-sticky">Chapter 3: Don't Worry About Me - 2 tracks</div>
   <div class="chapter-break">
     <div class="chapter-title">Don't Worry About Me</div>
     <div class="chapter-rule"></div>
@@ -636,6 +678,9 @@
     </div>
   </div>
 
+  </div><!-- /.chapter-section -->
+  <div class="chapter-section">
+    <div class="chapter-sticky">Chapter 4: You're Still in the Pink - 7 tracks</div>
   <div class="chapter-break">
     <div class="chapter-title">You're Still in the Pink</div>
     <div class="chapter-rule"></div>
@@ -719,7 +764,7 @@
     <div class="track-body">
       <p>Ingram, from the literal and legendary birthplace of the blues, Clarksdale, Mississippi, was barely out of his teens when this song was
       released. His collaborators on his debut album are some of the living legends of the genre - it's very clear that Kingfish is comfortable inhabiting an old form, and becoming the post-millennial torchbearer of the blues.</p>
-      <p class="lyric-pull">People say I got an old soul<br>and I ain’t even twenty-one</p>
+      <p class="lyric-pull">People say I got an old soul<br>and I ain't even twenty-one</p>
     </div>
   </div>
 
@@ -782,6 +827,9 @@
     </div>
   </div>
 
+  </div><!-- /.chapter-section -->
+  <div class="chapter-section">
+    <div class="chapter-sticky">Chapter 5: But Before We Part - 5 tracks</div>
   <div class="chapter-break">
     <div class="chapter-title">But Before We Part</div>
     <div class="chapter-rule"></div>
@@ -863,7 +911,7 @@
     </div>
     <div class="track-body">
       <p>The Large Band arrangement has some New Orleans funeral procession energy —  music as the thing that carries you through the community of grief. It takes its time, but we all get there.</p>
-      <p class="lyric-pull">I went to a funeral, Lord it made me happy<br>Seeing all those people I ain’t seen since the last time somebody died.</p>
+      <p class="lyric-pull">I went to a funeral, Lord it made me happy<br>Seeing all those people I ain't seen since the last time somebody died.</p>
     </div>
   </div>
 
@@ -887,6 +935,9 @@
     </div>
   </div>
 
+  </div><!-- /.chapter-section -->
+  <div class="chapter-section">
+    <div class="chapter-sticky">Chapter 6: Go in Good Graces - 3 tracks</div>
   <div class="chapter-break">
     <div class="chapter-title">Go in Good Graces</div>
     <div class="chapter-rule"></div>
@@ -952,6 +1003,8 @@
      </div>
   </div>
 
+  </div><!-- /.chapter-section -->
+
   <div class="colophon">
     <div class="colophon-stat">
       <span class="colophon-label">Tracks</span>
@@ -996,5 +1049,17 @@
     <img src="red_hat_icon.png" alt="red trilby hat" style="width:72px;height:72px;display:block;margin:0 auto 24px;">
 
 </div>
+
+<script>
+(function() {
+  var obs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
+      e.target.closest('.chapter-section').classList.toggle('is-scrolled', !e.isIntersecting);
+    });
+  }, { threshold: 0, rootMargin: '-1px 0px 0px 0px' });
+  document.querySelectorAll('.chapter-break').forEach(function(el) { obs.observe(el); });
+})();
+</script>
+
 </body>
 </html>
