@@ -19,7 +19,7 @@ ADD	Eric Bibb	Medium	new_artist_research
 ADD	Evan Nicole Bell	Lower	local DC artist
 ADD	GA-20	Medium	new_artist_research
 ADD	Greensky Bluegrass	Strong	seen
-ADD	Haggis X-1	Strong	Enter the Haggis successor
+ADD	Haggis X-1	Strong	Enter the Haggis successor NOT ON SONGKICK
 ADD	Heavy Heavy	Strong	seen + book (verify not already there)
 ADD	House of Hamill	Medium	Enter the Haggis successor
 ADD	Jaime Wyatt	Medium	bandcamp
@@ -58,3 +58,5 @@ ADD	Whitney Mongé	Medium	bandcamp
 ADD	Young Dubliners	Strong	seen (verify SK has Young Dubliners not The Young Dubliners)
 REMOVE	Enter the Haggis	N/A	defunct; replace with Haggis X-1 and House of Hamill
 REMOVE	D.K. Harrell	N/A	same artist as DK Harrell — keep one, confirm canonical SK entry
+ADDED Carly Harvey
+ADDED Danielle Ponder
