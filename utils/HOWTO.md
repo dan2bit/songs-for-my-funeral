@@ -2,6 +2,10 @@
 
 *For future me, when the playlist needs work.*
 
+**Live site:** https://dan2bit.github.io/songs-for-my-funeral/index.html  
+**YouTube playlist:** https://www.youtube.com/playlist?list=PLJ7S-K0cjvGJHuI-kagxZUfN9fOaVV2ET  
+**GitHub repo:** https://github.com/dan2bit/songs-for-my-funeral
+
 ---
 
 ## YouTube API credentials
@@ -293,14 +297,14 @@ If this ever changes (e.g. after reinstalling Drive for Desktop or switching acc
 | 15 | Before I'm Old | Kingfish | studio | 4 | |
 | 16 | Enjoy Yourself | The Specials | live | 4 | Archival ska club footage |
 | 17 | One Last Drink | Enter the Haggis | studio | 4 | |
-| 18 | Five More Minutes | The War & Treaty | live | 4 | |
+| 18 | Five More Minutes | The War & Treaty | live | 4 | Greek Theatre, Berkeley, Sept 15 2021. Intro trimmed. |
 | 19 | I'll Fly Away | PHJB & Del McCoury Band | live | 5 | Letterman 2011. Trimmed: 23s from start, 19s from end |
 | 20 | Lips As Cold As Diamond | Larkin Poe | studio | 5 | |
 | 21 | Hallelujah | Sarah Rogo | live | 5 | Haus Music Production, LA, April 2020 |
 | 22 | Since the Last Time | Lyle Lovett | live | 5 | SWR Studio 5, Baden-Baden, Nov 1992 |
 | 23 | Bright Blue Rose | Mary Black | live | 5 | RTÉ Late Late Show 1991 |
 | 24 | Take This Body Home | Rose Betts | live | 6 | |
-| 25 | First There Is Goodbye | Talia Segal | studio | 6 | Lyrics need cleanup against recording |
+| 25 | First There Is Goodbye | Talia Segal | studio | 6 | |
 | 26 | The Parting Glass | boygenius & Ye Vagabonds | studio | 6 | Released July 2023 |
 
 **Chapters:**
@@ -334,7 +338,7 @@ If this ever changes (e.g. after reinstalling Drive for Desktop or switching acc
 | 15 | Before I'm Old | [Genius](https://genius.com/Christone-kingfish-ingram-before-im-old-lyrics) | [YouTube](https://www.youtube.com/watch?v=6KWBJkv-8kM) |
 | 16 | Enjoy Yourself | [Genius](https://genius.com/The-specials-enjoy-yourself-its-later-than-you-think-lyrics) | [YouTube](https://www.youtube.com/watch?v=rA2-6ZlOXeg) |
 | 17 | One Last Drink | [Bandcamp](https://enterthehaggis.bandcamp.com/track/one-last-drink-2) | [YouTube](https://www.youtube.com/watch?v=YgHQZGHzEIs) |
-| 18 | Five More Minutes | [Genius](https://genius.com/The-war-and-treaty-five-more-minutes-lyrics) | [YouTube](https://www.youtube.com/watch?v=5K9kiQkYWqY) |
+| 18 | Five More Minutes | [Genius](https://genius.com/The-war-and-treaty-five-more-minutes-lyrics) | [YouTube](https://www.youtube.com/watch?v=vpjRfuhBdpM) |
 | 19 | I'll Fly Away | [Bluegrass Lyrics](https://www.bluegrasslyrics.com/song/ill-fly-away/) | [YouTube](https://www.youtube.com/watch?v=hBd0FdBt0jk) |
 | 20 | Lips As Cold As Diamond | [Genius](https://genius.com/Larkin-poe-lips-as-cold-as-diamond-lyrics) | [YouTube](https://www.youtube.com/watch?v=3dLAnJHiB0A) |
 | 21 | Hallelujah | [Genius](https://genius.com/Leonard-cohen-hallelujah-lyrics) | [YouTube](https://www.youtube.com/watch?v=VJB29vBmbZ8) |
@@ -671,6 +675,7 @@ The icon file (`red_hat_icon.png`) must be delivered as a ZIP to preserve the al
 | `--rust` | `#8b4a2a` | `#c47a4a` | Links, lyric pull border, tags |
 | `--fade` | `#706860` | `#9a9088` | Performer names, credits, footnotes |
 | `--rule` | `#c8bfaa` | `#3a332c` | Horizontal rules, borders |
+| `--chapter-bg` | `#ece2d8` | `#291e17` | Chapter break + sticky label background |
 
 All pairs pass WCAG AA contrast (4.5:1) against their respective backgrounds.
 Dark mode activates automatically via `prefers-color-scheme: dark`.

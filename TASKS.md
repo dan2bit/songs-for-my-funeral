@@ -20,17 +20,9 @@ The Facebook Transfer tool sync was set up in March 2026 and runs monthly for 3 
 
 ---
 
-## 2. Restyle liner notes — keep chapter metadata visually connected
+## ~~2. Restyle liner notes — keep chapter metadata visually connected~~ ✓ DONE
 
-Currently the chapter break (title, rule, epigraph) sits as a free-standing block between tracks. The goal is to make the chapter context feel more attached — so that when you're reading a track note, the chapter it belongs to is visually present or clearly associated rather than something you scroll past.
-
-**Options to explore:**
-- Sticky or persistent chapter label in the margin or header while scrolling through a chapter's tracks
-- Small chapter indicator on each track header (e.g. a faint chapter name or number above the track number)
-- Visual treatment that carries the chapter color/style into the track blocks themselves
-- Chapter nav anchors at the top of the page
-
-**Constraint:** changes should be CSS/HTML only, no JavaScript required. The private `liner-notes.html` is the canonical source; `index.html` (public) is derived from it.
+Implemented Option D: sticky chapter banner using `position: sticky` + IntersectionObserver. Each chapter's break and tracks are wrapped in `.chapter-section`. The sticky label appears only after scrolling past the chapter break, shares the tinted `--chapter-bg` background with the break itself, and reads e.g. `Chapter 2: You'll Be Okay (Grief Sucks) - 6 tracks`. Committed to `index.html` April 2026.
 
 ---
 
