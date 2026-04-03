@@ -6,72 +6,7 @@ Collaborative task list for the live show archive project. Update status as task
 
 ## 🔧 Ready to Run (quota reset needed)
 
-### ~~1. Create remaining WORKLIST backfill playlists~~ ✅ COMPLETE — 4/1/26
-
-All WORKLIST shows complete. Barenaked Ladies, Eric Johanson, Robert Randolph, Bywater
-Call, Maggie Rose completed first; then Selwyn Birchwood (2025-06-07) and The Wood
-Brothers (2025-12-04) completed after fixing description date mismatch via
-`youtube_fetch.py --since 2025-06-07 --force` (new `--force` flag added this session).
-ZZ Top and Shaw Davis confirmed no-video and documented in script comments. WORKLIST
-is now empty.
-
----
-
-### 2. Fix `Ram's Head` → `Rams Head` in 54 video descriptions — 📅 4/3/26 (bundle with task #4)
-
-54 videos have `Ram's Head` in their description. ~2,700 quota units (54 × 50). Can be
-bundled with task #4 on the same day — combined ~7,700 units, well under the 10k daily
-limit. Merge PR #12 (`youtube_fix_descriptions.py`) before running.
-
-After editing descriptions, use `--force` to re-ingest them:
-
-```bash
-cd live-shows
-source .venv/bin/activate
-
-# Preview first — use title-filter to limit reads to relevant videos
-python3 youtube_fix_descriptions.py \
-    --search "Ram's Head" --replace "Rams Head" \
-    --target videos --title-filter "Rams Head" --cap 60 --dry-run
-
-# Then apply
-python3 youtube_fix_descriptions.py \
-    --search "Ram's Head" --replace "Rams Head" \
-    --target videos --title-filter "Rams Head" --cap 60
-
-# Re-ingest updated descriptions (--force overwrites existing rows in window)
-python3 youtube_fetch.py --since 2021-07-01 --force
-python3 youtube_correlate.py --merge
-```
-
-Also check whether any **playlist descriptions** contain `Ram's Head` (~11 playlists,
-~550 units) — can bundle in the same run with `--target both`.
-
----
-
-### 4. Fill blank playlist descriptions — 📅 4/3/26 (bundle with task #2)
-
-Playlists created by the script have no descriptions. ~5,000 quota units (100 playlists
-× 50). Bundle with task #2 on the same day — combined ~7,700 units total.
-
-```bash
-cd live-shows
-source .venv/bin/activate
-
-# Preview first
-python3 youtube_create_playlists.py --fix-descriptions --dry-run
-
-# Then apply
-python3 youtube_create_playlists.py --fix-descriptions
-```
-
-Note: only fills descriptions for playlists that (a) have a blank description and (b)
-have a matching row in history/2026 with a setlist.fm URL. Playlists without a setlist
-URL are skipped and logged.
-
----
-
-### 5. Find remaining blank artist YouTube handles — 📅 4/4/26 (run alone)
+### 1. Find remaining blank artist YouTube handles — 📅 run alone
 
 ~67 artists in `artists.tsv` still have no `YouTube Channel` value. The subscriptions
 script uses `search.list` (100 units/call) — up to ~6,700 units for 67 artists. Run
@@ -88,7 +23,7 @@ python3 youtube_subscriptions_to_artists.py
 
 ## 🔍 Research / Eyeball Tasks (anytime — no quota cost)
 
-### 3. Review Google Photos for 19 no-candidate shows — 📅 anytime
+### 2. Review Google Photos for 19 no-candidate shows — 📅 anytime
 
 `youtube_audit_blanks.py` found no videos in the channel for these 19 shows. The next
 step is a manual review of the **dan2bit Google Photos account** to check whether any
@@ -135,7 +70,7 @@ in the WORKLIST no-video comment block (like ZZ Top and Shaw Davis).
 
 ## 📋 Manual / Pending Approval
 
-### 6. Merge `notes_memories_draft.tsv` into history — 📅 anytime
+### 3. Merge `notes_memories_draft.tsv` into history — 📅 anytime
 
 A staging file of show notes/memories exists at `live-shows/notes_memories_draft.tsv`. These have not been merged into `live_shows_history.tsv` pending explicit approval.
 
@@ -145,15 +80,7 @@ A staging file of show notes/memories exists at `live-shows/notes_memories_draft
 
 ## 🔄 Ongoing / Maintenance
 
-### ~~7. `live_shows_history.tsv` re-ingest after WORKLIST runs~~ ✅ COMPLETE — 4/1/26
-
-Re-ingest completed via `youtube_fetch.py --since 2025-06-07 --force` and
-`youtube_correlate.py --merge` as part of the Selwyn Birchwood / Wood Brothers
-playlist fix. Also used to validate the new `--force` flag on `youtube_fetch.py`.
-
----
-
-### 8. Design and implement rolling migration + archive architecture
+### 4. Design and implement rolling migration + archive architecture
 
 ⚠️ **Must be designed before the first 2027 ticket purchase.**
 
@@ -181,7 +108,7 @@ Scripts and the email ticket workflow currently hardcode `live_shows_2026.tsv`. 
 
 ---
 
-### 9. Define HFTB monitoring cadence and recommendation tiers
+### 5. Define HFTB monitoring cadence and recommendation tiers
 
 HereForTheBands.com (HFTB) is the primary source for DC/MD/VA show discovery. Define a repeatable process for checking it and acting on potential buys.
 
@@ -202,63 +129,11 @@ HereForTheBands.com (HFTB) is the primary source for DC/MD/VA show discovery. De
 
 ---
 
-### 10. ~~Subscribe redhat.bootlegs to mailing lists~~ ✅ COMPLETE
+### 6. Mine festival and award lineups for new artist discovery
 
-All venue and artist subscriptions in place as of 2026-03-30. See `EMAIL_WORKFLOWS.md`
-for the full subscription inventory — venues under the Pre-Requisite section, artist
-newsletters under Routine 4. Reopen if new venues or artists are added.
-
----
-
-### 11. Audit artist follows on Seated.com
-
-Seated.com ticket alert emails (rare) are now being forwarded to the redhat.bootlegs
-inbox and will flow into Routine 3 like other ticket-alert emails.
-
-**Next steps:**
-- Log into Seated.com and review which artists you currently follow
-- Cross-reference against `artists.tsv` Strong tier (Times Seen >= 1) to identify gaps
-- Add any missing Strong-tier artists
-- Remove any artists you're no longer interested in seeing
-- Ensure the forwarding rule stays active so alerts reach the inbox
-
----
-
-### 12. Evaluate artist-follow alert services: Bandsintown and Songkick
-
-Currently following too many artists on the dan2bit Bandsintown account, making email
-alerts noisy and hard to act on. Songkick is the primary Bandsintown alternative and
-has a similar artist-follow / email alert model, with potentially stronger small-venue
-coverage. Both should be evaluated together before acting on either.
-
-**Note on Spotify concert alerts:** Not worth pursuing. Alerts are keyed to listening
-history rather than a curated follow list, and they arrive too late to be useful as
-purchase triggers — the latency problem alone disqualifies it for this workflow.
-
-**Questions to resolve before acting:**
-
-- **Bandsintown:** Is the noise problem better solved by pruning the dan2bit follow list
-  rather than creating a new account? Does Bandsintown allow multiple accounts (one per
-  email address)?
-- **Songkick:** Does it surface DC/MD/VA shows at smaller venues (Collective Encore,
-  Hamilton Live, Rams Head) that aren't already caught by venue newsletters or Seated?
-  Would following Strong-tier artists there add signal or just duplicate existing sources?
-- **Both:** What's the right follow list scope for either service — likely Strong tier
-  only (artists seen before), not the full autograph book population
-- **Account strategy:** If creating a new account on either service, use redhat.bootlegs
-  so alerts flow directly into Routine 3 without forwarding friction
-
-**Decision criteria:** Only set up or restructure an account if it would surface shows
-not already caught by venue newsletters, Seated, or artist direct subscriptions — and
-only if the follow list can be kept narrow enough to stay actionable.
-
----
-
-### 13. Mine festival and award lineups for new artist discovery
-
-A complement to HFTB (task #9) and Gnoosic exploration. Blues cruises, major festivals,
+A complement to HFTB (task #5) and Gnoosic exploration. Blues cruises, major festivals,
 and annual award nominees are rich sources for discovering artists in your taste profile
-who aren't yet on your radar. Priority and scope are similar to task #9 — periodic
+who aren't yet on your radar. Priority and scope are similar to task #5 — periodic
 research rather than a one-time pass.
 
 **Primary sources to monitor:**
@@ -305,7 +180,7 @@ research rather than a one-time pass.
 
 ---
 
-### 14. Review pre-pandemic show history for potential inclusion
+### 7. Review pre-pandemic show history for potential inclusion
 
 `live_shows_history.tsv` currently starts with 2021-07-11 (first post-pandemic show).
 There are approximately 22 shows from 2002–2019 that have never been included. Record
