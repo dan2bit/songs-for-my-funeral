@@ -1,47 +1,65 @@
-artist	handle	channel_title	score	channel_url
-Albert Castiglia	@albertcastiglia5751	Albert Castiglia	1.0000	https://youtube.com/@albertcastiglia5751
-Ana Popović	@anapopovicmusic	Ana Popovic Music	1.0000	https://youtube.com/@anapopovicmusic
-Avett Brothers, The	@theavettbrothers	The Avett Brothers	1.0000	https://youtube.com/@theavettbrothers
-Beck	@beck	Beck	1.0000	https://youtube.com/@beck
-Bonnie Raitt	@bonnieraittonmv	Bonnie Raitt on MV	1.0000	https://youtube.com/@bonnieraittonmv
-Brittany Howard	@brittanyhowardofficial	Brittany Howard	1.0000	https://youtube.com/@brittanyhowardofficial
-Brittney Spencer	@brittneyspencer	Brittney Spencer	1.0000	https://youtube.com/@brittneyspencer
-David Moore	@davidmoore1544	David Moore	1.0000	https://youtube.com/@davidmoore1544
-DuPont Brass	@dupontbrass	DuPont Brass	1.0000	https://youtube.com/@dupontbrass
-Gaelic Storm	@gaelicstormvideos	Gaelic Storm	1.0000	https://youtube.com/@gaelicstormvideos
-Galactic	@galacticyakamay	Galactic	1.0000	https://youtube.com/@galacticyakamay
-Gary Clark Jr.	@kossimensah56	Gary Clark Jr	1.0000	https://youtube.com/@kossimensah56
-Greensky Bluegrass	@greenskybluegrass	Greensky Bluegrass	1.0000	https://youtube.com/@greenskybluegrass
-Indigo Girls	@indigogirlsmusic	The Indigo Girls	1.0000	https://youtube.com/@indigogirlsmusic
-J. P. Soars	@jpsoarsguitar	JP Soars	1.0000	https://youtube.com/@jpsoarsguitar
-Jake Blount	@jakemblount	Jake Blount	1.0000	https://youtube.com/@jakemblount
-Jax Hollow	@jaxhollow	Jax Hollow	1.0000	https://youtube.com/@jaxhollow
-Jessie's Girl	@jessiesgirl	JESSIE'S GIRL	1.0000	https://youtube.com/@jessiesgirl
-Jimmie Vaughan	@jimmievaughan-official7937	Jimmie Vaughan - Official	1.0000	https://youtube.com/@jimmievaughan-official7937
-Joan Jett & The Blackhearts	@joanjett	Joan Jett and the Blackhearts	1.0000	https://youtube.com/@joanjett
-Joe Bonamassa	@joebonamassa4309	Joe Bonamassa	1.0000	https://youtube.com/@joebonamassa4309
-John Hiatt	@johnhiatt	John Hiatt	1.0000	https://youtube.com/@johnhiatt
-LL Cool J	@llcoolj	LL COOL J	1.0000	https://youtube.com/@llcoolj
-Langhorne Slim	@langhorneslimofficial	Langhorne Slim	1.0000	https://youtube.com/@langhorneslimofficial
-Līve	@live	Live	1.0000	https://youtube.com/@live
-Liz Phair	@lizphairofficial	Liz Phair	1.0000	https://youtube.com/@lizphairofficial
-Los Lobos	@loslobos	Los Lobos	1.0000	https://youtube.com/@loslobos
-Lucky Chops	@luckychops	Lucky Chops	1.0000	https://youtube.com/@luckychops
-Lyle Lovett	@lylelovett	Lyle Lovett	1.0000	https://youtube.com/@lylelovett
-Mike Zito	@mikezitoofficial	Mike Zito Official	1.0000	https://youtube.com/@mikezitoofficial
-Muireann Bradley	@muireannbradley	Muireann Bradley	1.0000	https://youtube.com/@muireannbradley
-Nas	@nasvevo	NasVEVO	1.0000	https://youtube.com/@nasvevo
-New York's Finest	@powerfulmusic1	New York's Finest	1.0000	https://youtube.com/@powerfulmusic1
-Pietasters, The	@thepietasters5643	The Pietasters	1.0000	https://youtube.com/@thepietasters5643
-Pixies	@pixiesofficialtv	PixiesOfficial	1.0000	https://youtube.com/@pixiesofficialtv
-Pretenders	@thepretenders	Pretenders	1.0000	https://youtube.com/@thepretenders
-Rhiannon Giddens	@rhiannongiddens	Rhiannon Giddens	1.0000	https://youtube.com/@rhiannongiddens
-Rival Sons	@rivalsons	Rival Sons	1.0000	https://youtube.com/@rivalsons
-Roger Waters	@rogerwaters	Roger Waters	1.0000	https://youtube.com/@rogerwaters
-Tori Amos	@toriamos	Tori Amos	1.0000	https://youtube.com/@toriamos
-ZZ Top	@zztop	ZZ Top	1.0000	https://youtube.com/@zztop
-Allman Betts Band, The	@theallmanbettsband	The Allman Betts Band	0.7500	https://youtube.com/@theallmanbettsband
-Elvis Costello & The Imposters	@elviscostello	Elvis Costello	0.7500	https://youtube.com/@elviscostello
-Honeyfunk	https://www.youtube.com/channel/UCLT8XWt-Mrkz0FNRofHZrlQ	Honeyfunk - Topic	0.7500	https://www.youtube.com/channel/UCLT8XWt-Mrkz0FNRofHZrlQ
-Robert Cray Band, The	@therobertcrayband1035	The Robert Cray Band	0.7500	https://youtube.com/@therobertcrayband1035
-Samantha Fish & Jesse Dayton	@samanthafish3245	Samantha Fish	0.7500	https://youtube.com/@samanthafish3245
+artist	handle	channel_title	score	channel_url	subscriber_count	excluded_channels	
+Ana Popović	@anapopovicmusic	Ana Popovic Music	1	https://youtube.com/@anapopovicmusic			
+Avett Brothers, The	@theavettbrothers	The Avett Brothers	1	https://youtube.com/@theavettbrothers			
+Beck	@beck	Beck	1	https://youtube.com/@beck			
+Bonnie Raitt	@thebonnieraitt	Bonnie Raitt	1		15	@bonnieraittonmv	
+Brittany Howard	@brittanyhowardofficial	Brittany Howard	1	https://youtube.com/@brittanyhowardofficial			
+Brittney Spencer	@brittneyspencer	Brittney Spencer	1	https://youtube.com/@brittneyspencer			
+David Moore	https://youtu.be/nzRxSx-663k?si=jUig-13e-_AUDRU_	David Moore	1		514	@davidmoore1544	
+DuPont Brass	@dupontbrass	DuPont Brass	1	https://youtube.com/@dupontbrass			
+Gaelic Storm	@gaelicstormvideos	Gaelic Storm	1	https://youtube.com/@gaelicstormvideos			
+Galactic	@galacticyakamay	Galactic	1	https://youtube.com/@galacticyakamay			
+Gary Clark Jr.	@garyclarkjr	Clark Gary	1		6K	@kossimensah56	
+Greensky Bluegrass	@greenskybluegrass	Greensky Bluegrass	1	https://youtube.com/@greenskybluegrass			
+Indigo Girls	@indigogirlsmusic	The Indigo Girls	1	https://youtube.com/@indigogirlsmusic			
+J. P. Soars	@jpsoarsguitar	JP Soars	1	https://youtube.com/@jpsoarsguitar			
+Jake Blount	@jakemblount	Jake Blount	1	https://youtube.com/@jakemblount			
+Jax Hollow	@jaxhollow	Jax Hollow	1	https://youtube.com/@jaxhollow			
+Jessie's Girl	@jessiesgirlnyc3078	Jessie's Girl	1		7	@jessiesgirl	
+Jimmie Vaughan	@jimmievaughan-official7937	Jimmie Vaughan - Official	1	https://youtube.com/@jimmievaughan-official7937			
+Joan Jett & The Blackhearts	@joanjett	Joan Jett and the Blackhearts	1	https://youtube.com/@joanjett			
+Joe Bonamassa	@JoeBonamassaTV	Joe Bonamassa	1		6	@joebonamassa4309	
+John Hiatt	@johnhiatt	John Hiatt	1	https://youtube.com/@johnhiatt			
+LL Cool J	@llcoolj	LL COOL J	1	https://youtube.com/@llcoolj			
+Langhorne Slim	@langhorneslimofficial	Langhorne Slim	1	https://youtube.com/@langhorneslimofficial			
+Līve	@livetheband	The Live Tv	1		8.5M	@live	
+Liz Phair	@lizphairofficial	Liz Phair	1	https://youtube.com/@lizphairofficial			
+Los Lobos	@loslobos	Los Lobos	1	https://youtube.com/@loslobos			
+Lucky Chops	@luckychops	Lucky Chops	1	https://youtube.com/@luckychops			
+Lyle Lovett	@lylelovett	Lyle Lovett	1	https://youtube.com/@lylelovett			
+Mike Zito	@mikezitoofficial	Mike Zito Official	1	https://youtube.com/@mikezitoofficial			
+Muireann Bradley	@muireannbradley	Muireann Bradley	1	https://youtube.com/@muireannbradley			
+Nas	@nasvevo	NasVEVO	1	https://youtube.com/@nasvevo			
+New York's Finest	@everybreathyoutakeband	New York's Finest	1				
+Pietasters, The	@thepietasters5643	The Pietasters	1	https://youtube.com/@thepietasters5643			
+Pixies	@pixiesofficialtv	PixiesOfficial	1	https://youtube.com/@pixiesofficialtv			
+Pretenders	@thepretenders	Pretenders	1	https://youtube.com/@thepretenders			
+Rhiannon Giddens	@rhiannongiddens	Rhiannon Giddens	1	https://youtube.com/@rhiannongiddens			
+Rival Sons	@rivalsons	Rival Sons	1	https://youtube.com/@rivalsons			
+Roger Waters	@rogerwaters	Roger Waters	1	https://youtube.com/@rogerwaters			
+Tori Amos	@toriamos	Tori Amos	1	https://youtube.com/@toriamos			
+ZZ Top	@zztop	ZZ Top	1	https://youtube.com/@zztop			
+Sadurn	https://www.youtube.com/channel/UCoCYbih9y62yUtOPj2IyHnw	SADURN	1	https://www.youtube.com/channel/UCoCYbih9y62yUtOPj2IyHnw	11K		
+Secret Sisters, The	@thesecretsistersband	The Secret Sisters	1	https://youtube.com/@thesecretsistersband	13K		
+Shakey Graves	@shakeygravesofficial	Shakey Graves	1	https://youtube.com/@shakeygravesofficial	66K		404?
+Shaw Davis & The Black Ties	@shawdavisandtheblackties	Shaw Davis & The Black Ties	1	https://youtube.com/@shawdavisandtheblackties	191		
+Sona Jobarteh	@sonajobarteh_official	Sona Jobarteh	1	https://youtube.com/@sonajobarteh_official	114K		
+Sonny Landreth	@sonnylandrethmusic	Sonny Landreth	1	https://youtube.com/@sonnylandrethmusic	5		
+Soul Coughing	@soulcoughingband	Soul Coughing	1	https://youtube.com/@soulcoughingband	76		
+Steve Earle	@steveearleofficial	Steve Earle	1	https://youtube.com/@steveearleofficial	368K		
+Steve Miller Band	@officialstevemiller	Steve Miller	1		52K	@askslimteam	
+Stevie Nicks	@stevienicks	Stevie Nicks	1	https://youtube.com/@stevienicks	729K		
+Talia Segal	https://www.youtube.com/channel/UC2aOy62uUF0oBfO2DMWs0qg	Talia Segal	1	https://www.youtube.com/channel/UC2aOy62uUF0oBfO2DMWs0qg	44	@taliasegal4357	
+Tedeschi Trucks Band	@tedeschitrucksband	Tedeschi Trucks Band	1	https://youtube.com/@tedeschitrucksband	224K		
+Violent Femmes	@violentfemmes	Violent Femmes	1	https://youtube.com/@violentfemmes	82K		
+Willie Nelson	@willienelson	Willie Nelson	1	https://youtube.com/@willienelson	1.1M		
+Albert Castiglia	https://www.youtube.com/channel/UC_34EQBEYypOqrRp7EPJlDQ	Albert Castiglia - Topic	1	https://www.youtube.com/channel/UC_34EQBEYypOqrRp7EPJlDQ	1K	@albertcastiglia5751	
+Allman Betts Band, The	@theallmanbettsband	The Allman Betts Band	1	https://youtube.com/@theallmanbettsband			
+Elvis Costello & The Imposters	@elviscostello	Elvis Costello	1	https://youtube.com/@elviscostello			
+Honeyfunk	@honeyfunk916	Honeyfunk - Topic	1				
+Robert Cray Band, The	@therobertcrayband1035	The Robert Cray Band	1	https://youtube.com/@therobertcrayband1035			
+Samantha Fish & Jesse Dayton	@samanthafish3245	Samantha Fish	1	https://youtube.com/@samanthafish3245			
+TajMo: The Taj Mahal & Keb' Mo' Band	@tajmahalmusic	Taj Mahal	1	https://youtube.com/@tajmahalmusic	30K		
+They Might Be Giants	@theymightbegiants	They Might Be Giants - Topic	1		3K		
+Victor Wooten	@victorwooten	Victor Wooten - Topic	1		4K		
+George Clinton & Parliament-Funkadelic	@GeorgeClinton	GeorgeClinton	1				
