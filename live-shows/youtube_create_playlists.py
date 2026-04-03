@@ -864,8 +864,10 @@ def main():
     args = parser.parse_args()
 
     # Auth
+    # --fix-descriptions needs to fetch the playlist list even in dry-run mode,
+    # so always authenticate when that flag is set.
     youtube = None
-    if not args.dry_run:
+    if not args.dry_run or args.fix_descriptions:
         print("Authenticating with YouTube...")
         youtube = get_authenticated_service()
         print("Authenticated.")
@@ -880,8 +882,6 @@ def main():
 
     # ── --fix-descriptions ───────────────────────────────────────────────────────────────────
     if args.fix_descriptions:
-        if not youtube and not args.dry_run:
-            sys.exit("--fix-descriptions requires authentication (no --dry-run override available without auth)")
         date_filter = set(args.date) if args.date else None
         run_fix_descriptions(
             youtube, history_index,
