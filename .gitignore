@@ -30,3 +30,6 @@ live-shows/.venv/
 
 # Local run logs — useful locally, not for repo
 live-shows/logs/
+
+# YouTube handle search working file — local only
+live-shows/youtube_handle_candidates.tsv
