@@ -4,24 +4,50 @@ Collaborative task list for the live show archive project. Update status as task
 
 ---
 
-## 🔧 Ready to Run (quota reset needed)
+## 🎟 Standing Checks — Every Inbox Session
 
-### 1. Find remaining blank artist YouTube handles — 📅 run alone
+### A. Hub City Vinyl — ticket availability monitoring
 
-~67 artists in `artists.tsv` still have no `YouTube Channel` value. The subscriptions
-script uses `search.list` (100 units/call) — up to ~6,700 units for 67 artists. Run
-alone on its own quota day to be safe; confirm whether the script uses search API calls
-or pulls handles directly from subscription data before running.
+Check these two Eventbrite pages at the start of every inbox processing session for LOW TICKET ALERT or SOLD OUT status. Alert Dan immediately if either condition is met.
 
-```bash
-cd live-shows
-source .venv/bin/activate
-python3 youtube_subscriptions_to_artists.py
-```
+| Show | Date | Eventbrite URL |
+|------|------|----------------|
+| Carolyn Wonderland | Sep 24, 2026 | https://www.eventbrite.com/e/carolyn-wonderland-tickets-1983173922588 |
+| JD Simo & Luther Dickinson | Aug 6, 2026 | https://www.eventbrite.com/e/bluesamericana-with-jd-simo-luther-dickinson-tickets-1970731399667 |
+
+Also watch for Hub City Vinyl emails arriving at redhat.bootlegs@gmail.com mentioning these shows.
+
+**Decision context:**
+- Carolyn Wonderland (Sep 24) — Strong buy candidate; also watching for a closer DC/MD show in September. If a closer show is found, compare and buy the better option.
+- JD Simo & Luther Dickinson (Aug 6) — Medium consideration; Hub City is a distance stretch
+
+### B. Potential shows list
+
+See `live-shows/live_shows_potential.tsv` for the full list of uncommitted shows with ticket links, pricing, and notes. Update this file when shows are purchased, cancelled, or dropped. Fields: Artist, Support, Date, Day, Venue, Venue City, Tier, Ticket Service, Purchase URL, Event URL, Face Price (est.), Fees Notes, Availability Notes, Notes.
+
+**Current entries (as of 2026-04-03):**
+
+| Artist | Date | Venue | Tier | Status |
+|--------|------|-------|------|--------|
+| Lucinda Williams | May 25, 2026 | 9:30 Club, DC | Strong | Pending buy |
+| Lucinda Williams | May 26, 2026 | 9:30 Club, DC | Strong | Pending buy (alt date) |
+| Taj Mahal & Phantom Blues Band | Jul 12, 2026 | Birchmere, Alexandria | Strong | Pending buy |
+| JD Simo & Luther Dickinson | Aug 6, 2026 | Hub City Vinyl, Hagerstown | Medium | Monitoring |
+| Carolyn Wonderland | Sep 24, 2026 | Hub City Vinyl, Hagerstown | Strong | Monitoring — watching for closer show |
 
 ---
 
 ## 🔍 Research / Eyeball Tasks (anytime — no quota cost)
+
+### 1. Add 5 Hub City artists to new_artist_research.tsv
+
+These artists appeared on the Hub City Vinyl 2026 calendar and are worth tracking for future shows closer to home. Dan won't travel to Hub City for them but wants them in the research file.
+
+- Quinn Sullivan (Apr 23) — Blues-rock, Buddy Guy protégé
+- Indigenous ft. Mato Nanji (May 17) — Native American blues-rock, Grammy-nominated
+- Davy Knowles (Sep 17) — Isle of Man blues guitarist, backed Peter Green's Splinter Group
+- Matt Schofield (Aug 13) — British blues-rock guitarist, well-regarded in the blues world
+- The Nighthawks with Daryl Davis (Oct 25) — DC blues institution
 
 ### 2. Review Google Photos for 19 no-candidate shows — 📅 anytime
 
