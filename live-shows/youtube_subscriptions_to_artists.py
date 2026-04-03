@@ -1,56 +1,58 @@
 #!/usr/bin/env python3
 """
-youtube_subscriptions_to_artists.py — One-time populator for artists.tsv YouTube Channel column
+youtube_subscriptions_to_artists.py — Populator for artists.tsv YouTube Channel column
 
-Fetches the subscriptions list for the authenticated YouTube account (@dan2bit),
-matches each subscribed channel's name against artists in artists.tsv using
-name-similarity logic, and fills in blank YouTube Channel cells with the
-channel's @handle.
+Two modes for finding YouTube channel handles for artists with blank entries:
 
-This is intentionally a one-time / occasional script. Once artists.tsv is
-populated you don't need to run it again unless you've added new artists.
+  --search   (recommended for filling blanks)
+             Uses YouTube search.list to look up each blank artist by name.
+             Works regardless of whether you're subscribed to the channel.
+             Quota: 100 units per artist searched. Use --limit to cap spend.
 
-QUOTA COST: Very cheap.
-    subscriptions.list  — 1 unit per page (~50 subs/page)
-    channels.list       — 1 unit per batch of 50 channel IDs
-    Typical total: 15–20 units for a full subscriptions list.
+             Example — fill all blanks, 10 at a time across quota days:
+                 python3 youtube_subscriptions_to_artists.py --search --limit 10 --dry-run
+                 python3 youtube_subscriptions_to_artists.py --search --limit 10
+
+  --subscriptions  (legacy — only useful if you're subscribed to the channel)
+             Fetches your subscriptions list and fuzzy-matches channel names
+             against artist names. Only finds artists you're already subscribed
+             to, so it leaves most blanks unfilled.
+
+QUOTA COSTS:
+    --search:         ~101 units per artist (search.list + channels.list)
+    --subscriptions:  ~15-20 units total for the full list
 
 REQUIRES OAuth — same token.json / client_secrets.json used by
 youtube_create_playlists.py. Run --auth-only once if not yet authenticated.
 
 USAGE:
-    # Preview all matches without writing anything (always do this first)
-    python3 youtube_subscriptions_to_artists.py --dry-run
 
-    # Auto-write high-confidence matches (score >= 0.8), print lower ones for review
-    python3 youtube_subscriptions_to_artists.py --write-high
+    # Always dry-run first
+    python3 youtube_subscriptions_to_artists.py --search --dry-run
+    python3 youtube_subscriptions_to_artists.py --search --limit 20 --dry-run
 
-    # Write all matches above the minimum threshold (review via git diff afterward)
-    python3 youtube_subscriptions_to_artists.py --write-all
+    # Apply, processing up to N artists per run (default: all blanks)
+    python3 youtube_subscriptions_to_artists.py --search --limit 10
+
+    # Legacy subscriptions mode
+    python3 youtube_subscriptions_to_artists.py --subscriptions --write-all
 
     # First-time auth only (opens browser, saves token.json)
     python3 youtube_subscriptions_to_artists.py --auth-only
 
 OUTPUT:
-    Prints a confidence-sorted table of all matches found.
-    With --write-high or --write-all, patches artists.tsv in-place and
-    prints every row it writes. Save progress is written after each update
-    so a mid-run interruption loses nothing.
+    Prints results for each artist searched: handle found, confidence, and
+    whether it was written. With --dry-run, nothing is written.
+    Save is written after each artist so a quota-interrupted run loses nothing.
 
-CONFIDENCE SCORES:
-    1.0   Exact normalized match (e.g. "Shawn James" == "Shawn James")
-    0.8+  Strong token overlap — auto-written with --write-high
-    0.55+ Partial match — printed for review, written with --write-all
-    <0.55 No match — ignored
+CONFIDENCE (--search mode):
+    1.0   Top result channel title exactly matches the artist name (normalized)
+    0.8+  Strong token overlap — written automatically
+    0.55+ Partial match — printed but skipped unless --write-low is also passed
+    <0.55 No confident match — skipped, printed for manual follow-up
 
-KNOWN LIMITATIONS:
-    - Only matches artists with a blank YouTube Channel in artists.tsv.
-      Artists already filled are always skipped (safe to re-run).
-    - Subscription channel names sometimes differ from artist names
-      (e.g. "Selwyn Birchwood - Official" vs "Selwyn Birchwood"). The
-      similarity matcher handles most of these but edge cases may need
-      manual follow-up.
-    - You must be subscribed to the channel for it to appear here.
+CONFIDENCE (--subscriptions mode):
+    Same thresholds, matched against your subscription list channel titles.
 
 ENVIRONMENT / FILES (same directory as this script):
     client_secrets.json  — OAuth client secret (gitignored, from Google Cloud)
@@ -61,7 +63,6 @@ ENVIRONMENT / FILES (same directory as this script):
 
 import argparse
 import csv
-import io
 import os
 import re
 import sys
@@ -89,23 +90,20 @@ except ImportError:
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(os.path.join(SCRIPT_DIR, ".env"))
 
-SCOPES          = ["https://www.googleapis.com/auth/youtube"]
-CLIENT_SECRETS  = os.environ.get("YOUTUBE_CLIENT_SECRETS", "client_secrets.json")
-TOKEN_FILE      = os.environ.get("YOUTUBE_TOKEN_FILE",     "token.json")
-ARTISTS_TSV     = os.path.join(SCRIPT_DIR, "artists.tsv")
+SCOPES         = ["https://www.googleapis.com/auth/youtube"]
+CLIENT_SECRETS = os.environ.get("YOUTUBE_CLIENT_SECRETS", "client_secrets.json")
+TOKEN_FILE     = os.environ.get("YOUTUBE_TOKEN_FILE",     "token.json")
+ARTISTS_TSV    = os.path.join(SCRIPT_DIR, "artists.tsv")
 
-# Similarity thresholds
-HIGH_THRESHOLD  = 0.8   # auto-write with --write-high
-MIN_THRESHOLD   = 0.55  # minimum to report at all
+HIGH_THRESHOLD = 0.8    # auto-write
+LOW_THRESHOLD  = 0.55   # report but skip unless --write-low
 
-# Politeness delay between API pages
-PAGE_DELAY = 0.3   # seconds
+PAGE_DELAY     = 0.3    # seconds between API calls
 
 
 # ── OAuth ─────────────────────────────────────────────────────────────────────
 
 def get_authenticated_service():
-    """Identical OAuth flow to youtube_create_playlists.py."""
     client_secrets_path = os.path.join(SCRIPT_DIR, CLIENT_SECRETS)
     token_path          = os.path.join(SCRIPT_DIR, TOKEN_FILE)
 
@@ -120,8 +118,7 @@ def get_authenticated_service():
             if not os.path.exists(client_secrets_path):
                 sys.exit(
                     f"OAuth credentials file not found: {client_secrets_path}\n"
-                    "Download from Google Cloud Console → Credentials → OAuth 2.0 Client IDs.\n"
-                    "See utils/HOWTO.md → \"YouTube API credentials\" for instructions."
+                    "Download from Google Cloud Console → Credentials → OAuth 2.0 Client IDs."
                 )
             flow = InstalledAppFlow.from_client_secrets_file(client_secrets_path, SCOPES)
             creds = flow.run_local_server(port=0)
@@ -140,96 +137,27 @@ def _norm(s: str) -> str:
     s = s.lower()
     s = re.sub(r"[^\w\s]", "", s)
     s = re.sub(r"^the\s+", "", s).strip()
-    # Strip common channel-name suffixes that don't appear in artist names
     s = re.sub(r"\s*(official|music|band|tv|channel|records|vevo)\s*$", "", s).strip()
     return s
 
 
 def _tokens(s: str) -> set:
-    """Meaningful (>2 char) tokens, dropping noise words."""
     NOISE = {"and", "the", "feat", "with", "live", "official", "music"}
     return {w for w in _norm(s).split() if len(w) > 2 and w not in NOISE}
 
 
 def similarity(a: str, b: str) -> float:
-    """Jaccard similarity on token sets, with exact-match bonus."""
     if _norm(a) == _norm(b):
         return 1.0
     wa, wb = _tokens(a), _tokens(b)
     if not wa or not wb:
         return 0.0
     jaccard = len(wa & wb) / len(wa | wb)
-    # Substring bonus: if the shorter normalised name is contained in the longer
     an, bn = _norm(a), _norm(b)
     shorter, longer = (an, bn) if len(an) <= len(bn) else (bn, an)
     if len(shorter) > 5 and shorter in longer:
         jaccard = max(jaccard, 0.75)
     return jaccard
-
-
-# ── YouTube API ───────────────────────────────────────────────────────────────
-
-def fetch_subscriptions(youtube) -> list[dict]:
-    """
-    Return all subscribed channels as list of:
-        {channel_id, title}
-    Uses subscriptions.list(mine=True), paginated.
-    Quota: 1 unit per page (50 subs/page).
-    """
-    subs = []
-    page_token = None
-    print("Fetching subscriptions...")
-
-    while True:
-        kwargs = dict(part="snippet", mine=True, maxResults=50)
-        if page_token:
-            kwargs["pageToken"] = page_token
-
-        resp = youtube.subscriptions().list(**kwargs).execute()
-        for item in resp.get("items", []):
-            subs.append({
-                "channel_id": item["snippet"]["resourceId"]["channelId"],
-                "title":      item["snippet"]["title"],
-            })
-
-        page_token = resp.get("nextPageToken")
-        print(f"  Fetched {len(subs)} subscriptions so far...")
-        if not page_token:
-            break
-        time.sleep(PAGE_DELAY)
-
-    print(f"Total subscriptions: {len(subs)}")
-    return subs
-
-
-def fetch_handles(youtube, channel_ids: list[str]) -> dict[str, str]:
-    """
-    Given a list of channel IDs, return {channel_id: @handle}.
-    Uses channels.list in batches of 50.
-    Quota: 1 unit per batch.
-    Falls back to https://www.youtube.com/channel/{id} if no customUrl.
-    """
-    handle_map = {}
-
-    for i in range(0, len(channel_ids), 50):
-        batch = channel_ids[i:i + 50]
-        resp = youtube.channels().list(
-            part="snippet",
-            id=",".join(batch),
-        ).execute()
-
-        for item in resp.get("items", []):
-            cid    = item["id"]
-            custom = item["snippet"].get("customUrl", "")
-            if custom:
-                handle = custom if custom.startswith("@") else f"@{custom}"
-            else:
-                handle = f"https://www.youtube.com/channel/{cid}"
-            handle_map[cid] = handle
-
-        time.sleep(PAGE_DELAY)
-
-    return handle_map
 
 
 # ── TSV helpers ───────────────────────────────────────────────────────────────
@@ -250,82 +178,221 @@ def save_artists(rows: list[dict], fieldnames: list[str]) -> None:
         w.writerows(rows)
 
 
-# ── Matching ──────────────────────────────────────────────────────────────────
+# ── Search mode ───────────────────────────────────────────────────────────────
 
-def match_subscriptions_to_artists(
-    subs: list[dict],
-    handle_map: dict[str, str],
+def search_handle_for_artist(youtube, artist_name: str) -> tuple[str, float, str]:
+    """
+    Search YouTube for the artist name and return (handle, score, channel_title).
+
+    Uses search.list(type=channel, q=artist_name, maxResults=5) — 100 quota units.
+    Then channels.list to resolve the @handle — 1 quota unit.
+
+    Scores the top 5 results by name similarity; picks the best.
+    Returns ("", 0.0, "") if no result exceeds LOW_THRESHOLD.
+    """
+    try:
+        resp = youtube.search().list(
+            part="snippet",
+            q=artist_name,
+            type="channel",
+            maxResults=5,
+        ).execute()
+    except Exception as e:
+        print(f"  ERROR searching for '{artist_name}': {e}")
+        return "", 0.0, ""
+
+    best_handle = ""
+    best_score  = 0.0
+    best_title  = ""
+
+    for item in resp.get("items", []):
+        channel_id    = item["snippet"]["channelId"]
+        channel_title = item["snippet"]["title"]
+        score         = similarity(artist_name, channel_title)
+
+        if score > best_score:
+            best_score = score
+            best_title = channel_title
+            # Resolve @handle
+            try:
+                ch_resp = youtube.channels().list(
+                    part="snippet",
+                    id=channel_id,
+                ).execute()
+                ch_items = ch_resp.get("items", [])
+                if ch_items:
+                    custom = ch_items[0]["snippet"].get("customUrl", "")
+                    if custom:
+                        best_handle = custom if custom.startswith("@") else f"@{custom}"
+                    else:
+                        best_handle = f"https://www.youtube.com/channel/{channel_id}"
+                else:
+                    best_handle = f"https://www.youtube.com/channel/{channel_id}"
+            except Exception:
+                best_handle = f"https://www.youtube.com/channel/{channel_id}"
+
+    if best_score >= LOW_THRESHOLD:
+        return best_handle, best_score, best_title
+    return "", 0.0, ""
+
+
+def run_search_mode(
+    youtube,
     artists: list[dict],
-) -> list[dict]:
-    """
-    For each artist with a blank YouTube Channel, find the best-matching
-    subscription channel by name similarity.
-
-    Returns a list of match dicts sorted by score descending:
-        {artist, channel_title, handle, score, row_idx}
-    """
-    # Only consider artists with blank YouTube Channel
-    candidates = [
+    fieldnames: list[str],
+    limit: int | None,
+    dry_run: bool,
+    write_low: bool,
+) -> None:
+    blanks = [
         (i, row) for i, row in enumerate(artists)
         if not row.get("YouTube Channel", "").strip()
     ]
 
+    if not blanks:
+        print("No blank YouTube Channel entries found — nothing to do.")
+        return
+
+    total      = len(blanks)
+    to_process = blanks[:limit] if limit else blanks
+    print(f"{total} blank entries total. Processing {len(to_process)}"
+          + (f" (--limit {limit})" if limit else "") + ".\n")
+
+    write_threshold = LOW_THRESHOLD if write_low else HIGH_THRESHOLD
+    written      = 0
+    skipped_low  = []
+    skipped_none = []
+
+    for idx, (row_idx, row) in enumerate(to_process, 1):
+        artist_name = row["Artist"]
+        print(f"[{idx}/{len(to_process)}] {artist_name}")
+
+        handle, score, channel_title = search_handle_for_artist(youtube, artist_name)
+        time.sleep(PAGE_DELAY)
+
+        if not handle:
+            print(f"  → No confident match found\n")
+            skipped_none.append(artist_name)
+            continue
+
+        flag = "✓" if score >= HIGH_THRESHOLD else "?"
+        print(f"  → {handle}  ({channel_title})  score {score:.2f} {flag}")
+
+        if score < write_threshold:
+            print(f"  → Skipping (below write threshold {write_threshold:.2f}) — check manually\n")
+            skipped_low.append((artist_name, handle, score, channel_title))
+            continue
+
+        if dry_run:
+            print(f"  → [dry-run] would write\n")
+            written += 1
+        else:
+            artists[row_idx]["YouTube Channel"] = handle
+            save_artists(artists, fieldnames)
+            print(f"  → Written\n")
+            written += 1
+
+    # Summary
+    print("=" * 60)
+    print(f"{'[DRY RUN] ' if dry_run else ''}Results: "
+          f"{written} written, "
+          f"{len(skipped_low)} low-confidence skipped, "
+          f"{len(skipped_none)} no match.")
+
+    if skipped_low:
+        print(f"\nLow-confidence matches — review and add manually if correct:")
+        for name, handle, score, title in skipped_low:
+            print(f"  {score:.2f}  {name:<40}  {handle}  ({title})")
+
+    if skipped_none:
+        print(f"\nNo match found — may need manual YouTube search:")
+        for name in skipped_none:
+            print(f"  {name}")
+
+    remaining = total - written if not dry_run else total
+    if limit and remaining > 0:
+        print(f"\n{remaining} blank entries remain. Run again to continue.")
+
+    if not dry_run and written:
+        print("\nReview changes with: git diff live-shows/artists.tsv")
+
+
+# ── Subscriptions mode (legacy) ───────────────────────────────────────────────
+
+def fetch_subscriptions(youtube) -> list[dict]:
+    subs = []
+    page_token = None
+    print("Fetching subscriptions...")
+    while True:
+        kwargs = dict(part="snippet", mine=True, maxResults=50)
+        if page_token:
+            kwargs["pageToken"] = page_token
+        resp = youtube.subscriptions().list(**kwargs).execute()
+        for item in resp.get("items", []):
+            subs.append({
+                "channel_id": item["snippet"]["resourceId"]["channelId"],
+                "title":      item["snippet"]["title"],
+            })
+        page_token = resp.get("nextPageToken")
+        print(f"  Fetched {len(subs)} subscriptions so far...")
+        if not page_token:
+            break
+        time.sleep(PAGE_DELAY)
+    print(f"Total subscriptions: {len(subs)}")
+    return subs
+
+
+def fetch_handles(youtube, channel_ids: list[str]) -> dict[str, str]:
+    handle_map = {}
+    for i in range(0, len(channel_ids), 50):
+        batch = channel_ids[i:i + 50]
+        resp = youtube.channels().list(part="snippet", id=",".join(batch)).execute()
+        for item in resp.get("items", []):
+            cid    = item["id"]
+            custom = item["snippet"].get("customUrl", "")
+            handle = custom if custom.startswith("@") else f"@{custom}" if custom else f"https://www.youtube.com/channel/{cid}"
+            handle_map[cid] = handle
+        time.sleep(PAGE_DELAY)
+    return handle_map
+
+
+def match_subscriptions_to_artists(subs, handle_map, artists):
+    candidates = [(i, row) for i, row in enumerate(artists)
+                  if not row.get("YouTube Channel", "").strip()]
     matches = []
     for i, row in candidates:
         artist_name = row["Artist"]
-        best_score  = 0.0
-        best_sub    = None
-
+        best_score, best_sub = 0.0, None
         for sub in subs:
             score = similarity(artist_name, sub["title"])
             if score > best_score:
-                best_score = score
-                best_sub   = sub
-
-        if best_sub and best_score >= MIN_THRESHOLD:
-            handle = handle_map.get(best_sub["channel_id"], "")
+                best_score, best_sub = score, sub
+        if best_sub and best_score >= LOW_THRESHOLD:
             matches.append({
                 "artist":        artist_name,
                 "channel_title": best_sub["title"],
-                "handle":        handle,
+                "handle":        handle_map.get(best_sub["channel_id"], ""),
                 "score":         best_score,
                 "row_idx":       i,
             })
-
     matches.sort(key=lambda m: -m["score"])
     return matches
 
 
-# ── Output & writing ──────────────────────────────────────────────────────────
-
-def print_matches(matches: list[dict], high_threshold: float) -> None:
+def print_matches(matches, high_threshold):
     if not matches:
         print("No matches found above minimum threshold.")
         return
-
     print(f"\n{'Score':>6}  {'Artist':<40}  {'Subscribed Channel':<40}  Handle")
     print("-" * 120)
     for m in matches:
         flag = "✓" if m["score"] >= high_threshold else "?"
-        print(
-            f"  {m['score']:.2f} {flag}  "
-            f"{m['artist']:<40}  "
-            f"{m['channel_title']:<40}  "
-            f"{m['handle']}"
-        )
-    auto  = sum(1 for m in matches if m["score"] >= high_threshold)
-    print(f"\n{auto} high-confidence (≥{high_threshold}), "
-          f"{len(matches) - auto} lower-confidence matches found.")
+        print(f"  {m['score']:.2f} {flag}  {m['artist']:<40}  {m['channel_title']:<40}  {m['handle']}")
+    auto = sum(1 for m in matches if m["score"] >= high_threshold)
+    print(f"\n{auto} high-confidence (≥{high_threshold}), {len(matches)-auto} lower-confidence matches found.")
 
 
-def apply_matches(
-    matches: list[dict],
-    artists: list[dict],
-    fieldnames: list[str],
-    min_score: float,
-    dry_run: bool,
-) -> int:
-    """Write matching handles into artists rows. Returns count written."""
+def apply_matches(matches, artists, fieldnames, min_score, dry_run):
     written = 0
     for m in matches:
         if m["score"] < min_score:
@@ -333,22 +400,47 @@ def apply_matches(
         if not m["handle"]:
             print(f"  SKIP (no handle resolved): {m['artist']}")
             continue
-
         row = artists[m["row_idx"]]
         if row.get("YouTube Channel", "").strip():
-            # Already filled between fetch and write (shouldn't happen but be safe)
             print(f"  SKIP (already filled): {m['artist']} -> {row['YouTube Channel']}")
             continue
-
         if dry_run:
             print(f"  [dry-run] would write: {m['artist']} -> {m['handle']}")
         else:
             row["YouTube Channel"] = m["handle"]
-            save_artists(artists, fieldnames)   # save after every write
+            save_artists(artists, fieldnames)
             print(f"  Written: {m['artist']} -> {m['handle']}")
         written += 1
-
     return written
+
+
+def run_subscriptions_mode(youtube, artists, fieldnames, write_high, write_all, dry_run):
+    subs = fetch_subscriptions(youtube)
+    if not subs:
+        print("No subscriptions found — nothing to match.")
+        return
+    print(f"\nResolving @handles for {len(subs)} channels...")
+    handle_map = fetch_handles(youtube, [s["channel_id"] for s in subs])
+    print(f"Resolved {len(handle_map)} handles.")
+    blank_count = sum(1 for r in artists if not r.get("YouTube Channel", "").strip())
+    print(f"\nLoaded {len(artists)} artists, {blank_count} with blank YouTube Channel.\n")
+    matches = match_subscriptions_to_artists(subs, handle_map, artists)
+    print_matches(matches, HIGH_THRESHOLD)
+    if dry_run:
+        print("\n[dry-run] No changes written.")
+        return
+    write_threshold = HIGH_THRESHOLD if write_high else LOW_THRESHOLD
+    label = "high-confidence" if write_high else "all"
+    print(f"\nWriting {label} matches (score >= {write_threshold})...")
+    written = apply_matches(matches, artists, fieldnames, min_score=write_threshold, dry_run=False)
+    print(f"\n{written} handle(s) written to artists.tsv.")
+    if write_high:
+        lower = [m for m in matches if m["score"] < HIGH_THRESHOLD]
+        if lower:
+            print(f"\n{len(lower)} lower-confidence match(es) not auto-written:")
+            for m in lower:
+                print(f"  {m['score']:.2f}  {m['artist']:<40}  {m['handle']}")
+    print("\nReview changes with: git diff live-shows/artists.tsv")
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
@@ -359,36 +451,36 @@ def main() -> None:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 
-    mode = parser.add_mutually_exclusive_group()
+    mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument(
-        "--dry-run", action="store_true",
-        help="Print all matches with confidence scores without writing anything. "
-             "Always do this first.",
+        "--search", action="store_true",
+        help="Search YouTube by artist name to find handles. Works without subscription. "
+             "~101 quota units per artist — use --limit to control spend.",
     )
     mode.add_argument(
-        "--write-high", action="store_true",
-        help=f"Auto-write matches with score >= {HIGH_THRESHOLD}. "
-             "Print lower-confidence matches for manual review.",
-    )
-    mode.add_argument(
-        "--write-all", action="store_true",
-        help=f"Write all matches with score >= {MIN_THRESHOLD}. "
-             "Review changes with: git diff live-shows/artists.tsv",
+        "--subscriptions", action="store_true",
+        help="Match against your subscriptions list (legacy — only finds artists "
+             "you're already subscribed to).",
     )
     mode.add_argument(
         "--auth-only", action="store_true",
         help="Authenticate and save token.json, then exit.",
     )
 
+    parser.add_argument("--dry-run", action="store_true",
+                        help="Print what would be written without writing anything.")
+    parser.add_argument("--limit", type=int, metavar="N",
+                        help="(--search only) Process at most N blank artists per run.")
+    parser.add_argument("--write-low", action="store_true",
+                        help="(--search only) Also write low-confidence matches (score >= 0.55). "
+                             "Default: only write high-confidence (score >= 0.8).")
+    parser.add_argument("--write-high", action="store_true",
+                        help="(--subscriptions only) Write high-confidence matches only.")
+    parser.add_argument("--write-all", action="store_true",
+                        help="(--subscriptions only) Write all matches above minimum threshold.")
+
     args = parser.parse_args()
 
-    # Default to --dry-run if no mode specified
-    if not any([args.dry_run, args.write_high, args.write_all, args.auth_only]):
-        print("No mode specified — defaulting to --dry-run. "
-              "Use --write-high or --write-all to apply changes.\n")
-        args.dry_run = True
-
-    # Auth
     print("Authenticating with YouTube...")
     youtube = get_authenticated_service()
     print("Authenticated.")
@@ -397,48 +489,22 @@ def main() -> None:
         print("Auth complete. token.json saved.")
         return
 
-    # Fetch subscriptions
-    subs = fetch_subscriptions(youtube)
-    if not subs:
-        print("No subscriptions found — nothing to match.")
-        return
-
-    # Resolve @handles for all subscribed channels in batches
-    print(f"\nResolving @handles for {len(subs)} channels...")
-    channel_ids = [s["channel_id"] for s in subs]
-    handle_map  = fetch_handles(youtube, channel_ids)
-    print(f"Resolved {len(handle_map)} handles.")
-
-    # Load artists.tsv
     artists, fieldnames = load_artists()
-    blank_count = sum(1 for r in artists if not r.get("YouTube Channel", "").strip())
-    print(f"\nLoaded {len(artists)} artists, {blank_count} with blank YouTube Channel.\n")
 
-    # Match
-    matches = match_subscriptions_to_artists(subs, handle_map, artists)
-    print_matches(matches, HIGH_THRESHOLD)
-
-    # Apply
-    if args.dry_run:
-        print("\n[dry-run] No changes written.")
-        return
-
-    write_threshold = HIGH_THRESHOLD if args.write_high else MIN_THRESHOLD
-    label = "high-confidence" if args.write_high else "all"
-    print(f"\nWriting {label} matches (score >= {write_threshold})...")
-    written = apply_matches(matches, artists, fieldnames,
-                            min_score=write_threshold, dry_run=False)
-    print(f"\n{written} handle(s) written to artists.tsv.")
-
-    if args.write_high:
-        lower = [m for m in matches if m["score"] < HIGH_THRESHOLD]
-        if lower:
-            print(f"\n{len(lower)} lower-confidence match(es) not auto-written "
-                  "(review above and add manually if correct):")
-            for m in lower:
-                print(f"  {m['score']:.2f}  {m['artist']:<40}  {m['handle']}")
-
-    print("\nReview changes with: git diff live-shows/artists.tsv")
+    if args.search:
+        run_search_mode(
+            youtube, artists, fieldnames,
+            limit=args.limit,
+            dry_run=args.dry_run,
+            write_low=args.write_low,
+        )
+    elif args.subscriptions:
+        run_subscriptions_mode(
+            youtube, artists, fieldnames,
+            write_high=args.write_high,
+            write_all=args.write_all,
+            dry_run=args.dry_run,
+        )
 
 
 if __name__ == "__main__":
