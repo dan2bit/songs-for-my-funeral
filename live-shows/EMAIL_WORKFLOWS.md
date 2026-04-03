@@ -30,7 +30,7 @@ artist pre-sale codes, and new music releases.
 
 **What I cannot do:** I can read labels and search by them, but I cannot apply, remove,
 or create labels, mark emails as read, or create Gmail filters. All label management
-is manual.
+is manual. I can compose draft emails but cannot send them — sending is always manual.
 
 **Search patterns used by each routine:**
 
@@ -40,6 +40,36 @@ is manual.
 | 2 — Post-show notes | `from:dan2bit subject:[artist] notes -label:processed` |
 | 3 — On-sale alert | `label:ticket-alert -label:processed` |
 | 4 — Artist newsletter | `label:artist-mail -label:processed` |
+
+---
+
+## Draft Activity Log
+
+At the end of every routine, I create a draft email in the redhat.bootlegs inbox
+as a persistent log of what was processed and what actions were taken. This gives
+you a searchable history in Gmail alongside the source emails.
+
+**Subject format:** `[LOG] Routine N — [brief descriptor] — YYYY-MM-DD`
+Examples:
+- `[LOG] Routine 1 — Lone Bellow ticket — 2026-04-03`
+- `[LOG] Routine 3 — Birchmere newsletter — 2026-04-03`
+- `[LOG] Routine 4 — Larkin Poe newsletter — 2026-04-03`
+
+**Draft body includes:**
+- Which email(s) were processed (sender, subject, date)
+- Every action taken: calendar events created or updated, TSV rows added,
+  on-sale reminders created, recommendations made
+- For Routine 3/4 recommendations: tier (Strong/Medium/Low), show date, venue,
+  calendar availability result, and ticket link
+- Any skipped items and why (date conflict, below threshold, no setlist URL, etc.)
+- Any manual follow-up items (label to apply, hat autograph gdoc update, etc.)
+
+**One draft per routine invocation.** If Routines 3 and 4 both run in the same
+conversation, two separate drafts are created. Draft creation is non-blocking —
+if it fails, the summary stays in conversation and we move on.
+
+**Searching the log:** Use `subject:[LOG]` in Gmail to find all log drafts.
+Use `subject:[LOG] Routine 3` to find on-sale processing history, etc.
 
 ---
 
@@ -193,6 +223,15 @@ Artist Interaction | Playlist URL | Notes / Memories
 **If the commit fails:** present the full updated `live_shows_2026.tsv` in the
 conversation for download and manual check-in.
 
+**Step 6 — Create activity log draft**
+
+Create a draft in the redhat.bootlegs inbox with:
+- Subject: `[LOG] Routine 1 — [Artist] ticket — YYYY-MM-DD`
+- Body summarising: email found (sender, subject, date), ticket details parsed,
+  autograph book check result, calendar event created (title, date, time, any
+  book reminder or merch note), TSV row committed or presented for manual check-in,
+  any notable decisions or caveats
+
 **Final step:** Remind you to apply the `processed` label to the email.
 
 ---
@@ -266,6 +305,14 @@ PR description summarises what changed so you can review the diff before merging
 
 **If the PR creation fails:** present each changed file in the conversation for
 download and manual check-in.
+
+**Step 5 — Create activity log draft**
+
+Create a draft in the redhat.bootlegs inbox with:
+- Subject: `[LOG] Routine 2 — [Artist] post-show — YYYY-MM-DD`
+- Body summarising: email found, spending recorded, calendar event updated,
+  autograph records updated (if applicable), PR opened (branch name and what
+  files changed), any manual follow-up items (hat autograph gdoc, `processed` label)
 
 **Final step:** Remind you to apply the `processed` label to the email.
 
@@ -385,6 +432,17 @@ Reminders:
 **No TSV row is created** — that comes when the ticket is actually purchased
 and processed via Routine 1.
 
+**Step 4 — Create activity log draft**
+
+Create a draft in the redhat.bootlegs inbox with:
+- Subject: `[LOG] Routine 3 — [source newsletter/venue] — YYYY-MM-DD`
+- Body summarising: email source and date, every artist evaluated with their
+  tier classification and calendar availability result, all recommendations
+  made (artist, date, venue, ticket link), all on-sale reminder events created
+  (artist, on-sale time, calendar event title), items skipped and why
+  (date conflict, below threshold, already have tickets, etc.),
+  any re-subscription links surfaced
+
 **Final step:** Remind you to apply the `processed` label to the email.
 
 ---
@@ -469,6 +527,17 @@ For each email, look for three things:
 For any DC/MD/VA show recommendation, check `autograph_books_combined.tsv` and
 include the book reminder in the recommendation exactly as in Routine 1.
 
+**Step 4 — Create activity log draft**
+
+Create a draft in the redhat.bootlegs inbox with:
+- Subject: `[LOG] Routine 4 — [Artist] newsletter — YYYY-MM-DD`
+- Body summarising: email source and date, tour announcements found (artist,
+  date, venue, calendar availability, recommendation or skip reason),
+  pre-sale codes surfaced (artist, code, show date if known),
+  new music releases noted (title, format, release date),
+  on-sale reminder events created (artist, on-sale time, calendar event title),
+  any manual follow-up items
+
 **Final step:** Remind you to apply the `processed` label to each email processed.
 
 ---
@@ -479,6 +548,10 @@ include the book reminder in the recommendation exactly as in Routine 1.
 routines by telling me "there's a ticket email", "I just sent my post-show notes",
 "there's an on-sale alert", or "process my artist mail" in a new project conversation.
 I'll search the inbox and take it from there.
+
+**Draft log searching.** Use `subject:[LOG]` in Gmail to find all activity log drafts.
+Refine with `subject:[LOG] Routine 3` for on-sale history, `subject:[LOG] Routine 2`
+for post-show history, etc.
 
 **Hat autograph gdoc is the completeness authority.** The Google Doc at the link
 above is more carefully maintained for hat autographs than the TSV files. If there
