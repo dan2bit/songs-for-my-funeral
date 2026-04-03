@@ -222,11 +222,20 @@ def fetch_new_videos(youtube, uploads_playlist_id: str,
     """
     Fetch videos from the uploads playlist newer than cutoff.
 
+    Two-pass approach:
+      Pass 1 — collect video IDs, titles, and published dates from
+               playlistItems. Note: playlistItems snippets return the
+               playlist-level description (always blank), NOT the video's
+               own description — so we do NOT read description here.
+      Pass 2 — batch-fetch real descriptions and durations via videos().list()
+               in groups of 50.
+
     The uploads playlist is returned newest-first, so we stop paginating as
     soon as we hit an item older than the cutoff — no need to scan everything.
-    Without a cutoff (full fetch), all pages are retrieved as before.
+    Without a cutoff (full fetch), all pages are retrieved.
     """
-    videos = []
+    # Pass 1: collect IDs / titles / dates from playlistItems
+    candidates = []
     page_token = None
     done = False
 
@@ -248,38 +257,48 @@ def fetch_new_videos(youtube, uploads_playlist_id: str,
                 done = True
                 break
 
-            videos.append({
-                "video_id":    video_id,
-                "title":       snippet.get("title", ""),
-                "published":   pub[:10],
-                "description": snippet.get("description", "").replace("\n", " ")[:200],
-                "url":         f"https://www.youtube.com/watch?v={video_id}",
+            candidates.append({
+                "video_id":  video_id,
+                "title":     snippet.get("title", ""),
+                "published": pub[:10],
+                "url":       f"https://www.youtube.com/watch?v={video_id}",
             })
 
         page_token = resp.get("nextPageToken")
         if not page_token:
             break
         if not done:
-            print(f"  Fetched {len(videos)} new videos so far...")
+            print(f"  Fetched {len(candidates)} new videos so far...")
 
-    return videos
+    if not candidates:
+        return []
 
-
-def enrich_videos_with_duration(youtube, videos: list[dict]) -> list[dict]:
-    """Batch-fetch durations for a list of videos (50 per API call)."""
-    enriched = []
-    for i in range(0, len(videos), 50):
-        batch = videos[i:i + 50]
+    # Pass 2: batch-fetch real descriptions and durations via videos().list()
+    videos = []
+    for i in range(0, len(candidates), 50):
+        batch = candidates[i:i + 50]
         ids   = ",".join(v["video_id"] for v in batch)
-        resp  = youtube.videos().list(part="contentDetails", id=ids).execute()
-        dur_map = {
-            item["id"]: parse_duration(item["contentDetails"]["duration"])
-            for item in resp.get("items", [])
+        resp  = youtube.videos().list(
+            part="snippet,contentDetails",
+            id=ids,
+        ).execute()
+        detail_map = {
+            item["id"]: item for item in resp.get("items", [])
         }
         for v in batch:
-            v["duration"] = dur_map.get(v["video_id"], "")
-            enriched.append(v)
-    return enriched
+            detail  = detail_map.get(v["video_id"], {})
+            snippet = detail.get("snippet", {})
+            content = detail.get("contentDetails", {})
+            videos.append({
+                "video_id":    v["video_id"],
+                "title":       v["title"],
+                "published":   v["published"],
+                "url":         v["url"],
+                "description": snippet.get("description", "").replace("\n", " ")[:200],
+                "duration":    parse_duration(content.get("duration", "")),
+            })
+
+    return videos
 
 
 def parse_duration(iso_duration: str) -> str:
@@ -396,8 +415,6 @@ def main():
     print(f"Found {len(new_videos)} video(s) in fetch window.")
 
     if new_videos:
-        print("Fetching durations for videos...")
-        new_videos = enrich_videos_with_duration(youtube, new_videos)
         merged_videos, added, overwritten = merge_rows(
             existing_videos, new_videos, "video_id", force_since=force_since
         )
