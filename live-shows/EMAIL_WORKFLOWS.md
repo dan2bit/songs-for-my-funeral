@@ -325,6 +325,8 @@ included in the PR — never committed separately.
 - Increment `Times Seen` by 1
 - Update `Most Recent Seen` to the show date
 - `First Seen` only changes if this show predates the current value (rare)
+- **If the ticket was a VIP package:** also increment `VIP Count` by 1 for the
+  headliner. The `VIP Count` column is numeric — blank means zero, never use `Y`.
 
 **For each named supporting act listed in the show's `Supporting Artist` field:**
 
