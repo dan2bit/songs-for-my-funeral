@@ -458,7 +458,7 @@ Create a draft in the redhat.bootlegs inbox with:
 **Trigger:** An email from an artist mailing list subscription arrives in the
 redhat.bootlegs inbox tagged `artist-mail`.
 
-### Subscribed artists (as of 2026-03-30)
+### Subscribed artists (as of 2026-04-05)
 
 | Artist | Notes |
 |--------|-------|
@@ -467,6 +467,7 @@ redhat.bootlegs inbox tagged `artist-mail`.
 | Albert Castiglia | |
 | Buffalo Nichols | |
 | Bywater Call | |
+| Christone 'Kingfish' Ingram | |
 | Daniel Donato | |
 | Ghalia Volt | |
 | Jackie Venson | |
@@ -608,4 +609,4 @@ each subscription is set up.
   BIT sends email alerts for followed artists directly to the registered account email,
   making redhat.bootlegs the correct home for this. ~120 artists per the worklist.
 
-**Artist newsletters** — see Routine 4 subscriber list above. ✅ Complete as of 2026-03-30.
+**Artist newsletters** — see Routine 4 subscriber list above. ✅ Complete as of 2026-04-05.
