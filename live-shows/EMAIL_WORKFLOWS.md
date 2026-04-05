@@ -174,7 +174,11 @@ Look up the headliner in `autograph_books_combined.tsv`
 
 Calendar: `redhat.bootlegs@gmail.com` — Dan Concert Calendar
 
-Event title format: `[Artist]` (add `(VIP)` if VIP ticket)
+Event title format: `[Artist]` with ticket count and type suffix:
+- Electronic/mobile ticket: `[Artist] (N)` — e.g. `Orianthi (1)`, `Sarah McLachlan (2)`
+- Paper ticket (only if explicitly stated in the email): `[Artist] (N PAPER)` — e.g. `Gary Clark Jr. (1 PAPER)`
+- VIP ticket: append `(VIP)` after the count suffix — e.g. `The Lone Bellow (1 VIP)`
+- Single electronic ticket with no other suffixes: omit the `(1)` for clean titles — only add the count when N > 1 or when PAPER or VIP applies
 
 Description format:
 ```
