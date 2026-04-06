@@ -12,7 +12,7 @@ list of suggested subscriptions at the bottom of this file.
 
 ## Gmail Label System
 
-Three labels are in use on the redhat.bootlegs inbox:
+Four labels are in use on the redhat.bootlegs inbox:
 
 **`processed`** — Applied manually by you after any email workflow completes. I always
 include `-label:processed` in my search queries so previously handled emails are never
@@ -28,6 +28,11 @@ newsletter subscriptions. Routine 4 searches `label:artist-mail -label:processed
 to find unprocessed artist mail. The primary things to mine are: tour announcements,
 artist pre-sale codes, and new music releases.
 
+**`artist-follow`** — Applied manually (or via Gmail filter) to emails that are
+either service notifications about a followed artist (e.g. Bandsintown "new show"
+alerts) or responses from a direct artist mailing list signup (welcome emails,
+confirmation messages). Routine 5 searches `label:artist-follow -label:processed`.
+
 **What I cannot do:** I can read labels and search by them, but I cannot apply, remove,
 or create labels, mark emails as read, or create Gmail filters. All label management
 is manual. I can compose draft emails but cannot send them — sending is always manual.
@@ -40,6 +45,7 @@ is manual. I can compose draft emails but cannot send them — sending is always
 | 2 — Post-show notes | `from:dan2bit subject:[artist] notes -label:processed` |
 | 3 — On-sale alert | `label:ticket-alert -label:processed` |
 | 4 — Artist newsletter | `label:artist-mail -label:processed` |
+| 5 — Artist follow / signup | `label:artist-follow -label:processed` |
 
 ---
 
@@ -54,6 +60,7 @@ Examples:
 - `[LOG] Routine 1 — Lone Bellow ticket — 2026-04-03`
 - `[LOG] Routine 3 — Birchmere newsletter — 2026-04-03`
 - `[LOG] Routine 4 — Larkin Poe newsletter — 2026-04-03`
+- `[LOG] Routine 5 — Joey Landreth BIT follow — 2026-04-06`
 
 **Draft body includes:**
 - Which email(s) were processed (sender, subject, date)
@@ -403,12 +410,23 @@ $35.50 IMP gift card credit available, redeemable in person at any IMP box offic
 enough that the gift card can cover them outright, making this a "take a chance"
 budget for supporting the local DC scene.
 
-**Step 2 — Check autograph books**
+**Step 2 — Check against `live_shows_potential.tsv`**
+
+Before presenting any recommendation, look up the artist in `live_shows_potential.tsv`.
+If the show is already in the file:
+- **Decision = Pass** — skip silently; no recommendation needed
+- **Decision = Buy** — remind Dan to complete the purchase
+- **Decision blank** — present as a normal recommendation
+
+If the show is new and meets the Strong/Medium threshold, present it for approval
+before adding a row to `live_shows_potential.tsv`. Do not add rows without approval.
+
+**Step 3 — Check autograph books**
 
 Same lookup as Routine 1 — note book reminder in any recommendation or calendar
 event description.
 
-**Step 3 — Create on-sale reminder event (Case B only)**
+**Step 4 — Create on-sale reminder event (Case B only)**
 
 Calendar: `redhat.bootlegs@gmail.com` — Dan Concert Calendar
 
@@ -438,7 +456,7 @@ Reminders:
 **No TSV row is created** — that comes when the ticket is actually purchased
 and processed via Routine 1.
 
-**Step 4 — Create activity log draft**
+**Step 5 — Create activity log draft**
 
 Create a draft in the redhat.bootlegs inbox with:
 - Subject: `[LOG] Routine 3 — [source newsletter/venue] — YYYY-MM-DD`
@@ -446,7 +464,7 @@ Create a draft in the redhat.bootlegs inbox with:
   tier classification and calendar availability result, all recommendations
   made (artist, date, venue, ticket link), all on-sale reminder events created
   (artist, on-sale time, calendar event title), items skipped and why
-  (date conflict, below threshold, already have tickets, etc.),
+  (date conflict, below threshold, already have tickets, Pass decision, etc.),
   any re-subscription links surfaced
 
 **Final step:** Remind you to apply the `processed` label to the email.
@@ -458,34 +476,39 @@ Create a draft in the redhat.bootlegs inbox with:
 **Trigger:** An email from an artist mailing list subscription arrives in the
 redhat.bootlegs inbox tagged `artist-mail`.
 
-### Subscribed artists (as of 2026-04-05)
+### Subscribed artists
 
-| Artist | Notes |
-|--------|-------|
-| Allison Russell | |
-| Amythyst Kiah | |
-| Albert Castiglia | |
-| Buffalo Nichols | |
-| Bywater Call | |
-| Christone 'Kingfish' Ingram | |
-| Daniel Donato | |
-| Ghalia Volt | |
-| Jackie Venson | |
-| Judith Hill | |
-| Larkin Poe | |
-| Lone Bellow, The | |
-| Mike Zito | |
-| Robert Randolph | |
-| Ruthie Foster | |
-| Samantha Fish | |
-| Shemekia Copeland | |
-| Southern Avenue | |
-| Sue Foley | |
-| Taj Farrant | |
-| Tal Wilkenfeld | |
-| Trombone Shorty & Orleans Avenue | |
-| Vanessa Collier | |
-| War and Treaty, The | |
+The canonical source of truth for direct mailing list subscriptions is the
+`Direct Mail` column in `live-shows/follows/follows_master.tsv` (Y = subscribed).
+
+For quick reference, as of 2026-04-06:
+
+| Artist |
+|--------|
+| Albert Castiglia |
+| Allison Russell |
+| Amythyst Kiah |
+| Buffalo Nichols |
+| Bywater Call |
+| Christone 'Kingfish' Ingram |
+| Daniel Donato |
+| Ghalia Volt |
+| Jackie Venson |
+| Judith Hill |
+| Larkin Poe |
+| The Lone Bellow |
+| Mike Zito |
+| Robert Randolph |
+| Ruthie Foster |
+| Samantha Fish |
+| Shemekia Copeland |
+| Southern Avenue |
+| Sue Foley |
+| Taj Farrant |
+| Tal Wilkenfeld |
+| Trombone Shorty & Orleans Avenue |
+| Vanessa Collier |
+| The War and Treaty |
 
 **Not subscribed — known reasons:**
 - Enter the Haggis — defunct; follow Haggis X-1 and House of Hamill instead
@@ -517,7 +540,7 @@ For each email, look for three things:
 - If open date + Strong tier artist + DC/MD/VA venue: present as a buy recommendation
   with the ticket link
 - If specific on-sale time is given: create a `🎟 ON SALE:` calendar event exactly
-  as in Routine 3 Step 3
+  as in Routine 3 Step 4
 
 **Pre-sale codes:**
 - If a pre-sale code is included for a show on an open date: create a `🎟 ON SALE:`
@@ -544,6 +567,76 @@ Create a draft in the redhat.bootlegs inbox with:
   new music releases noted (title, format, release date),
   on-sale reminder events created (artist, on-sale time, calendar event title),
   any manual follow-up items
+
+**Final step:** Remind you to apply the `processed` label to each email processed.
+
+---
+
+## Routine 5 — Artist Follow / Signup Email
+
+**Trigger:** An email tagged `artist-follow` arrives in the redhat.bootlegs inbox.
+This label covers two source types:
+
+1. **Service notification** — a Bandsintown, Songkick, Seated, or similar
+   "new show alert" or "artist added" email for a followed artist
+2. **Direct signup response** — a welcome email, confirmation, or first newsletter
+   from an artist mailing list you just signed up for
+
+### What I do
+
+**Step 1 — Find and read the emails**
+
+Search `label:artist-follow -label:processed`, read each unprocessed email.
+Identify the artist and the type (service notification vs. direct signup response).
+
+**Step 2 — Check `follows_master.tsv`**
+
+Look up the artist in `live-shows/follows/follows_master.tsv`:
+
+- **Artist not present at all** — add a new row. Tier defaults to Medium unless
+  there's clear reason for Strong (seen before) or Lower. For service notifications,
+  also check the relevant service list (e.g. `rhbl-bandsintown.tsv`) and add there
+  too if missing. Present proposed row(s) in conversation for approval before committing.
+
+- **Artist present, service not marked** — if this is a service notification from
+  a service (BIT, Songkick, Seated) that isn't already marked Y in the artist's row,
+  note the discrepancy and ask whether to update the file.
+
+- **Artist present, `Direct Mail` not Y** — if this is a direct signup response,
+  set `Direct Mail` to Y and commit. Ask in conversation first if it seems like
+  a new signup rather than a known subscription.
+
+- **Artist present, all columns correct** — no file change needed; just process
+  the content.
+
+**Step 3 — Recommend follow coverage**
+
+After confirming the artist's `follows_master.tsv` status, assess whether their
+follow coverage is complete and make recommendations in conversation:
+
+- **Missing a service (BIT, Songkick, Seated)** — recommend adding, especially
+  for Strong/Medium tier. Note which services the artist is likely to be found on.
+- **`Direct Mail` is blank** — for Strong tier artists, recommend signing up for
+  their mailing list if one exists. For Medium, flag as worth considering.
+- **Coverage looks complete** — confirm in conversation; no action needed.
+
+Do not automatically add the artist to additional services — present the recommendation
+and let Dan confirm before making any file changes.
+
+**Step 4 — Process any show content**
+
+If the email contains a show announcement or pre-sale code, handle it exactly as
+Routine 4 Step 2 would — calendar check, autograph book lookup, buy recommendation
+or on-sale reminder event as appropriate.
+
+**Step 5 — Create activity log draft**
+
+Create a draft in the redhat.bootlegs inbox with:
+- Subject: `[LOG] Routine 5 — [Artist] [BIT/Songkick/signup/etc.] — YYYY-MM-DD`
+- Body summarising: email source and type, follows_master.tsv status found,
+  any file changes made or proposed, follow coverage recommendations,
+  any show content processed (date, venue, action taken),
+  manual follow-up items
 
 **Final step:** Remind you to apply the `processed` label to each email processed.
 
@@ -609,4 +702,5 @@ each subscription is set up.
   BIT sends email alerts for followed artists directly to the registered account email,
   making redhat.bootlegs the correct home for this. ~120 artists per the worklist.
 
-**Artist newsletters** — see Routine 4 subscriber list above. ✅ Complete as of 2026-04-05.
+**Artist newsletters** — see `Direct Mail` column in `follows_master.tsv` for the
+complete subscribed list. Routine 4 subscriber table above is kept in sync.
