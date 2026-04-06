@@ -49,9 +49,9 @@ These artists appeared on the Hub City Vinyl 2026 calendar and are worth trackin
 - Matt Schofield (Aug 13) — British blues-rock guitarist, well-regarded in the blues world
 - The Nighthawks with Daryl Davis (Oct 25) — DC blues institution
 
-### 2. Review Google Photos for 19 no-candidate shows — 📅 anytime
+### 2. Review Google Photos for 18 no-candidate shows — 📅 anytime
 
-`youtube_audit_blanks.py` found no videos in the channel for these 19 shows. The next
+`youtube_audit_blanks.py` found no videos in the channel for these 18 shows. The next
 step is a manual review of the **dan2bit Google Photos account** to check whether any
 videos from these dates exist there but never made it to the YouTube channel. Unlikely
 but possible — data cleanliness is hard.
@@ -59,7 +59,7 @@ but possible — data cleanliness is hard.
 **How to check:** Open Google Photos, search by date for each show below, look for any
 video files shot at a live music venue.
 
-**Shows to check (19):**
+**Shows to check (18):**
 | Date | Artist |
 |------|--------|
 | 2021-09-23 | The Avett Brothers |
@@ -67,7 +67,6 @@ video files shot at a live music venue.
 | 2021-10-22 | Rival Sons |
 | 2021-11-18 | Christone 'Kingfish' Ingram |
 | 2022-01-21 | Keb' Mo' |
-| 2022-01-28 | Lucky Chops |
 | 2022-02-18 | Tedeschi Trucks Band |
 | 2022-02-27 | Lyle Lovett |
 | 2022-07-16 | Daniel Donato |
