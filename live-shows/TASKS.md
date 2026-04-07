@@ -49,21 +49,14 @@ These artists appeared on the Hub City Vinyl 2026 calendar and are worth trackin
 - Matt Schofield (Aug 13) — British blues-rock guitarist, well-regarded in the blues world
 - The Nighthawks with Daryl Davis (Oct 25) — DC blues institution
 
-### 2. Review Google Photos for 18 no-candidate shows — 📅 anytime
+### 2. Upload found videos to YouTube for 11 no-playlist shows — 📅 manual
 
-`youtube_audit_blanks.py` found no videos in the channel for these 18 shows. The next
-step is a manual review of the **dan2bit Google Photos account** to check whether any
-videos from these dates exist there but never made it to the YouTube channel. Unlikely
-but possible — data cleanliness is hard.
+These shows have no playlist and no confirmed reason for absence. Videos may exist in Google Photos or elsewhere — upload to the channel, then run `youtube_fetch.py --force --since <date>` and `youtube_correlate.py --merge` to pick them up.
 
-**How to check:** Open Google Photos, search by date for each show below, look for any
-video files shot at a live music venue.
+**Shows to check and upload (11):**
 
-**Shows to check (18):**
 | Date | Artist |
 |------|--------|
-| 2021-09-23 | The Avett Brothers | lawn seats, no videos
-| 2021-09-24 | Kingsley Flood | still photos only
 | 2021-10-22 | Rival Sons |
 | 2021-11-18 | Christone 'Kingfish' Ingram |
 | 2022-01-21 | Keb' Mo' |
@@ -72,24 +65,18 @@ video files shot at a live music venue.
 | 2022-07-16 | Daniel Donato |
 | 2022-08-16 | Roger Waters |
 | 2022-10-24 | Violent Femmes |
-| 2023-06-18 | Trombone Shorty & Orleans Avenue | technical difficulties - slow mo videos
-| 2024-06-01 | Bonnie Raitt | still photos only
-| 2024-10-17 | Ana Popovic |
 | 2024-12-05 | Oh He Dead |
-| 2025-06-15 | Sue Foley | playlist pulled due to copyright strike
 | 2025-07-24 | Trombone Shorty & Orleans Avenue |
-| 2025-08-10 | AJR | lawn seats, no videos
 | 2025-10-17 | New York's Finest |
 
-**If videos are found:** Upload to YouTube channel, then run:
+After uploading for a given show:
 ```bash
-python3 youtube_fetch.py --since <earliest show date> --force
+python3 youtube_fetch.py --force --since <show-date>
 python3 youtube_correlate.py --merge
 python3 youtube_create_playlists.py --worklist --update-history  # after adding to WORKLIST
 ```
 
-**If nothing is found:** These shows can be considered confirmed no-video and documented
-in the WORKLIST no-video comment block (like ZZ Top and Shaw Davis).
+**Confirmed no-video and annotated shows** have been extracted to `notes_memories_draft.tsv`.
 
 ---
 
