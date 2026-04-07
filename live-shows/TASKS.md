@@ -62,8 +62,8 @@ video files shot at a live music venue.
 **Shows to check (18):**
 | Date | Artist |
 |------|--------|
-| 2021-09-23 | The Avett Brothers |
-| 2021-09-24 | Kingsley Flood |
+| 2021-09-23 | The Avett Brothers | lawn seats, no videos
+| 2021-09-24 | Kingsley Flood | still photos only
 | 2021-10-22 | Rival Sons |
 | 2021-11-18 | Christone 'Kingfish' Ingram |
 | 2022-01-21 | Keb' Mo' |
@@ -72,13 +72,13 @@ video files shot at a live music venue.
 | 2022-07-16 | Daniel Donato |
 | 2022-08-16 | Roger Waters |
 | 2022-10-24 | Violent Femmes |
-| 2023-06-18 | Trombone Shorty & Orleans Avenue |
-| 2024-06-01 | Bonnie Raitt |
+| 2023-06-18 | Trombone Shorty & Orleans Avenue | technical difficulties - slow mo videos
+| 2024-06-01 | Bonnie Raitt | still photos only
 | 2024-10-17 | Ana Popovic |
-| 2024-12-06 | Oh He Dead |
-| 2025-06-15 | Sue Foley |
+| 2024-12-05 | Oh He Dead |
+| 2025-06-15 | Sue Foley | playlist pulled due to copyright strike
 | 2025-07-24 | Trombone Shorty & Orleans Avenue |
-| 2025-08-10 | AJR |
+| 2025-08-10 | AJR | lawn seats, no videos
 | 2025-10-17 | New York's Finest |
 
 **If videos are found:** Upload to YouTube channel, then run:
