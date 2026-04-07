@@ -50,6 +50,77 @@ Output:
     shows_2026_youtube_correlation.tsv — 2026 attended shows only
     (with --merge) live_shows_history.tsv and live_shows_2026.tsv are patched in-place
     (with --sync-artists) artists.tsv is updated in-place
+
+─────────────────────────────────────────────────────────────────────────────
+TROUBLESHOOTING — "No match" for a show you know has a playlist or videos
+─────────────────────────────────────────────────────────────────────────────
+
+If a show comes back "No match" and you're sure the playlist or videos exist
+on the channel, work through these checks in order:
+
+1. PLAYLIST TITLE MISSING "LIVE"
+   find_playlist() requires the word "LIVE" (case-insensitive) in the playlist
+   title. This is the most common cause of a silent miss — the playlist is
+   found by artist and date, but filtered out before it can match.
+   Fix: edit the playlist title on YouTube to include "LIVE", then re-run
+   youtube_fetch.py --force --since <show-date - a few days> to pull the
+   updated title, then re-run --merge.
+   Example: "Lucky Chops @ Union Stage (DC) 3/5/23" failed until renamed to
+   "Lucky Chops LIVE @ Union Stage (DC) 3/5/23".
+
+2. DATE FORMAT MISMATCH
+   find_playlist() looks for date strings like "3/5/23", "3/5/2023",
+   "03/05/23", "03/05/2023" anywhere in the playlist title.
+   find_videos() looks for the same variants in the video description field.
+   If your title or description uses a different format (e.g. "March 5, 2023"
+   or "2023-03-05"), neither function will match it.
+   Fix: edit the title/description to use the M/D/YY or MM/DD/YY pattern,
+   then re-fetch.
+
+3. SHOW DATE WRONG IN HISTORY FILE
+   The correlator keys on the Show Date column in live_shows_history.tsv /
+   live_shows_2026.tsv. If that date is wrong (e.g. set to the YouTube
+   publish date rather than the actual show date), the date variants generated
+   won't match the title/description.
+   Fix: correct the date in history, re-sort (see one-liner below), then
+   re-run --merge. No re-fetch needed if the playlist title has the right date.
+   Sort one-liner:
+     (head -1 live_shows_history.tsv; tail -n +2 live_shows_history.tsv | \\
+       tr -d '\\r' | sort -k1,1) > sorted.tsv && mv sorted.tsv live_shows_history.tsv
+
+4. ARTIST NAME MISMATCH
+   find_playlist() normalizes both the history artist name and the playlist
+   title (strips punctuation, lowercases), then checks for the full normalized
+   name OR all "distinctive" words (>4 chars, not in NOISE_WORDS).
+   If the playlist title spells the artist differently (e.g. "Cris Kingfish
+   Ingram" vs "Christone 'Kingfish' Ingram"), it may fail the artist check.
+   Check: run normalize() on both strings manually and compare.
+   Fix: either update ARTIST_NAME_ALIASES at the top of this file, or rename
+   the playlist title to match the canonical artist name.
+
+5. PLAYLIST NOT YET FETCHED / STALE WORKFILE
+   youtube_playlists.tsv is only as current as the last youtube_fetch.py run.
+   If you created or renamed a playlist after the last fetch, it won't appear.
+   Fix: youtube_fetch.py --force --since <show-date - a few days>
+
+6. VIDEO DESCRIPTIONS DON'T CONTAIN THE DATE
+   find_videos() searches video descriptions (not titles) for the date string.
+   If your video descriptions don't include the show date, video-only matches
+   won't work. Playlist matches (which search the playlist title) are unaffected.
+   This is informational — no fix needed unless you want video-only fallback.
+
+Quick diagnostic — paste into a python3 REPL in the live-shows/ directory:
+    import csv
+    from youtube_correlate import date_variants, find_playlist, find_videos, load_tsv
+    playlists = load_tsv("youtube_playlists.tsv")
+    videos    = load_tsv("youtube_videos.tsv")
+    date      = "2023-03-05"       # show date to debug
+    artist    = "Lucky Chops"      # headliner name as it appears in history
+    print("Date variants:", date_variants(date))
+    pl = find_playlist(artist, date, playlists)
+    print("Playlist match:", pl["title"] if pl else "None")
+    vids = find_videos(date, videos)
+    print("Video matches:", len(vids), [v["title"][:60] for v in vids])
 """
 
 import argparse
@@ -151,6 +222,13 @@ def find_playlist(headliner, date_str, playlists):
       - Playlist title must contain "LIVE"
       - Playlist title must contain a DATE VARIANT for the show date (required)
     Venue-only matches are intentionally excluded to prevent year mismatches.
+
+    IMPORTANT — silent miss conditions:
+      - If "LIVE" is absent from the playlist title, the playlist is skipped
+        entirely before artist or date are checked. This is the most common
+        cause of an unexpected "No match". See TROUBLESHOOTING in module docstring.
+      - Date must appear in M/D/YY or MM/DD/YY format in the title; other
+        date formats (e.g. "March 5, 2023") will not match.
     """
     date_vars = date_variants(date_str)
     if not date_vars:
@@ -172,6 +250,9 @@ def find_videos(date_str, videos):
     Find ANY video whose description contains the show date.
     No artist filter — covers multi-bill shows and cases where supporting
     acts were filmed rather than (or in addition to) the headliner.
+
+    Note: searches video DESCRIPTIONS, not titles. Videos whose descriptions
+    don't include the show date will not be found by this function.
     """
     date_vars = date_variants(date_str)
     if not date_vars:
