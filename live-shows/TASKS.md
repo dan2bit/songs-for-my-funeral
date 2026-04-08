@@ -82,11 +82,11 @@ python3 youtube_create_playlists.py --worklist --update-history  # after adding 
 
 ## 📋 Manual / Pending Approval
 
-### 3. Merge `notes_memories_draft.tsv` into history — 📅 anytime
+### 3. Merge `notes_memories_draft.tsv` into history — 📅 2026-04-08
 
-A staging file of show notes/memories exists at `live-shows/notes_memories_draft.tsv`. These have not been merged into `live_shows_history.tsv` pending explicit approval.
-
-**Next steps:** Review `notes_memories_draft.tsv`, then give the go-ahead to merge into history in a dedicated session (context window concern — the history file is large).
+`notes_memories_draft.tsv` has been updated in the repo and is **ready to merge** into
+`live_shows_history.tsv`. Merge scheduled for 2026-04-08 in a dedicated session
+(context window concern — the history file is large).
 
 ---
 
