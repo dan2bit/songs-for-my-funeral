@@ -12,24 +12,29 @@ DESIGN
 - Reads notes_memories_draft.tsv as the canonical source of truth.
 - Matches each draft row to a history row by (Show Date, normalized Artist).
 - Normalized matching strips trailing/leading whitespace and collapses Unicode
-  apostrophes (', ') → straight apostrophe ('), and Unicode en/em dashes to
-  ASCII — for comparison purposes only. Writes always use the canonical artist
-  name already in the history file.
+  apostrophes (', ') to straight apostrophe ('), en/em dashes to hyphen, and
+  ampersands to space — for comparison purposes only. Writes always use the
+  canonical artist name already in the history file (or the corrected name for
+  rows listed in FIELD_CORRECTIONS).
 - OVERWRITES any history note that differs from the draft note (draft is canonical).
 - Skips draft rows whose note is blank (nothing to write).
-- Reports: updated rows, skipped-identical rows, skipped-blank-draft rows,
-  unmatched draft keys, and new rows to insert manually.
+- Reports: updated rows, field-corrected rows, skipped-identical rows,
+  skipped-blank-draft rows, and unmatched draft keys.
 
 SPECIAL CASES (handled automatically)
 --------------------------------------
-- 2023-05-20 | The Wood Brothers (draft) → 2023-05-20 | Shovels & Rope (history)
-  Draft artist key was renamed; note belongs to the history headliner.
-- 2024-07-18 | Mike Zito (draft) → 2024-07-18 | Tab Benoit & Anders Osborne  (history)
+- 2023-05-20 | The Wood Brothers (draft) -> 2023-05-20 | Shovels & Rope (history)
+  Draft artist key was the opener; history headliner is Shovels & Rope.
+  The note describes the Wood Brothers opening set — belongs on the S&R row.
+
+- 2024-07-18 | Mike Zito (draft) -> 2024-07-18 | Tab Benoit & Anders Osborne  (history)
   Mike Zito was the supporting act; Tab Benoit is the history headliner.
-- 2024-09-19 | Marcus King (draft, already correct after prior fix)
-- 2023-09-26 | Wu-Tang Clan (draft, NEW — not currently in history as Wu-Tang Clan)
-  The Nas row at this date already has a note in history; Wu-Tang Clan is a new
-  entry. The script will report this as unmatched and you must insert it manually.
+
+- 2023-09-26 | Wu-Tang Clan / Nas — headliner/support swap
+  History currently has Artist=Nas, Supporting Artist=Wu-Tang Clan.
+  Correct order: Artist=Wu-Tang Clan, Supporting Artist=Nas.
+  The script matches on the existing Nas key, then swaps the field values
+  and writes the note. Listed in FIELD_CORRECTIONS below.
 
 POST-MERGE CLEANUP
 ------------------
@@ -43,19 +48,33 @@ import csv
 import os
 import re
 import sys
-import unicodedata
 
-DRAFT_FILE   = "notes_memories_draft.tsv"
-HISTORY_FILE = "live_shows_history.tsv"
-NOTES_COL    = "Notes / Memories"
-DATE_COL     = "Show Date"
-ARTIST_COL   = "Artist"
+DRAFT_FILE        = "notes_memories_draft.tsv"
+HISTORY_FILE      = "live_shows_history.tsv"
+NOTES_COL         = "Notes / Memories"
+DATE_COL          = "Show Date"
+ARTIST_COL        = "Artist"
+SUPPORTING_COL    = "Supporting Artist"
 
 # Explicit artist key remaps: (draft_date, draft_artist_norm) -> history_artist_norm
-# Used when the draft intentionally uses a different artist name than history.
+# Used when the draft uses a different artist name than what is in history.
+# Values must already be in normalized form (lowercase, & replaced by space, etc.)
 ARTIST_REMAPS = {
-    ("2023-05-20", "the wood brothers"):        "shovels  rope",       # & normalizes to space
-    ("2024-07-18", "mike zito"):                "tab benoit  anders osborne",
+    ("2023-05-20", "the wood brothers"):    "shovels  rope",         # & -> space
+    ("2024-07-18", "mike zito"):            "tab benoit  anders osborne",
+    # Wu-Tang Clan: draft key is Wu-Tang Clan; history key is currently Nas
+    ("2023-09-26", "wu-tang clan"):         "nas",
+}
+
+# Field corrections applied after matching.
+# Key: (date, norm_artist_as_it_exists_in_history)
+# Value: dict of {column_name: new_value} to write.
+# These are applied in addition to (or independently of) the note update.
+FIELD_CORRECTIONS = {
+    ("2023-09-26", "nas"): {
+        ARTIST_COL:     "Wu-Tang Clan",
+        SUPPORTING_COL: "Nas",
+    },
 }
 
 
@@ -66,7 +85,7 @@ def normalize(s):
     s = s.replace("\u2019", "'").replace("\u2018", "'").replace("\u0060", "'")
     # Normalize en/em dash to hyphen
     s = s.replace("\u2013", "-").replace("\u2014", "-")
-    # Normalize ampersand to space (& → space, then collapse)
+    # Normalize ampersand to space (then collapse)
     s = s.replace("&", " ")
     # Lowercase, collapse whitespace
     s = re.sub(r"\s+", " ", s.lower()).strip()
@@ -120,47 +139,62 @@ def main():
 
     hist_index = build_history_index(hist_rows)
 
-    updated          = 0
+    updated           = 0
+    field_corrected   = 0
     skipped_identical = 0
-    skipped_blank    = 0
-    unmatched        = []
+    skipped_blank     = 0
+    unmatched         = []
 
     for draft_date, draft_artist, draft_note in draft_rows:
         # Skip 2026 rows — notes already exist in live_shows_2026.tsv
         if draft_date.startswith("2026"):
             continue
 
-        # Skip blank draft notes — nothing to write
-        if not draft_note:
-            skipped_blank += 1
-            print(f"  SKIP (blank draft note): {draft_date} | {draft_artist}")
-            continue
-
         norm_key = (draft_date, normalize(draft_artist))
 
-        # Apply explicit artist remap if needed
-        lookup_key = ARTIST_REMAPS.get(norm_key, norm_key[1])
-        lookup     = (draft_date, lookup_key) if lookup_key != norm_key[1] else norm_key
+        # Resolve lookup key — may be remapped to a different history artist
+        remapped_norm = ARTIST_REMAPS.get(norm_key)
+        lookup = (draft_date, remapped_norm) if remapped_norm else norm_key
 
         row_idx = hist_index.get(lookup)
         if row_idx is None:
-            # Also try direct norm_key in case remap not needed
             row_idx = hist_index.get(norm_key)
 
         if row_idx is None:
-            unmatched.append((draft_date, draft_artist, draft_note))
-            print(f"  NO MATCH: {draft_date} | {draft_artist}")
+            if not draft_note:
+                skipped_blank += 1
+            else:
+                unmatched.append((draft_date, draft_artist, draft_note))
+                print(f"  NO MATCH: {draft_date} | {draft_artist}")
             continue
 
-        hist_note = (hist_rows[row_idx].get(NOTES_COL) or "").strip()
+        # Apply any field corrections (e.g. headliner/support swap)
+        hist_norm_key = (draft_date, normalize(hist_rows[row_idx].get(ARTIST_COL, "")))
+        corrections = FIELD_CORRECTIONS.get(hist_norm_key) or FIELD_CORRECTIONS.get(lookup)
+        if corrections:
+            for col, new_val in corrections.items():
+                old_val = hist_rows[row_idx].get(col, "")
+                if old_val != new_val:
+                    hist_rows[row_idx][col] = new_val
+                    field_corrected += 1
+                    print(f"  FIELD FIX [{col}]: {draft_date} | {old_val!r} -> {new_val!r}")
+            # Rebuild index if Artist column changed (affects subsequent lookups)
+            if ARTIST_COL in corrections:
+                hist_index = build_history_index(hist_rows)
+
+        # Skip blank draft notes — nothing to write to Notes / Memories
+        if not draft_note:
+            skipped_blank += 1
+            continue
+
+        hist_note   = (hist_rows[row_idx].get(NOTES_COL) or "").strip()
         hist_artist = hist_rows[row_idx].get(ARTIST_COL, "").strip()
 
         if draft_note == hist_note:
             skipped_identical += 1
-            # Silent for identical — would be too noisy
             continue
 
-        # Draft differs from history — write draft (draft is canonical)
+        # Draft differs — overwrite (draft is canonical)
         hist_rows[row_idx][NOTES_COL] = draft_note
         updated += 1
         if hist_note:
@@ -178,13 +212,14 @@ def main():
         writer.writerows(hist_rows)
 
     print(f"\n{'='*70}")
-    print(f"Updated (wrote/overwrote):  {updated}")
-    print(f"Skipped (identical):        {skipped_identical}")
-    print(f"Skipped (blank draft note): {skipped_blank}")
-    print(f"Unmatched draft keys:       {len(unmatched)}")
+    print(f"Updated notes (wrote/overwrote): {updated}")
+    print(f"Field corrections applied:       {field_corrected}")
+    print(f"Skipped (identical):             {skipped_identical}")
+    print(f"Skipped (blank draft note):      {skipped_blank}")
+    print(f"Unmatched draft keys:            {len(unmatched)}")
 
     if unmatched:
-        print(f"\nUnmatched rows — requires manual insertion into history:")
+        print(f"\nUnmatched rows — manual insertion required:")
         for d, a, n in unmatched:
             print(f"\n  {d} | {a}")
             print(f"  Note: {n}")
