@@ -76,17 +76,23 @@ python3 youtube_correlate.py --merge
 python3 youtube_create_playlists.py --worklist --update-history  # after adding to WORKLIST
 ```
 
-**Confirmed no-video and annotated shows** have been extracted to `notes_memories_draft.tsv`.
-
 ---
 
-## 📋 Manual / Pending Approval
+## ✅ Completed
 
-### 3. Merge `notes_memories_draft.tsv` into history — 📅 2026-04-08
+### 3. ~~Merge `notes_memories_draft.tsv` into history~~ — DONE 2026-04-08
 
-`notes_memories_draft.tsv` has been updated in the repo and is **ready to merge** into
-`live_shows_history.tsv`. Merge scheduled for 2026-04-08 in a dedicated session
-(context window concern — the history file is large).
+Notes from `notes_memories_draft.tsv` merged into `live_shows_history.tsv` via
+`merge_notes_into_history.py` (PR #18, merged 2026-04-08). Script moved to `archive/`.
+`notes_memories_draft.tsv` deleted.
+
+Corrections applied during merge:
+- Wu-Tang Clan / Nas headliner swap corrected in history
+- `2023-05-20` artist key corrected (The Wood Brothers → Shovels & Rope)
+- `2024-07-18` artist key corrected (Mike Zito → Tab Benoit & Anders Osborne)
+- 11 rows overwritten where draft had additions or corrections vs. history
+
+**Next:** Generate a worklist of history rows still missing Notes / Memories.
 
 ---
 
@@ -197,7 +203,7 @@ research rather than a one-time pass.
 `live_shows_history.tsv` currently starts with 2021-07-11 (first post-pandemic show).
 There are approximately 22 shows from 2002–2019 that have never been included. Record
 keeping pre-pandemic was sparse and inconsistent, so this long tail is incomplete by
-nature.
+nar̈e.
 
 **Context:** The gap was discovered when Billy Strings was found in Seated.com follows
 but not in `artists.tsv` — his first appearance was as a supporting act at a 2019-02-02
