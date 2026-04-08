@@ -234,14 +234,30 @@ Artist Interaction | Playlist URL | Notes / Memories
 **If the commit fails:** present the full updated `live_shows_2026.tsv` in the
 conversation for download and manual check-in.
 
-**Step 6 — Create activity log draft**
+**Step 6 — Remove from `live_shows_potential.tsv` if present**
+
+Look up the artist in `live_shows_potential.tsv` by matching Artist and show date.
+
+- **If found:** remove the row and commit the updated file directly to `main`. Note
+  the removal in the activity log draft.
+- **If not found:** no action needed — many tickets are purchased without first
+  appearing in the potential list.
+
+Match on Artist name (normalized) and show date. If the potential row has a date
+range (e.g. a festival) or TBD date, match on artist name alone and confirm the
+date before removing.
+
+**If the commit fails:** present the updated `live_shows_potential.tsv` in the
+conversation for download and manual check-in.
+
+**Step 7 — Create activity log draft**
 
 Create a draft in the redhat.bootlegs inbox with:
 - Subject: `[LOG] Routine 1 — [Artist] ticket — YYYY-MM-DD`
 - Body summarising: email found (sender, subject, date), ticket details parsed,
   autograph book check result, calendar event created (title, date, time, any
   book reminder or merch note), TSV row committed or presented for manual check-in,
-  any notable decisions or caveats
+  potential list row removed (or confirmed not present), any notable decisions or caveats
 
 **Final step:** Remind you to apply the `processed` label to the email.
 
@@ -415,7 +431,8 @@ budget for supporting the local DC scene.
 Before presenting any recommendation, look up the artist in `live_shows_potential.tsv`.
 If the show is already in the file:
 - **Decision = Pass** — skip silently; no recommendation needed
-- **Decision = Buy** — remind Dan to complete the purchase
+- **Decision = Pass*** — skip silently; no recommendation needed
+- **Decision = Buy** or **Buy*** — remind Dan to complete the purchase
 - **Decision blank** — present as a normal recommendation
 
 If the show is new and meets the Strong/Medium threshold, present it for approval
