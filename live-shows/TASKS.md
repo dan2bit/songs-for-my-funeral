@@ -203,7 +203,7 @@ research rather than a one-time pass.
 `live_shows_history.tsv` currently starts with 2021-07-11 (first post-pandemic show).
 There are approximately 22 shows from 2002–2019 that have never been included. Record
 keeping pre-pandemic was sparse and inconsistent, so this long tail is incomplete by
-nar̈e.
+nature.
 
 **Context:** The gap was discovered when Billy Strings was found in Seated.com follows
 but not in `artists.tsv` — his first appearance was as a supporting act at a 2019-02-02
