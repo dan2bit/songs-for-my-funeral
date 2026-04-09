@@ -20,7 +20,7 @@ USAGE:
     python3 youtube_audit_blanks.py --output audit_results.tsv
 
 INPUT FILES (same directory):
-    live_shows_history.tsv  — authoritative show attendance record
+    history/*.tsv           — per-year archived show history (replaces live_shows_history.tsv)
     youtube_videos.tsv      — ingested channel video metadata
 
 OUTPUT COLUMNS (TSV):
@@ -45,12 +45,13 @@ MATCHING LOGIC:
 
 import argparse
 import csv
+import glob
 import os
 import re
 from datetime import datetime, timedelta
 
 # ── constants ─────────────────────────────────────────────────────────────────
-HISTORY_TSV    = "live_shows_history.tsv"
+HISTORY_GLOB   = "history/*.tsv"   # per-year archive files
 VIDEOS_TSV     = "youtube_videos.tsv"
 DEFAULT_WINDOW = 30  # days after show date
 
@@ -66,6 +67,14 @@ NOISE_WORDS = {
 def load_tsv(path):
     with open(path, encoding="utf-8") as f:
         return list(csv.DictReader(f, delimiter="\t"))
+
+
+def load_history():
+    """Load and concatenate all per-year history files from history/*.tsv."""
+    rows = []
+    for path in sorted(glob.glob(HISTORY_GLOB)):
+        rows.extend(load_tsv(path))
+    return rows
 
 
 def normalize(s):
@@ -109,7 +118,7 @@ def scan(target_dates=None, window_days=DEFAULT_WINDOW):
 
     target_dates: set of YYYY-MM-DD strings to restrict scan, or None for all.
     """
-    history = load_tsv(HISTORY_TSV)
+    history = load_history()
     videos  = load_tsv(VIDEOS_TSV)
 
     # Build index of videos by published date for fast lookup
