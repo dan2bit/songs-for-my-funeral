@@ -94,6 +94,26 @@ Corrections applied during merge:
 
 **Next:** Generate a worklist of history rows still missing Notes / Memories.
 
+### 5. ~~Define HFTB monitoring cadence and recommendation tiers~~ — DONE 2026-04-09
+
+Workflow documented in `ANALYSIS_WORKFLOWS.md` (Workflow 2). Monthly cadence
+established via the recurring "🔄 Re-fetch Bandsintown DC Recommends page" calendar
+reminder (1st Tuesday of each month), which now covers both BIT and HFTB in one
+session. Output file placeholder created at
+`live-shows/web-src/rhbl-hereforthebands-dc.tsv`. Schema: `Artist | Venue | Date |
+Venue URL`. Tiers (Strong/Medium/Low) and diff process documented. Coverage gaps
+(Rams Head, Hamilton Live, Wolf Trap) handled via direct venue newsletter
+subscriptions to the rhbl account.
+
+### 6. ~~Mine festival and award lineups for new artist discovery~~ — DONE 2026-04-09
+
+Workflow documented in `ANALYSIS_WORKFLOWS.md` (Workflow 3). Quarterly cadence
+established via new recurring calendar event "🔍 Quarterly Artist Research —
+Festivals & Awards" (1st Tuesday of Jan/Apr/Jul/Oct; first occurrence Jul 7, 2026).
+Sources: BMA, AMA Awards, Hardly Strictly Bluegrass, Americanafest, Big Blues Bender,
+blues cruise lineups, Stagecoach, Telluride. Process: cross-reference against
+`artists.tsv`, flag by tier, add new discoveries to `new_artist_research.tsv`.
+
 ---
 
 ## 🔄 Ongoing / Maintenance
@@ -123,78 +143,6 @@ Scripts and the email ticket workflow currently hardcode `live_shows_2026.tsv`. 
 - Migration trigger: manual on demand vs. a `--migrate` flag on `youtube_correlate.py` that sweeps rows older than ~90 days with `Status=attended`
 - What counts as "settled enough to migrate": `Status=attended` + `Playlist URL` filled or confirmed blank
 - `--sync-artists` should run as part of any migration
-
----
-
-### 5. Define HFTB monitoring cadence and recommendation tiers
-
-HereForTheBands.com (HFTB) is the primary source for DC/MD/VA show discovery. Define a repeatable process for checking it and acting on potential buys.
-
-**Known HFTB limitations:**
-- Hamilton Live, Rams Head On Stage, and Wolf Trap Filene are not covered
-
-**Recommendation tiers (already established):**
-- **Strong** — artist seen before at any venue
-- **Medium** — artist in autograph books at a previously attended venue
-- **Low** — artist in books at a new or distant venue
-
-**Questions to resolve:**
-- How often should HFTB be checked? (Weekly? After payday? Before each show?)
-- Should there be a calendar reminder to trigger the check?
-- Is there an existing script for parsing HFTB, and if so what does it output?
-- Should recommendations be presented as a tiered list in conversation, or logged to a file?
-- What's the action threshold — Strong always buy, Medium research first, Low ignore unless something stands out?
-
----
-
-### 6. Mine festival and award lineups for new artist discovery
-
-A complement to HFTB (task #5) and Gnoosic exploration. Blues cruises, major festivals,
-and annual award nominees are rich sources for discovering artists in your taste profile
-who aren't yet on your radar. Priority and scope are similar to task #5 — periodic
-research rather than a one-time pass.
-
-**Primary sources to monitor:**
-
-- **Blues Music Awards (BMA)** — Blues Foundation annual nominees and winners.
-  Published each spring. Cross-reference nominee lists against `artists.tsv` to flag
-  Strong-tier artists and identify new names worth researching.
-  URL: https://blues.org/blues-music-awards/
-
-- **Americana Music Association Awards** — Nominees and winners published each fall.
-  Americana/roots overlap is significant with your taste profile.
-  URL: https://americanamusic.org/ama-awards
-
-- **Blues Cruises** — Lineup announcements are a curated signal: booking agents for
-  these events target proven draw artists in the blues/roots space.
-  - Joe Bonamassa's Keeping the Blues Alive at Sea (annual, Caribbean)
-  - Rock Legends Cruise (annual, Caribbean)
-  - Legendary Rhythm & Blues Cruise (annual, Caribbean/Mexico)
-
-- **Big Blues Bender** — Annual Las Vegas festival, late September. One of the largest
-  dedicated blues festivals in the USA. Strong artist concentration across blues
-  subgenres. URL: https://bigbluesbender.com
-
-- **Notable Americana festivals** — Lineups tend to surface the same artist pool
-  you care about before they come to your area:
-  - Hardly Strictly Bluegrass (San Francisco, free, early October)
-  - Americanafest / AmericanaFest (Nashville, September)
-  - Stagecoach (Indio CA, April — country/Americana)
-  - Telluride Bluegrass Festival (Colorado, June)
-
-**Workflow:**
-
-1. Pull the current year's BMA nominees and AMA nominees lists
-2. Cross-reference against `artists.tsv` (Strong tier = seen before; Medium = in autograph books)
-3. Flag new names not yet in either — research via `new_artist_research.tsv` format
-4. Check blues cruise and festival lineups for the same cross-reference
-5. For any Strong-tier new discoveries, consider adding to Seated/Bandsintown follows
-
-**Questions to resolve:**
-- Should this run on a defined cadence (e.g. after BMA nominees announced in Jan/Feb,
-  after AMA nominees in summer)? Or ad hoc when conversation warrants?
-- Should output be appended to `new_artist_research.tsv` or kept as a separate file?
-- Is there overlap with the Gnoosic excursion results that should be reconciled?
 
 ---
 
