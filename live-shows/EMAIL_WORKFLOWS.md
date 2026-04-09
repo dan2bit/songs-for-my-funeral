@@ -294,7 +294,31 @@ Setlist: [setlist.fm URL]
 [Notes / memories if notable]
 ```
 
-**Step 3 — Update autograph records (if applicable)**
+**Step 3 — Append row to `spending.tsv` ⚠️ MANDATORY**
+
+`live-shows/spending.tsv` is the canonical permanent record of show spending. This
+step is required for every attended show — it is not optional.
+
+Append one row to `spending.tsv` with:
+
+```
+Show Date | Artist | Ticket Cost | Food & Bev | Parking | Merch | Artist Interaction | Show Total | Notes
+```
+
+- `Ticket Cost` = total paid (face + fees) from `live_shows_2026.tsv`
+- `Food & Bev`, `Parking`, `Merch` = from the post-show email (use $0.00 if none, never blank)
+- `Artist Interaction` = Autograph / Photo / Both / blank
+- `Show Total` = sum of all columns
+- `Notes` = brief context (VIP, matinee, split ticket cost, etc.) — same as Notes/Memories summary
+
+Commit directly to `main`. If the commit fails, present the updated file in conversation
+for manual check-in.
+
+**`spending.tsv` is the sole long-term authority for spending data.** The spending
+columns in `live_shows_2026.tsv` are a convenience scratch pad for the current year
+only and will not be carried into archive files at rollover.
+
+**Step 4 — Update autograph records (if applicable)**
 
 If the email mentions getting a **book autograph** (RHBS or APS):
 
@@ -317,7 +341,7 @@ If the email mentions a **hat autograph**:
 Note: hat signers are often supporting act members or band members rather than the
 headliner. The email should make clear who signed and in what capacity.
 
-**Step 4 — Open a PR with all file changes**
+**Step 5 — Open a PR with all file changes**
 
 Create a branch named `post-show/[artist-slug]-[YYYY-MM-DD]` and open a PR to
 `main` containing:
@@ -328,18 +352,22 @@ Create a branch named `post-show/[artist-slug]-[YYYY-MM-DD]` and open a PR to
 - `autograph_books_combined.tsv` — `RHBS Signed` / `APS Signed` set to `Yes`
   and/or `Hat Notes` updated if applicable (omit file if no change)
 
+Note: `spending.tsv` is committed directly to `main` in Step 3 (not via PR) since
+it is append-only and requires no review.
+
 PR description summarises what changed so you can review the diff before merging.
 
 **If the PR creation fails:** present each changed file in the conversation for
 download and manual check-in.
 
-**Step 5 — Create activity log draft**
+**Step 6 — Create activity log draft**
 
 Create a draft in the redhat.bootlegs inbox with:
 - Subject: `[LOG] Routine 2 — [Artist] post-show — YYYY-MM-DD`
-- Body summarising: email found, spending recorded, calendar event updated,
-  autograph records updated (if applicable), PR opened (branch name and what
-  files changed), any manual follow-up items (hat autograph gdoc, `processed` label)
+- Body summarising: email found, spending recorded (spending.tsv row appended,
+  show total), calendar event updated, autograph records updated (if applicable),
+  PR opened (branch name and what files changed), any manual follow-up items
+  (hat autograph gdoc, `processed` label)
 
 **Final step:** Remind you to apply the `processed` label to the email.
 
@@ -431,8 +459,7 @@ budget for supporting the local DC scene.
 Before presenting any recommendation, look up the artist in `live_shows_potential.tsv`.
 If the show is already in the file:
 - **Decision = Pass** — skip silently; no recommendation needed
-- **Decision = Pass*** — skip silently; no recommendation needed
-- **Decision = Buy** or **Buy*** — remind Dan to complete the purchase
+- **Decision = Buy** — remind Dan to complete the purchase
 - **Decision blank** — present as a normal recommendation
 
 If the show is new and meets the Strong/Medium threshold, present it for approval
