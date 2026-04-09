@@ -122,9 +122,9 @@ row at that time and backfill the first date. Carly Harvey is the reference exam
 three support appearances across Ana Popović and Selwyn Birchwood shows, added on
 reaching that threshold.
 
-**History file is the source of truth.** When in doubt about counts or dates, audit
-`live_shows_history.tsv` and `live_shows_2026.tsv` together rather than relying on
-the current `artists.tsv` values.
+**History files are the source of truth.** When in doubt about counts or dates, audit
+`history/*.tsv` and `live_shows_current.tsv` together rather than relying on the
+current `artists.tsv` values.
 
 ---
 
@@ -211,7 +211,7 @@ description. Two exceptions — do **not** add this note for:
 - **VIP tickets** — the premium is expected and factored in at purchase time
 - **Wolf Trap Filene Center** — venue/lawn context makes merch spend a different calculus
 
-**Step 5 — Commit new row to `live_shows_2026.tsv`**
+**Step 5 — Commit new row to `live_shows_current.tsv`**
 
 Insert the new row in date order and commit directly to `main` via the GitHub MCP.
 
@@ -231,7 +231,7 @@ Artist Interaction | Playlist URL | Notes / Memories
 - `Setlist.fm URL` = blank
 - `Notes / Memories` = any pre-show notes from the ticket (order #, seat notes, etc.)
 
-**If the commit fails:** present the full updated `live_shows_2026.tsv` in the
+**If the commit fails:** present the full updated `live_shows_current.tsv` in the
 conversation for download and manual check-in.
 
 **Step 6 — Remove from `live_shows_potential.tsv` if present**
@@ -282,7 +282,7 @@ so I can find the matching calendar event and TSV row easily.
 **Step 1 — Find the matching email and show**
 
 Search `from:dan2bit subject:[artist] notes -label:processed`, read the email, then
-find the matching calendar event and `live_shows_2026.tsv` row.
+find the matching calendar event and `live_shows_current.tsv` row.
 
 **Step 2 — Update the calendar event**
 
@@ -305,7 +305,7 @@ Append one row to `spending.tsv` with:
 Show Date | Artist | Ticket Cost | Food & Bev | Parking | Merch | Artist Interaction | Show Total | Notes
 ```
 
-- `Ticket Cost` = total paid (face + fees) from `live_shows_2026.tsv`
+- `Ticket Cost` = total paid (face + fees) from `live_shows_current.tsv`
 - `Food & Bev`, `Parking`, `Merch` = from the post-show email (use $0.00 if none, never blank)
 - `Artist Interaction` = Autograph / Photo / Both / blank
 - `Show Total` = sum of all columns
@@ -315,7 +315,7 @@ Commit directly to `main`. If the commit fails, present the updated file in conv
 for manual check-in.
 
 **`spending.tsv` is the sole long-term authority for spending data.** The spending
-columns in `live_shows_2026.tsv` are a convenience scratch pad for the current year
+columns in `live_shows_current.tsv` are a convenience scratch pad for the current year
 only and will not be carried into archive files at rollover.
 
 **Step 4 — Update autograph records (if applicable)**
@@ -346,7 +346,7 @@ headliner. The email should make clear who signed and in what capacity.
 Create a branch named `post-show/[artist-slug]-[YYYY-MM-DD]` and open a PR to
 `main` containing:
 
-- `live_shows_2026.tsv` — row updated: `Status` → `attended`, spending filled,
+- `live_shows_current.tsv` — row updated: `Status` → `attended`, spending filled,
   `Setlist.fm URL` filled, `Notes / Memories` filled, `Artist Interaction` filled
 - `artists.tsv` — always included; apply counting policy below
 - `autograph_books_combined.tsv` — `RHBS Signed` / `APS Signed` set to `Yes`
