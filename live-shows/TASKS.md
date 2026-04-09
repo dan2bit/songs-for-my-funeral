@@ -6,34 +6,47 @@ Collaborative task list for the live show archive project. Update status as task
 
 ## 🎟 Standing Checks — Every Inbox Session
 
-### A. Hub City Vinyl — ticket availability monitoring
+### A. Potential shows monitoring
 
-Check these two Eventbrite pages at the start of every inbox processing session for LOW TICKET ALERT or SOLD OUT status. Alert Dan immediately if either condition is met.
+At the start of every inbox processing session, open `live-shows/live_shows_potential.tsv`
+and apply the following checks to any row that has a value in the `Watching For` column:
 
-| Show | Date | Eventbrite URL |
-|------|------|----------------|
-| Carolyn Wonderland | Sep 24, 2026 | https://www.eventbrite.com/e/carolyn-wonderland-tickets-1983173922588 |
-| JD Simo & Luther Dickinson | Aug 6, 2026 | https://www.eventbrite.com/e/bluesamericana-with-jd-simo-luther-dickinson-tickets-1970731399667 |
+**If `Watching For` = `low ticket / sold out`** (applies to any `Buy` row):
+- Check the ticket URL in `Purchase URL` for current availability
+- Also watch for venue/artist emails arriving at redhat.bootlegs@gmail.com mentioning
+  the show
+- Alert Dan immediately if low ticket warning or sold-out status is detected
 
-Also watch for Hub City Vinyl emails arriving at redhat.bootlegs@gmail.com mentioning these shows.
+**If `Watching For` contains `closer` (applies to `Pass` or `Buy` rows):**
+- Scan new emails and newsletters in this session for announcements of a show by
+  the same artist at a DC/MD/VA venue, or any venue closer/more convenient than the
+  one in the file
+- If a closer show is found, surface it as a buy recommendation and note the
+  trade-off vs. the existing entry
 
-**Decision context:**
-- Carolyn Wonderland (Sep 24) — Strong buy candidate; also watching for a closer DC/MD show in September. If a closer show is found, compare and buy the better option.
-- JD Simo & Luther Dickinson (Aug 6) — Medium consideration; Hub City is a distance stretch
+Current rows with `Watching For` values (update this list as rows are added/resolved):
+
+| Artist | Decision | Watching For | Ticket URL |
+|--------|----------|--------------|------------|
+| Black Pistol Fire | Buy (paper @ Glen Hansard) | low ticket / sold out | https://www.ticketmaster.com/black-pistol-fire-tickets/artist/1657222 |
+| Lucinda Williams | Buy (paper @ Glen Hansard) | low ticket / sold out | https://www.ticketmaster.com/lucinda-williams-and-her-band-washington-district-of-columbia-05-25-2026/event/1500646CCE06CBF2 |
+| Taj Mahal | Buy (paper @ Lyle Lovett) | low ticket / sold out | https://www.ticketmaster.com/event/15006470A6EE71A1?brand=birchmere |
+| Carolyn Wonderland | Buy | closer DC/MD show | https://www.eventbrite.com/e/carolyn-wonderland-tickets-1983173922588 |
+| Christone 'Kingfish' Ingram | Pass | closer headliner show | https://www.ticketmaster.com/christone-kingfish-ingram-harrisburg-pennsylvania-05-21-2026/event/02006453C19ACCCD |
+| JD Simo & Luther Dickinson | Pass | closer show | https://www.eventbrite.com/e/bluesamericana-with-jd-simo-luther-dickinson-tickets-1970731399667 |
 
 ### B. Potential shows list
 
-See `live-shows/live_shows_potential.tsv` for the full list of uncommitted shows with ticket links, pricing, and notes. Update this file when shows are purchased, cancelled, or dropped. Fields: Artist, Support, Date, Day, Venue, Venue City, Tier, Ticket Service, Purchase URL, Event URL, Face Price (est.), Fees Notes, Availability Notes, Notes.
+See `live-shows/live_shows_potential.tsv` for the full list of uncommitted shows with
+ticket links, pricing, and notes. The `Watching For` column is the authoritative source
+for what needs monitoring — the table above is kept in sync with it.
 
-**Current entries (as of 2026-04-03):**
+**Schema:** Artist | Support | Date | Decision | Watching For | Venue | Venue City | Tier |
+Ticket Service | Purchase URL | Event URL | Face Price | Fees Notes | Availability Notes |
+Prev Show (2026) | Next Show (2026) | Notes
 
-| Artist | Date | Venue | Tier | Status |
-|--------|------|-------|------|--------|
-| Lucinda Williams | May 25, 2026 | 9:30 Club, DC | Strong | Pending buy |
-| Lucinda Williams | May 26, 2026 | 9:30 Club, DC | Strong | Pending buy (alt date) |
-| Taj Mahal & Phantom Blues Band | Jul 12, 2026 | Birchmere, Alexandria | Strong | Pending buy |
-| JD Simo & Luther Dickinson | Aug 6, 2026 | Hub City Vinyl, Hagerstown | Medium | Monitoring |
-| Carolyn Wonderland | Sep 24, 2026 | Hub City Vinyl, Hagerstown | Strong | Monitoring — watching for closer show |
+**Decision values:** `Buy`, `Buy (paper @ [show])`, `Pass`, blank (undecided)
+**Watching For values:** `low ticket / sold out`, `closer [description]`, or blank
 
 ---
 
@@ -151,7 +164,7 @@ Scripts and the email ticket workflow currently hardcode `live_shows_2026.tsv`. 
 `live_shows_history.tsv` currently starts with 2021-07-11 (first post-pandemic show).
 There are approximately 22 shows from 2002–2019 that have never been included. Record
 keeping pre-pandemic was sparse and inconsistent, so this long tail is incomplete by
-nature.
+nnature.
 
 **Context:** The gap was discovered when Billy Strings was found in Seated.com follows
 but not in `artists.tsv` — his first appearance was as a supporting act at a 2019-02-02
