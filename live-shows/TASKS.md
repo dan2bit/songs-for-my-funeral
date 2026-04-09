@@ -52,16 +52,6 @@ Prev Show (2026) | Next Show (2026) | Notes
 
 ## 🔍 Research / Eyeball Tasks (anytime — no quota cost)
 
-### 1. Add 5 Hub City artists to new_artist_research.tsv
-
-These artists appeared on the Hub City Vinyl 2026 calendar and are worth tracking for future shows closer to home. Dan won't travel to Hub City for them but wants them in the research file.
-
-- Quinn Sullivan (Apr 23) — Blues-rock, Buddy Guy protégé
-- Indigenous ft. Mato Nanji (May 17) — Native American blues-rock, Grammy-nominated
-- Davy Knowles (Sep 17) — Isle of Man blues guitarist, backed Peter Green's Splinter Group
-- Matt Schofield (Aug 13) — British blues-rock guitarist, well-regarded in the blues world
-- The Nighthawks with Daryl Davis (Oct 25) — DC blues institution
-
 ### 2. Upload found videos to YouTube for 11 no-playlist shows — 📅 manual
 
 These shows have no playlist and no confirmed reason for absence. Videos may exist in Google Photos or elsewhere — upload to the channel, then run `youtube_fetch.py --force --since <date>` and `youtube_correlate.py --merge` to pick them up.
@@ -92,6 +82,13 @@ python3 youtube_create_playlists.py --worklist --update-history  # after adding 
 ---
 
 ## ✅ Completed
+
+### 1. ~~Add Hub City artists to new_artist_research.tsv~~ — DONE 2026-04-09
+
+Four artists from the Hub City Vinyl 2026 calendar added to
+`live-shows/follows/new_artist_research.tsv`: Quinn Sullivan, Indigenous ft. Mato Nanji,
+Davy Knowles, Matt Schofield. Jontavious Willis was already present (added via Gnoosic
+discovery). The Nighthawks with Daryl Davis skipped per Dan.
 
 ### 3. ~~Merge `notes_memories_draft.tsv` into history~~ — DONE 2026-04-08
 
@@ -164,7 +161,7 @@ Scripts and the email ticket workflow currently hardcode `live_shows_2026.tsv`. 
 `live_shows_history.tsv` currently starts with 2021-07-11 (first post-pandemic show).
 There are approximately 22 shows from 2002–2019 that have never been included. Record
 keeping pre-pandemic was sparse and inconsistent, so this long tail is incomplete by
-nnature.
+nature.
 
 **Context:** The gap was discovered when Billy Strings was found in Seated.com follows
 but not in `artists.tsv` — his first appearance was as a supporting act at a 2019-02-02
