@@ -52,7 +52,7 @@ Prev Show (2026) | Next Show (2026) | Notes
 
 ## 🔍 Research / Eyeball Tasks (anytime — no quota cost)
 
-### 2. Upload found videos to YouTube for 11 no-playlist shows — 📅 manual
+### 1. Upload found videos to YouTube for 11 no-playlist shows — 📅 manual
 
 These shows have no playlist and no confirmed reason for absence. Videos may exist in Google Photos or elsewhere — upload to the channel, then run `youtube_fetch.py --force --since <date>` and `youtube_correlate.py --merge` to pick them up.
 
@@ -81,54 +81,9 @@ python3 youtube_create_playlists.py --worklist --update-history  # after adding 
 
 ---
 
-## ✅ Completed
-
-### 1. ~~Add Hub City artists to new_artist_research.tsv~~ — DONE 2026-04-09
-
-Four artists from the Hub City Vinyl 2026 calendar added to
-`live-shows/follows/new_artist_research.tsv`: Quinn Sullivan, Indigenous ft. Mato Nanji,
-Davy Knowles, Matt Schofield. Jontavious Willis was already present (added via Gnoosic
-discovery). The Nighthawks with Daryl Davis skipped per Dan.
-
-### 3. ~~Merge `notes_memories_draft.tsv` into history~~ — DONE 2026-04-08
-
-Notes from `notes_memories_draft.tsv` merged into `live_shows_history.tsv` via
-`merge_notes_into_history.py` (PR #18, merged 2026-04-08). Script moved to `archive/`.
-`notes_memories_draft.tsv` deleted.
-
-Corrections applied during merge:
-- Wu-Tang Clan / Nas headliner swap corrected in history
-- `2023-05-20` artist key corrected (The Wood Brothers → Shovels & Rope)
-- `2024-07-18` artist key corrected (Mike Zito → Tab Benoit & Anders Osborne)
-- 11 rows overwritten where draft had additions or corrections vs. history
-
-**Next:** Generate a worklist of history rows still missing Notes / Memories.
-
-### 5. ~~Define HFTB monitoring cadence and recommendation tiers~~ — DONE 2026-04-09
-
-Workflow documented in `ANALYSIS_WORKFLOWS.md` (Workflow 2). Monthly cadence
-established via the recurring "🔄 Re-fetch Bandsintown DC Recommends page" calendar
-reminder (1st Tuesday of each month), which now covers both BIT and HFTB in one
-session. Output file placeholder created at
-`live-shows/web-src/rhbl-hereforthebands-dc.tsv`. Schema: `Artist | Venue | Date |
-Venue URL`. Tiers (Strong/Medium/Low) and diff process documented. Coverage gaps
-(Rams Head, Hamilton Live, Wolf Trap) handled via direct venue newsletter
-subscriptions to the rhbl account.
-
-### 6. ~~Mine festival and award lineups for new artist discovery~~ — DONE 2026-04-09
-
-Workflow documented in `ANALYSIS_WORKFLOWS.md` (Workflow 3). Quarterly cadence
-established via new recurring calendar event "🔍 Quarterly Artist Research —
-Festivals & Awards" (1st Tuesday of Jan/Apr/Jul/Oct; first occurrence Jul 7, 2026).
-Sources: BMA, AMA Awards, Hardly Strictly Bluegrass, Americanafest, Big Blues Bender,
-blues cruise lineups, Stagecoach, Telluride. Process: cross-reference against
-`artists.tsv`, flag by tier, add new discoveries to `new_artist_research.tsv`.
-
----
-
 ## 🔄 Ongoing / Maintenance
 
-### 4. Design and implement rolling migration + archive architecture
+### 2. Design and implement rolling migration + archive architecture
 
 ⚠️ **Must be designed before the first 2027 ticket purchase.**
 
@@ -156,7 +111,7 @@ Scripts and the email ticket workflow currently hardcode `live_shows_2026.tsv`. 
 
 ---
 
-### 7. Review pre-pandemic show history for potential inclusion
+### 3. Review pre-pandemic show history for potential inclusion
 
 `live_shows_history.tsv` currently starts with 2021-07-11 (first post-pandemic show).
 There are approximately 22 shows from 2002–2019 that have never been included. Record
