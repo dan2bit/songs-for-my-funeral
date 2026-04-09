@@ -95,6 +95,8 @@ This task has three distinct architectural problems to solve together:
 
 Spending columns (Food & Bev, Parking, Merch, Artist Interaction) are present in `live_shows_2026.tsv` but not in `live_shows_history.tsv`. The data is worth preserving for budgeting across quarters and years, but it doesn't belong in the attendance record. The right answer is a separate `spending.tsv` (keyed by Show Date + Artist) that can be queried independently. Migration needs to extract spending into this file rather than either dropping it or bloating history.
 
+**Update:** `spending.tsv` has been created and seeded with 2026 Q1 data. Routine 2 now appends to it after every attended show. At rollover, spending columns can simply be dropped from the archived year file — `spending.tsv` is the sole authority.
+
 **Problem 2 — `live_shows_history.tsv` is already too large to manage via MCP**
 
 The file is ~95KB and already at the limit for reliable GitHub MCP pushes. Quarterly batch appends will make this worse. Options to consider: split into per-year archive files (e.g. `history/2021.tsv`, `history/2022.tsv`, ...) that are never modified once closed; or keep a single flat file but accept that it's always committed manually. Scripts that currently read history need to handle a multi-file layout if that path is chosen. The correlation and playlist scripts are the main consumers.
@@ -137,3 +139,25 @@ data quality limitations.
   and counts for artists like Greensky Bluegrass, Trombone Shorty, Keb' Mo', etc.
 - Are there any artists who would cross the "second appearance" threshold for a new
   `artists.tsv` entry if pre-pandemic data were included (e.g. Billy Strings)?
+
+---
+
+### 4. Sync Facebook concert photo album to rhbl Google Photos
+
+Show photos posted to Facebook need to be downloaded and re-uploaded to the rhbl
+Google Photos account so they exist in a non-Facebook-dependent archive alongside
+the YouTube playlists.
+
+**What to do:**
+1. Download concert photos from the Facebook album (manual — Facebook does not allow
+   automated export)
+2. Upload to Google Photos under the rhbl account (redhat.bootlegs@gmail.com)
+3. Organize into per-show albums matching the YouTube playlist naming convention
+   where possible
+
+**Notes:**
+- Facebook album is the current source of record for show photos
+- Goal is to have photos and video playlists co-located under the same Google account
+- This is a one-time bulk sync followed by keeping in sync after each show
+- No tooling exists for this yet — manual process or explore Google Photos upload
+  options
