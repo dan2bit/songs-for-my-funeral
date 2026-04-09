@@ -26,8 +26,12 @@ Usage:
     python3 youtube_correlate.py [--merge] [--sync-artists]
 
     --merge         After writing correlation TSVs, also patch any newly found playlist URLs
-                    back into live_shows_history.tsv and live_shows_2026.tsv.
+                    back into history/*.tsv (per-year archive files) and live_shows_current.tsv.
                     Only fills blank Playlist URL cells — never overwrites an existing URL.
+
+                    NOTE: history/*.tsv write-back is legacy/backfill-only. Once you are
+                    current on playlist creation for live_shows_current.tsv, history files
+                    will rarely if ever need updating via --merge.
 
     --sync-artists  After processing attended shows, update artists.tsv:
                       - If an artist is not yet in artists.tsv, add a new row.
@@ -42,13 +46,13 @@ Usage:
 Input files (must be in same directory):
     youtube_videos.tsv
     youtube_playlists.tsv
-    live_shows_history.tsv         — 2021-2025 history (Show Date, Artist, Supporting Acts, Venue, ...)
-    live_shows_2026.tsv            — 2026 attended shows (Show Date, Artist, Venue Name, ...)
+    history/*.tsv              — per-year archive files (2021.tsv, 2022.tsv, ...)
+    live_shows_current.tsv     — current year attended + upcoming shows
 
 Output:
-    history_youtube_correlation.tsv    — 2021-2025
-    shows_2026_youtube_correlation.tsv — 2026 attended shows only
-    (with --merge) live_shows_history.tsv and live_shows_2026.tsv are patched in-place
+    history_youtube_correlation.tsv     — all history years combined
+    shows_current_youtube_correlation.tsv — current year attended shows only
+    (with --merge) history/*.tsv and live_shows_current.tsv are patched in-place
     (with --sync-artists) artists.tsv is updated in-place
 
 ─────────────────────────────────────────────────────────────────────────────
@@ -78,15 +82,15 @@ on the channel, work through these checks in order:
    then re-fetch.
 
 3. SHOW DATE WRONG IN HISTORY FILE
-   The correlator keys on the Show Date column in live_shows_history.tsv /
-   live_shows_2026.tsv. If that date is wrong (e.g. set to the YouTube
+   The correlator keys on the Show Date column in history/*.tsv /
+   live_shows_current.tsv. If that date is wrong (e.g. set to the YouTube
    publish date rather than the actual show date), the date variants generated
    won't match the title/description.
-   Fix: correct the date in history, re-sort (see one-liner below), then
+   Fix: correct the date in the appropriate year file, re-sort, then
    re-run --merge. No re-fetch needed if the playlist title has the right date.
-   Sort one-liner:
-     (head -1 live_shows_history.tsv; tail -n +2 live_shows_history.tsv | \\
-       tr -d '\\r' | sort -k1,1) > sorted.tsv && mv sorted.tsv live_shows_history.tsv
+   Sort one-liner (example for 2023):
+     (head -1 history/2023.tsv; tail -n +2 history/2023.tsv | \\
+       tr -d '\\r' | sort -k1,1) > sorted.tsv && mv sorted.tsv history/2023.tsv
 
 4. ARTIST NAME MISMATCH
    find_playlist() normalizes both the history artist name and the playlist
@@ -125,22 +129,16 @@ Quick diagnostic — paste into a python3 REPL in the live-shows/ directory:
 
 import argparse
 import csv
+import glob
 import os
 import re
 from datetime import datetime
 
 
 # ── Artist name normalization ─────────────────────────────────────────────────
-# Maps incoming artist name variants (e.g. from Spotify/YouTube API responses)
-# to the canonical form used in artists.tsv and live_shows_history.tsv.
-# Apply normalize_artist_name() to any artist name read from an external source
-# before comparing or writing it to a TSV file.
-
 ARTIST_NAME_ALIASES = {
-    # Double-quote variants → canonical single-tick form
     'Christone "Kingfish" Ingram':     "Christone 'Kingfish' Ingram",
     'Christone ""Kingfish"" Ingram':   "Christone 'Kingfish' Ingram",
-    # Shorthand forms that appear in autograph book index
     "Christone Ingram":                "Christone 'Kingfish' Ingram",
     "Kingfish Ingram":                 "Christone 'Kingfish' Ingram",
     "Kingfish":                        "Christone 'Kingfish' Ingram",
@@ -148,7 +146,6 @@ ARTIST_NAME_ALIASES = {
 
 
 def normalize_artist_name(name: str) -> str:
-    """Return the canonical artist name, resolving known aliases."""
     return ARTIST_NAME_ALIASES.get(name, name)
 
 
@@ -157,6 +154,21 @@ def normalize_artist_name(name: str) -> str:
 def load_tsv(filename):
     with open(filename, encoding="utf-8") as f:
         return list(csv.DictReader(f, delimiter="\t"))
+
+
+def load_history_glob(pattern="history/*.tsv"):
+    """
+    Load and concatenate all per-year archive files matching pattern.
+    Each row gets a '_source_file' key so merge_into_history knows which
+    year file to write back to.
+    Returns list of rows sorted by Show Date.
+    """
+    rows = []
+    for path in sorted(glob.glob(pattern)):
+        for row in load_tsv(path):
+            row["_source_file"] = path
+            rows.append(row)
+    return rows
 
 
 def write_tsv(rows, fieldnames, filename):
@@ -168,7 +180,6 @@ def write_tsv(rows, fieldnames, filename):
 
 
 def _cell(row, key):
-    """Safely read a TSV cell — returns empty string for missing or None values."""
     return (row.get(key) or "").strip()
 
 
@@ -178,13 +189,10 @@ def normalize(s):
     return re.sub(r"[^\w\s]", "", s.lower()).strip()
 
 
-# Words too generic to use as distinctive artist-name match tokens
 NOISE_WORDS = {"band", "the", "and", "live", "feat", "featuring", "with"}
 
 
 def artist_in_title(artist, title):
-    """Check if headliner artist name appears in playlist title.
-    Requires full normalized name match OR all distinctive words (>4 chars, not noise)."""
     artist_norm = normalize(artist)
     title_norm = normalize(title)
     if artist_norm in title_norm:
@@ -196,10 +204,6 @@ def artist_in_title(artist, title):
 
 
 def date_variants(date_str):
-    """
-    Given YYYY-MM-DD, return date strings that might appear in a YouTube title.
-    e.g. 2025-11-21 → ['11/21/25', '11/21/2025', '11/21/25', '11/21/2025']
-    """
     try:
         d = datetime.strptime(date_str, "%Y-%m-%d")
     except ValueError:
@@ -215,21 +219,6 @@ def date_variants(date_str):
 
 
 def find_playlist(headliner, date_str, playlists):
-    """
-    Find a playlist matching this show.
-    Rules:
-      - Playlist title must contain the HEADLINER name
-      - Playlist title must contain "LIVE"
-      - Playlist title must contain a DATE VARIANT for the show date (required)
-    Venue-only matches are intentionally excluded to prevent year mismatches.
-
-    IMPORTANT — silent miss conditions:
-      - If "LIVE" is absent from the playlist title, the playlist is skipped
-        entirely before artist or date are checked. This is the most common
-        cause of an unexpected "No match". See TROUBLESHOOTING in module docstring.
-      - Date must appear in M/D/YY or MM/DD/YY format in the title; other
-        date formats (e.g. "March 5, 2023") will not match.
-    """
     date_vars = date_variants(date_str)
     if not date_vars:
         return None
@@ -246,14 +235,6 @@ def find_playlist(headliner, date_str, playlists):
 
 
 def find_videos(date_str, videos):
-    """
-    Find ANY video whose description contains the show date.
-    No artist filter — covers multi-bill shows and cases where supporting
-    acts were filmed rather than (or in addition to) the headliner.
-
-    Note: searches video DESCRIPTIONS, not titles. Videos whose descriptions
-    don't include the show date will not be found by this function.
-    """
     date_vars = date_variants(date_str)
     if not date_vars:
         return []
@@ -278,6 +259,7 @@ def normalize_shows(shows, artist_col, venue_col, date_col):
             "Setlist.fm URL":   s.get("Setlist.fm URL", ""),
             "Playlist URL":     s.get("Playlist URL", ""),
             "Notes / Memories": s.get("Notes / Memories", s.get("Notes", "")),
+            "_source_file":     s.get("_source_file", ""),
         })
     return out
 
@@ -326,6 +308,7 @@ def correlate(shows, videos, playlists):
             "Match Type":       match_type,
             "YT Title":         yt_title,
             "Notes / Memories": show.get("Notes / Memories", ""),
+            "_source_file":     show.get("_source_file", ""),
         })
     return results, playlist_hits, video_hits
 
@@ -360,34 +343,34 @@ def merge_into_history(corr_results, source_file):
     Patch playlist URLs found by the correlator back into a source show file.
 
     Rules:
-      - Only writes a URL when the correlation result has a playlist URL (not video-only).
+      - Only writes a URL when the correlation result has a playlist URL.
       - Never overwrites a cell that already has a URL.
-      - Matches rows by (Show Date, Artist) — case-sensitive, same as the source file.
-      - Writes the file back in-place, preserving all columns and their order.
+      - Matches rows by (Show Date, Artist) — case-sensitive.
+      - Writes the file back in-place, preserving all columns.
+
+    For history/*.tsv files this is LEGACY/BACKFILL-ONLY behaviour. Once you
+    are current on playlist creation via live_shows_current.tsv, history year
+    files will rarely need updating here.
 
     Returns the number of rows updated.
     """
     if not os.path.exists(source_file):
         return 0
 
-    # Build lookup: (date, artist) → playlist_url from correlation results
-    # Only include rows where correlation actually found a playlist
     corr_map = {}
     for r in corr_results:
         url = _cell(r, "Playlist URL")
-        if url:
+        if url and _cell(r, "_source_file") == source_file:
             corr_map[(_cell(r, "Show Date"), _cell(r, "Artist"))] = url
 
     if not corr_map:
         return 0
 
-    # Read source file, preserving all columns
     with open(source_file, encoding="utf-8", newline="") as f:
         reader = csv.DictReader(f, delimiter="\t")
         fieldnames = list(reader.fieldnames or [])
         rows = list(reader)
 
-    # Ensure Playlist URL column exists
     if "Playlist URL" not in fieldnames:
         print(f"  WARNING: 'Playlist URL' column not found in {source_file} — skipping merge")
         return 0
@@ -425,36 +408,17 @@ ARTISTS_FIELDNAMES = [
 
 
 def sync_artists(all_attended_shows, dry_run=False):
-    """
-    Update artists.tsv from the full set of attended shows across all source files.
-
-    For each attended show's headliner:
-      - If not in artists.tsv: add a new row with Times Seen=1, First Seen and
-        Most Recent Seen both set to the show date. All other columns left blank.
-      - If already present: increment Times Seen by the number of newly seen shows,
-        update Most Recent Seen if a newer show date exists, update First Seen if
-        an older show date exists (handles shows added out of order).
-
-    Computes the full correct state by scanning ALL attended shows, not just new
-    ones — so it is safe to run repeatedly and will converge to the correct counts.
-
-    Prints a summary of all changes. With dry_run=True, prints but does not write.
-    Returns the number of rows added or updated.
-    """
     if not os.path.exists(ARTISTS_TSV):
         print(f"  WARNING: {ARTISTS_TSV} not found — skipping artist sync")
         return 0
 
-    # Load current artists.tsv
     with open(ARTISTS_TSV, encoding="utf-8", newline="") as f:
         reader = csv.DictReader(f, delimiter="\t")
         fieldnames = list(reader.fieldnames or ARTISTS_FIELDNAMES)
         artists = list(reader)
 
-    # Build index: artist name → row
     artist_index = {normalize_artist_name(r["Artist"]): r for r in artists}
 
-    # Aggregate all attended shows: artist → sorted list of dates
     from collections import defaultdict
     show_dates_by_artist = defaultdict(set)
     for show in all_attended_shows:
@@ -473,7 +437,6 @@ def sync_artists(all_attended_shows, dry_run=False):
         times_seen  = len(dates)
 
         if artist not in artist_index:
-            # New artist — add row
             new_row = {fn: "" for fn in fieldnames}
             new_row["Artist"]          = artist
             new_row["Times Seen"]      = str(times_seen)
@@ -487,10 +450,9 @@ def sync_artists(all_attended_shows, dry_run=False):
             current_first     = row.get("First Seen", "").strip()
             current_recent    = row.get("Most Recent Seen", "").strip()
 
-            # Compute what the values should be
             new_first  = min(filter(None, [first_seen, current_first])) if current_first else first_seen
             new_recent = max(filter(None, [most_recent, current_recent])) if current_recent else most_recent
-            new_seen   = times_seen  # authoritative count from source files
+            new_seen   = times_seen
 
             changes = []
             if new_seen != current_seen:
@@ -518,9 +480,7 @@ def sync_artists(all_attended_shows, dry_run=False):
         print("  [dry-run] No changes written.")
         return total_changes
 
-    # Append new rows and write back
     artists.extend(new_rows)
-    # Re-sort by artist name for tidy output
     artists.sort(key=lambda r: r.get("Artist", "").lower())
     write_tsv(artists, fieldnames, ARTISTS_TSV)
     print(f"  Written → {ARTISTS_TSV}")
@@ -528,6 +488,9 @@ def sync_artists(all_attended_shows, dry_run=False):
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
+
+SHOWS_CURRENT_TSV = "live_shows_current.tsv"
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -539,7 +502,7 @@ def main():
         action="store_true",
         help=(
             "After writing correlation TSVs, patch newly found playlist URLs back into "
-            "live_shows_history.tsv and live_shows_2026.tsv. "
+            "history/*.tsv (legacy/backfill) and live_shows_current.tsv. "
             "Only fills blank Playlist URL cells — never overwrites an existing URL."
         ),
     )
@@ -548,8 +511,7 @@ def main():
         action="store_true",
         help=(
             "Update artists.tsv from attended shows: add new artist rows and update "
-            "Times Seen / First Seen / Most Recent Seen for existing ones. "
-            "Computes correct counts from all source files, safe to re-run."
+            "Times Seen / First Seen / Most Recent Seen for existing ones."
         ),
     )
     parser.add_argument(
@@ -564,56 +526,61 @@ def main():
     print(f"Loaded {len(videos)} videos, {len(playlists)} playlists")
 
     all_results_history  = []
-    all_results_2026     = []
-    all_attended_shows   = []   # collected for --sync-artists
+    all_results_current  = []
+    all_attended_shows   = []
 
-    # ── History file ──────────────────────────────────────────────────────────
-    if os.path.exists("live_shows_history.tsv"):
-        history_raw = load_tsv("live_shows_history.tsv")
+    # ── History files (per-year glob) ─────────────────────────────────────────
+    history_raw = load_history_glob("history/*.tsv")
+    if history_raw:
         history = normalize_shows(history_raw, "Artist", "Venue", "Show Date")
-        print(f"Loaded {len(history)} history shows (2021-2025)")
+        print(f"Loaded {len(history)} history shows from history/*.tsv")
         results_h, ph, vh = correlate(history, videos, playlists)
         write_results(results_h, "history_youtube_correlation.tsv")
-        print_summary("2021-2025 history", results_h, ph, vh)
+        print_summary("History (all years)", results_h, ph, vh)
         all_results_history = results_h
         all_attended_shows.extend(history)
     else:
-        print("live_shows_history.tsv not found — skipping")
+        print("No files found in history/ — skipping")
 
-    # ── 2026 file ─────────────────────────────────────────────────────────────
-    if os.path.exists("live_shows_2026.tsv"):
-        shows_2026_raw = load_tsv("live_shows_2026.tsv")
-        attended = [s for s in shows_2026_raw if s.get("Status", "") == "attended"]
-        shows_2026 = normalize_shows(attended, "Artist", "Venue Name", "Show Date")
-        print(f"\nLoaded {len(shows_2026)} attended 2026 shows")
-        results_26, ph, vh = correlate(shows_2026, videos, playlists)
-        write_results(results_26, "shows_2026_youtube_correlation.tsv")
-        print_summary("2026 attended shows", results_26, ph, vh)
-        all_results_2026 = results_26
-        all_attended_shows.extend(shows_2026)
+    # ── Current year file ─────────────────────────────────────────────────────
+    if os.path.exists(SHOWS_CURRENT_TSV):
+        shows_current_raw = load_tsv(SHOWS_CURRENT_TSV)
+        attended = [s for s in shows_current_raw if s.get("Status", "") == "attended"]
+        for s in attended:
+            s["_source_file"] = SHOWS_CURRENT_TSV
+        shows_current = normalize_shows(attended, "Artist", "Venue Name", "Show Date")
+        print(f"\nLoaded {len(shows_current)} attended shows from {SHOWS_CURRENT_TSV}")
+        results_cur, ph, vh = correlate(shows_current, videos, playlists)
+        write_results(results_cur, "shows_current_youtube_correlation.tsv")
+        print_summary("Current year attended shows", results_cur, ph, vh)
+        all_results_current = results_cur
+        all_attended_shows.extend(shows_current)
     else:
-        print("live_shows_2026.tsv not found — skipping")
+        print(f"{SHOWS_CURRENT_TSV} not found — skipping")
 
     # ── Optional merge ────────────────────────────────────────────────────────
     if args.merge:
         print("\n── Merging playlist URLs into source files ──────────────────────────────────")
 
         if all_results_history:
-            print("\nlive_shows_history.tsv:")
-            if not args.dry_run:
-                merge_into_history(all_results_history, "live_shows_history.tsv")
-            else:
-                print("  [dry-run] skipping write")
+            # Group by source file and patch each year file separately
+            source_files = sorted({r["_source_file"] for r in all_results_history if r["_source_file"]})
+            for sf in source_files:
+                print(f"\n{sf}: (legacy/backfill — history files rarely need updating once current)")
+                if not args.dry_run:
+                    merge_into_history(all_results_history, sf)
+                else:
+                    print("  [dry-run] skipping write")
 
-        if all_results_2026:
-            print("\nlive_shows_2026.tsv:")
+        if all_results_current:
+            print(f"\n{SHOWS_CURRENT_TSV}:")
             if not args.dry_run:
-                merge_into_history(all_results_2026, "live_shows_2026.tsv")
+                merge_into_history(all_results_current, SHOWS_CURRENT_TSV)
             else:
                 print("  [dry-run] skipping write")
 
         if not args.dry_run:
-            print("\nMerge complete. Review changes with: git diff live_shows_history.tsv live_shows_2026.tsv")
+            print(f"\nMerge complete. Review changes with: git diff history/ {SHOWS_CURRENT_TSV}")
 
     # ── Optional artists sync ─────────────────────────────────────────────────
     if args.sync_artists:
