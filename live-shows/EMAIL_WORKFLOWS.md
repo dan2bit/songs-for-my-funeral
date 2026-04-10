@@ -97,6 +97,27 @@ Do not recommend a ticket purchase or create a show event on a date blocked by e
 
 ---
 
+## live_shows_potential.tsv Write Protocol
+
+**Always fetch a fresh SHA immediately before writing `live_shows_potential.tsv`.**
+
+Any time a routine needs to add, remove, or re-sort rows in `live_shows_potential.tsv`,
+call `get_file_contents` on the file right before the write — even if the file was
+read earlier in the same session. Dan may have committed changes independently between
+reads, and a stale SHA will cause the commit to fail or silently clobber his edits.
+
+The sequence for every potential list write is:
+1. `get_file_contents` → capture the current `sha` and content
+2. Apply the change (add row, remove row, or re-sort)
+3. Re-sort the full file: `Buy` → `Choose` → `Pass`, date ascending within each group
+4. Commit using `create_or_update_file` with the freshly fetched `sha`
+
+This applies to:
+- **Routine 1 Step 6** — row removal when a ticket is purchased
+- **Routine 3 Step 2** — row addition when a new show is approved
+
+---
+
 ## artists.tsv Counting Policy
 
 **Times Seen counts every appearance — headliner and supporting act alike.**
@@ -238,8 +259,10 @@ conversation for download and manual check-in.
 
 Look up the artist in `live_shows_potential.tsv` by matching Artist and show date.
 
-- **If found:** remove the row and commit the updated file directly to `main`. Note
-  the removal in the activity log draft.
+- **If found:** fetch a fresh SHA (see Live Shows Potential Write Protocol above),
+  remove the row, re-sort the full file (`Buy` → `Choose` → `Pass`, date ascending
+  within each group), and commit using `create_or_update_file` with the fresh SHA.
+  Note the removal in the activity log draft.
 - **If not found:** no action needed — many tickets are purchased without first
   appearing in the potential list.
 
@@ -470,14 +493,15 @@ When adding an approved row, use the following Decision values:
 - **Undecided** → `Choose` (never leave Decision blank)
 - **Likely skip** → `Pass`
 
-**Sort order for `live_shows_potential.tsv`:** Primary sort alpha on Decision
-(`Buy` → `Choose` → `Pass`), secondary sort by show date ascending within each group.
-Maintain this order when adding or removing rows.
+**Adding a row — write protocol:** Fetch a fresh SHA immediately before writing
+(see Live Shows Potential Write Protocol above), apply the new row, re-sort the full
+file (`Buy` → `Choose` → `Pass`, date ascending within each group), and commit using
+`create_or_update_file` with the fresh SHA.
 
 **Date pruning:** At the start of each inbox session, remove any row whose show date
 has already passed, regardless of Decision value. Purchased shows are removed via
 Routine 1 Step 6; all other rows (Buy, Choose, Pass) are removed here once the date
-has passed.
+has passed. Apply the same fresh-SHA write protocol when pruning.
 
 **Step 3 — Check autograph books**
 
