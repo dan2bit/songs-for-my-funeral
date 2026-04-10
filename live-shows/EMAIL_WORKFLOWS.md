@@ -68,7 +68,7 @@ Examples:
   on-sale reminders created, recommendations made
 - For Routine 3/4 recommendations: tier (Strong/Medium/Low), show date, venue,
   calendar availability result, and ticket link
-- Any skipped items and why (date conflict, below threshold, no setlist URL, etc.)
+- Any skipped items and why (date conflict, below threshold, already have tickets, etc.)
 - Any manual follow-up items (label to apply, hat autograph gdoc update, etc.)
 
 **One draft per routine invocation.** If Routines 3 and 4 both run in the same
@@ -458,12 +458,26 @@ budget for supporting the local DC scene.
 
 Before presenting any recommendation, look up the artist in `live_shows_potential.tsv`.
 If the show is already in the file:
-- **Decision = Pass** — skip silently; no recommendation needed
-- **Decision = Buy** — remind Dan to complete the purchase
-- **Decision blank** — present as a normal recommendation
+- **Decision = `Pass`** — skip silently; no recommendation needed
+- **Decision = `Buy` or `Buy (paper @ ...)`** — remind Dan to complete the purchase
+- **Decision = `Choose`** — present as a normal recommendation (still undecided)
 
 If the show is new and meets the Strong/Medium threshold, present it for approval
 before adding a row to `live_shows_potential.tsv`. Do not add rows without approval.
+
+When adding an approved row, use the following Decision values:
+- **Clear buy signal** → `Buy` or `Buy (paper @ [show])` as appropriate
+- **Undecided** → `Choose` (never leave Decision blank)
+- **Likely skip** → `Pass`
+
+**Sort order for `live_shows_potential.tsv`:** Primary sort alpha on Decision
+(`Buy` → `Choose` → `Pass`), secondary sort by show date ascending within each group.
+Maintain this order when adding or removing rows.
+
+**Date pruning:** At the start of each inbox session, remove any row whose show date
+has already passed, regardless of Decision value. Purchased shows are removed via
+Routine 1 Step 6; all other rows (Buy, Choose, Pass) are removed here once the date
+has passed.
 
 **Step 3 — Check autograph books**
 

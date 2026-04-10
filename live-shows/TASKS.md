@@ -17,12 +17,17 @@ and apply the following checks to any row that has a value in the `Watching For`
   the show
 - Alert Dan immediately if low ticket warning or sold-out status is detected
 
-**If `Watching For` contains `closer` (applies to `Pass` or `Buy` rows):**
+**If `Watching For` contains `closer` (applies to `Pass` or `Choose` rows):**
 - Scan new emails and newsletters in this session for announcements of a show by
   the same artist at a DC/MD/VA venue, or any venue closer/more convenient than the
   one in the file
 - If a closer show is found, surface it as a buy recommendation and note the
   trade-off vs. the existing entry
+
+**Date pruning:** Remove any row whose show date has already passed, regardless of
+Decision value. Purchased shows are removed via Routine 1 (Step 6) when the ticket
+is confirmed. Unpurchased rows (Buy, Choose, Pass) are removed here once the date
+has passed — the opportunity is gone.
 
 Current rows with `Watching For` values (update this list as rows are added/resolved):
 
@@ -45,7 +50,16 @@ for what needs monitoring — the table above is kept in sync with it.
 Ticket Service | Purchase URL | Event URL | Face Price | Fees Notes | Availability Notes |
 Prev Show (2026) | Next Show (2026) | Notes
 
-**Decision values:** `Buy`, `Buy (paper @ [show])`, `Pass`, blank (undecided)
+**Decision values:** `Buy`, `Buy (paper @ [show])`, `Choose`, `Pass`
+
+**Sort order:** Primary sort alpha on Decision (`Buy` → `Choose` → `Pass`),
+secondary sort by show date ascending within each group.
+
+**Maintenance rules:**
+- **Purchased:** remove via Routine 1 Step 6 when ticket confirmed
+- **Date passed:** remove the row regardless of Decision — the opportunity is gone
+- **Undecided:** use `Choose` (never leave Decision blank)
+
 **Watching For values:** `low ticket / sold out`, `closer [description]`, or blank
 
 ---
