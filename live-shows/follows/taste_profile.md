@@ -20,6 +20,17 @@ This is a listener who goes to shows alone, sits close, brings autograph books, 
 has seen some artists ten-plus times. The collection is about sustained attention, not
 sampling.
 
+### Streaming vs. live — an important distinction
+
+**Streaming listening habits are substantially more eclectic and nostalgic than live
+attendance.** The genres, eras, and artists consumed on Amazon Music or Spotify are a
+much wider set than what translates into show purchases. There is some overlap, but
+the Venn intersection is small enough that streaming service integration (Songkick,
+Bandsintown connected to a streaming account) would not be a useful discovery pipeline
+for live shows — the signal-to-noise ratio would be too low. This profile describes
+the *live music* taste specifically, and should not be inferred to represent total
+listening breadth.
+
 ---
 
 ## Anchor Artists — Strongest Signal
@@ -324,6 +335,8 @@ If seeding a discovery algorithm, these pairings have historically surfaced usef
 - Jamband without strong songwriting (long improvisations without destination)
 - British Invasion or classic rock nostalgia — not the direction
 - Brass band / ska as primary genre — horns are the draw, not the context
+- Streaming catalog — too eclectic and nostalgic relative to live taste; Venn
+  intersection too small to be a useful seeding source
 
 ---
 
@@ -336,4 +349,8 @@ If seeding a discovery algorithm, these pairings have historically surfaced usef
   discovery pipelines; refreshed monthly.
 - **Festival lineups and awards nominees** are quarterly research sources — see
   External Curated Sources section above.
+- **Streaming service integration** (Songkick/Bandsintown connected to Amazon Music
+  or Spotify) is intentionally not used — streaming listening is more eclectic and
+  nostalgic than live attendance, and the overlap is too small to make it a reliable
+  discovery source for shows.
 - **New artist research** is tracked in `follows/new_artist_research.tsv`.
