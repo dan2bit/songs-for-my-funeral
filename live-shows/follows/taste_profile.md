@@ -53,11 +53,11 @@ seeds most likely to yield useful recommendations.
 - Taj Farrant (young generation; prodigy-level slide and fingerpicking)
 
 **Americana / roots rock:**
-- Larkin Poe (seen at All Good Now; both sisters in autograph books)
+- Larkin Poe (seen 6×; VIP 3 of those — the clearest recurring VIP pattern)
 - The Wood Brothers (Oliver signed)
-- Robert Jon & The Wreck (seen repeatedly; VIP pre-show experience purchased)
+- Robert Jon & The Wreck (seen repeatedly)
 - Shovels & Rope (An Evening With billing — strong enough for full show)
-- The Lone Bellow (VIP pre-show experience purchased)
+- The Lone Bellow (seen 4×; VIP 3 of those — near-automatic VIP)
 - Daniel Donato's Cosmic Country
 - Greensky Bluegrass
 
@@ -129,8 +129,7 @@ follow-up. Strongest signals (appeared in multiple excursions from different see
 - **Birchmere specifically** — extremely high show-to-buy ratio across history
 - **Rams Head On Stage** — close second; seated, intimate, consistent
 - **VIP packages** for top-tier artists — purchased without hesitation; the strongest
-  single signal of artist importance in the collection (Billy Gibbons, ZZ Ward,
-  The Lone Bellow, Robert Jon & The Wreck)
+  single signal of artist importance in the collection (see Artist Relationship Signals)
 
 ### Observed pattern — female-led acts:
 The show history skews heavily toward **female-led and female-fronted acts** —
@@ -286,10 +285,32 @@ candidate than one sourced only from a venue newsletter.
 
 ## Artist Relationship Signals
 
-- **VIP packages** — the strongest single indicator of how much an artist matters.
-  Purchased selectively: Billy Gibbons (birthday milestone), ZZ Ward, The Lone Bellow,
-  Robert Jon & The Wreck. Each represents a deliberate decision to invest beyond the
-  ticket in the artist relationship.
+### VIP packages — verified from artists.tsv VIP Count column
+
+VIP is the strongest single indicator of artist importance, but the signal has two
+distinct flavors:
+
+**Recurring VIP — bought every or nearly every time seen:**
+- **Larkin Poe** — VIP Count 3, Times Seen 6 (50% VIP rate; the clearest pattern)
+- **The Lone Bellow** — VIP Count 3, Times Seen 4 (75% VIP rate; near-automatic)
+- **ZZ Ward** — VIP Count 2, Times Seen 4 (50% VIP rate)
+- **Suzanne Vega** — VIP Count 2, Times Seen 3 (67% VIP rate)
+
+These are artists where the VIP upgrade is the default choice, not a deliberate
+deliberation. They represent the highest tier of personal investment.
+
+**One-time milestone VIP:**
+- **Billy Gibbons** — VIP Count 1, Times Seen 1 (birthday milestone experience)
+- **Jon Batiste** — VIP Count 1, Times Seen 2
+
+These purchases reflect a specific occasion or opportunity rather than a recurring
+commitment to that artist's VIP tier.
+
+For a recommendation engine: recurring VIP rate is a stronger signal of artist
+affinity than one-time VIP. An artist with VIP purchased across multiple visits
+indicates a relationship that goes well beyond casual attendance.
+
+### Other relationship signals:
 - **Post-show accessibility** — a complementary but secondary signal. Artists who stay
   and meet fans after sets are noted and appreciated; this adds to the relationship but
   is not the primary driver. Tracked via Artist Interaction column (Autograph / Photo /
@@ -313,9 +334,11 @@ If seeding a discovery algorithm, these pairings have historically surfaced usef
 | Joanne Shaw Taylor | UK blues-rock; female lead; similar to Popović |
 | Vanessa Collier | Contemporary female blues; plays sax herself |
 | Jackie Venson | Austin blues/rock; guitar + loops; younger generation |
-| Larkin Poe | Sister duo; lap steel + guitar; Southern blues-Americana |
+| Larkin Poe | Sister duo; lap steel + guitar; Southern blues-Americana; recurring VIP |
+| The Lone Bellow | Americana; harmonies; near-automatic VIP — top-tier affinity |
+| ZZ Ward | Blues-rock; female lead; recurring VIP |
 | Gary Clark Jr. | Austin electric blues; crossover but guitar-first |
-| Robert Jon & The Wreck | West Coast blues-rock; consistent repeat attendance; VIP |
+| Robert Jon & The Wreck | West Coast blues-rock; consistent repeat attendance |
 | The Wood Brothers | Southern Americana; harmonies + upright bass |
 | Taj Mahal | Traditional blues; roots authenticity; all-time tier |
 | Dave Alvin | California roots rock; The Blasters lineage |
