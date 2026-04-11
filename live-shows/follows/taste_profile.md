@@ -121,7 +121,7 @@ follow-up. Strongest signals (appeared in multiple excursions from different see
   single signal of artist importance in the collection (Billy Gibbons, ZZ Ward,
   The Lone Bellow, Robert Jon & The Wreck)
 
-### Observed pattern worth noting:
+### Observed pattern — female-led acts:
 The show history skews heavily toward **female-led and female-fronted acts** —
 Popović, Venable, Venson, Foley, Collier, Taylor, Nicole, Ward, McLachlan, Russell,
 Larkin Poe, Mohini Dey, and others. This is a real pattern but should be understood
@@ -129,6 +129,27 @@ as a *consequence* of following the blues and roots tradition, where a dispropor
 share of the most compelling contemporary voices happen to be women, rather than a
 filter applied at the point of purchase. The hat autograph category is deliberately
 female-only, which is a more conscious curatorial choice.
+
+### Observed pattern — live horns as additive:
+**Brass and saxophone incorporated into arrangements** is a consistent positive signal
+— not as a genre marker but as a textural element that adds to enjoyment. The
+distinction matters: this is not about full brass bands or ska-adjacent acts (Dupont,
+The Pietasters, Lucky Chops, Dirty Dozen Brass Band as genre, etc.) but about artists
+from other genres who use horns as part of their sound:
+
+- **Ana Popović** — touring with a full band including horns
+- **Selwyn Birchwood** — horns integrated into his blues arrangements
+- **Violent Femmes** — brass section as counterpoint to the stripped-down core
+- **AJR** — horn arrangements woven into the production
+- **JJ Grey & Mofro** — Florida soul/blues with deep horn presence
+- **They Might Be Giants** — horns as melodic and rhythmic texture
+- **James Hunter Six** — two-saxophone lineup is central to the sound
+- **Vanessa Collier** — sax as both lead and rhythm instrument (she plays it herself)
+
+The pattern holds across genres — the signal is the *presence and integration* of
+live brass or sax in the arrangement, not the genre of the surrounding music. For a
+recommendation engine: artists who use horns not as novelty but as structural
+elements of their live band are likely to score higher here than those who don't.
 
 ### Frequent passes:
 - **Arena-scale shows** — outside interest even for familiar artists
@@ -165,6 +186,8 @@ female-only, which is a more conscious curatorial choice.
 ### Prefers:
 - **Intimate rooms** where you can see the artist's hands and face clearly
 - **Artists who play their own instruments** — guitar especially
+- **Live horns / brass / sax integrated into arrangements** — additive across genres;
+  see Observed Patterns section above
 - **Autograph-seekable artists** — brings RHBS (Red House Blues Signatures) and APS
   books to shows; hat signing eligibility limited to female musicians
 - **Listening audiences** rather than background-music crowds
@@ -234,6 +257,8 @@ candidate than one sourced only from a venue newsletter.
 - Folk (if the songwriting is strong — Hansard, Fussell)
 - Rock (if the blues influence is primary — ZZ Ward)
 - Jam band (Greensky, Wood Brothers — yes; generic jam — no)
+- Artists outside the core genre profile but with strong horn arrangements (see
+  Observed Patterns — this has pulled in AJR, Violent Femmes, TMBG)
 
 ### Rarely or never buys:
 - Pop-country
@@ -243,6 +268,8 @@ candidate than one sourced only from a venue newsletter.
 - Comedy (separate calendar)
 - Tribute/cover bands
 - Arena rock regardless of pedigree
+- Brass band / ska as a primary genre (Dirty Dozen, Lucky Chops, etc. — the horns
+  themselves aren't the draw; it's their integration into other genres that matters)
 
 ---
 
@@ -271,9 +298,9 @@ If seeding a discovery algorithm, these pairings have historically surfaced usef
 | Seed artist | Why useful |
 |-------------|------------|
 | Christone "Kingfish" Ingram | Highest-frequency attendance; strong anchor |
-| Ana Popović | European blues-rock; technically precise; female lead |
+| Ana Popović | European blues-rock; technically precise; female lead; horns |
 | Joanne Shaw Taylor | UK blues-rock; female lead; similar to Popović |
-| Vanessa Collier | Contemporary female blues; sax + guitar |
+| Vanessa Collier | Contemporary female blues; plays sax herself |
 | Jackie Venson | Austin blues/rock; guitar + loops; younger generation |
 | Larkin Poe | Sister duo; lap steel + guitar; Southern blues-Americana |
 | Gary Clark Jr. | Austin electric blues; crossover but guitar-first |
@@ -284,16 +311,19 @@ If seeding a discovery algorithm, these pairings have historically surfaced usef
 | Jimmie Dale Gilmore | Texas Flatlanders; cosmic country; lonesome voice |
 | Shovels & Rope | Husband-wife duo; raw Americana; instrument-switching |
 | Lake Street Dive | Horn-inflected indie-soul; Rachel Price vocals |
+| JJ Grey & Mofro | Florida soul/blues; deep horn integration; strong seed |
+| James Hunter Six | British soul; two-sax lineup central to sound |
 | Greensky Bluegrass | Progressive bluegrass; improvisational |
 | Daniel Donato | Nashville cosmic country; young; Americana psychedelia |
 | Sue Foley | Canadian electric blues; female lead; Telecaster |
-| Selwyn Birchwood | Florida blues; slide + lap steel; original writing |
+| Selwyn Birchwood | Florida blues; slide + lap steel; horns in arrangements |
 
 **Anti-seeds** (artists whose adjacent recommendations may not fit):
 - Arena-scale legacy acts (Stones, Springsteen, etc.) — scale doesn't fit
 - Pop-blues crossover (John Mayer adjacent) — production values don't fit
 - Jamband without strong songwriting (long improvisations without destination)
 - British Invasion or classic rock nostalgia — not the direction
+- Brass band / ska as primary genre — horns are the draw, not the context
 
 ---
 
