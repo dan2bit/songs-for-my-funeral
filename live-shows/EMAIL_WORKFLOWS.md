@@ -97,6 +97,52 @@ Do not recommend a ticket purchase or create a show event on a date blocked by e
 
 ---
 
+## Fast Track Protocol
+
+**`live-shows/fast_track.tsv`** is a curated list of artists who should be treated as
+immediate buys when a local show surfaces — skipping the potential list evaluation cycle
+entirely. The file exists for artists with **no DC show history** (or no headlining
+history) who have earned a pre-authorized buy signal through external credibility
+(BMA nominations, Alligator Records, critical consensus, etc.).
+
+**Discipline:** Fast Track is strictly for artists who would NOT already be caught as
+a strong buy based on show history. Artists with an established history of DC attendance
+(Kingfish, Larkin Poe, Lone Bellow, ZZ Ward, etc.) are handled by the existing tier
+system and must NOT be added here.
+
+### Cap defaults
+
+All three caps default to their most expansive values unless explicitly narrowed in the file:
+
+| Cap | Default | Narrower options |
+|-----|---------|-----------------|
+| Price Cap | $100 all-in | Any lower dollar amount |
+| Distance Cap | Regional (DC/MD/VA + Baltimore, ~60 mi) | Local (DC/MD/VA only) · Extended (~90 mi) |
+| Venue Cap | Mid (Small rooms + 9:30 Club, Wolf Trap Barns, State Theatre, ~500–1200 cap) | Small (Birchmere/Hamilton/Rams Head/Hub City tier only) · Large (adds Wolf Trap Filene, The Anthem) |
+
+A blank cell in any cap column means the default applies. All three caps must be
+satisfied for Fast Track treatment. If **any cap is exceeded** — price too high,
+venue too large, show too far — surface as a normal **Choose** recommendation in
+`live_shows_potential.tsv` instead, noting that it narrowly missed Fast Track and why.
+
+### When Fast Track applies
+
+During Routine 3 (Step 2) and Routine 5 (Step 4), after the standard checks:
+
+1. Look up the artist in `fast_track.tsv`
+2. If found, check all three caps against the show details
+3. **All caps satisfied** → present as **🚀 Fast Track buy**: recommend immediate
+   purchase without adding to potential list first. Note the book check from the
+   `Book Check` column. No potential list row needed unless purchase is deferred.
+4. **Any cap exceeded** → present as a normal Choose recommendation in the potential
+   list, flagging which cap was exceeded and by how much
+
+Fast Track overrides the normal "Strong tier only" filter for Case B on-sale events —
+a Fast Track artist with a confirmed open date and a specific on-sale time still gets
+an on-sale reminder calendar event (Routine 3 Step 4), not just a mention.
+
+---
+
 ## live_shows_potential.tsv Write Protocol
 
 **Always fetch a fresh SHA immediately before writing `live_shows_potential.tsv`.**
@@ -449,7 +495,7 @@ classify each artist mention as one of two cases:
 **Case B — Specific future on-sale time given** (pre-sale or general on-sale announced):
 - Only act on **Strong tier** artists (previously seen) with a confirmed open date
 - Check calendar for conflicts before proceeding (apply Calendar Availability Rule above)
-- Create an on-sale reminder calendar event (see Step 3 below)
+- Create an on-sale reminder calendar event (see Step 4 below)
 
 For digest-style newsletters (multiple artists, no specific on-sale times), treat all
 entries as Case A and present the tiered list. Do not create calendar events for
@@ -477,7 +523,7 @@ $35.50 IMP gift card credit available, redeemable in person at any IMP box offic
 enough that the gift card can cover them outright, making this a "take a chance"
 budget for supporting the local DC scene.
 
-**Step 2 — Check against `live_shows_potential.tsv`**
+**Step 2 — Check against `live_shows_potential.tsv` and `fast_track.tsv`**
 
 Before presenting any recommendation, look up the artist in `live_shows_potential.tsv`.
 If the show is already in the file:
@@ -485,10 +531,18 @@ If the show is already in the file:
 - **Decision = `Buy` or `Buy (paper @ ...)`** — remind Dan to complete the purchase
 - **Decision = `Choose`** — present as a normal recommendation (still undecided)
 
-If the show is new and meets the Strong/Medium threshold, present it for approval
-before adding a row to `live_shows_potential.tsv`. Do not add rows without approval.
+If the show is new, check `fast_track.tsv` **before** applying the standard tier filter:
 
-When adding an approved row, use the following Decision values:
+- **Artist is in `fast_track.tsv`** — evaluate all three caps (Price, Distance, Venue)
+  against the show details:
+  - All caps satisfied → present as **🚀 Fast Track buy** (see Fast Track Protocol above).
+    Do not add to potential list unless purchase is being deferred.
+  - Any cap exceeded → present as a Choose recommendation in the potential list,
+    noting which cap was exceeded and by how much.
+- **Artist is not in `fast_track.tsv`** — apply the standard Strong/Medium tier filter
+  and present normally.
+
+When adding an approved row to the potential list, use the following Decision values:
 - **Clear buy signal** → `Buy` or `Buy (paper @ [show])` as appropriate
 - **Undecided** → `Choose` (never leave Decision blank)
 - **Likely skip** → `Pass`
@@ -506,9 +560,10 @@ has passed. Apply the same fresh-SHA write protocol when pruning.
 **Step 3 — Check autograph books**
 
 Same lookup as Routine 1 — note book reminder in any recommendation or calendar
-event description.
+event description. For Fast Track artists, the `Book Check` column in `fast_track.tsv`
+is pre-filled; use it directly rather than doing a separate lookup.
 
-**Step 4 — Create on-sale reminder event (Case B only)**
+**Step 4 — Create on-sale reminder event (Case B only, or Fast Track with specific on-sale time)**
 
 Calendar: `redhat.bootlegs@gmail.com` — Dan Concert Calendar
 
@@ -544,10 +599,10 @@ Create a draft in the redhat.bootlegs inbox with:
 - Subject: `[LOG] Routine 3 — [source newsletter/venue] — YYYY-MM-DD`
 - Body summarising: email source and date, every artist evaluated with their
   tier classification and calendar availability result, all recommendations
-  made (artist, date, venue, ticket link), all on-sale reminder events created
-  (artist, on-sale time, calendar event title), items skipped and why
-  (date conflict, below threshold, already have tickets, Pass decision, etc.),
-  any re-subscription links surfaced
+  made (artist, date, venue, ticket link), Fast Track evaluations (artist, caps checked,
+  result), all on-sale reminder events created (artist, on-sale time, calendar event
+  title), items skipped and why (date conflict, below threshold, already have tickets,
+  Pass decision, etc.), any re-subscription links surfaced
 
 **Final step:** Remind you to apply the `processed` label to the email.
 
@@ -707,9 +762,13 @@ and let Dan confirm before making any file changes.
 
 **Step 4 — Process any show content**
 
-If the email contains a show announcement or pre-sale code, handle it exactly as
-Routine 4 Step 2 would — calendar check, autograph book lookup, buy recommendation
-or on-sale reminder event as appropriate.
+If the email contains a show announcement or pre-sale code:
+
+1. **Check `fast_track.tsv` first** — if the artist is in the Fast Track list, evaluate
+   all three caps against the show details and present as a 🚀 Fast Track buy (all caps
+   satisfied) or a Choose recommendation (any cap exceeded), per the Fast Track Protocol.
+2. **Otherwise** — handle exactly as Routine 4 Step 2 would: calendar check, autograph
+   book lookup, buy recommendation or on-sale reminder event as appropriate.
 
 **Step 5 — Create activity log draft**
 
@@ -717,8 +776,8 @@ Create a draft in the redhat.bootlegs inbox with:
 - Subject: `[LOG] Routine 5 — [Artist] [BIT/Songkick/signup/etc.] — YYYY-MM-DD`
 - Body summarising: email source and type, follows_master.tsv status found,
   any file changes made or proposed, follow coverage recommendations,
-  any show content processed (date, venue, action taken),
-  manual follow-up items
+  any show content processed (date, venue, Fast Track evaluation if applicable,
+  action taken), manual follow-up items
 
 **Final step:** Remind you to apply the `processed` label to each email processed.
 
