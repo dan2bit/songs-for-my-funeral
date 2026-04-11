@@ -1,8 +1,8 @@
 # Analysis Workflows — Live Show Archive
 
-Three standing workflows for periodic show discovery and artist research.
-These are independent of the email routines in `EMAIL_WORKFLOWS.md` — they
-are triggered by calendar reminders, not inbox events.
+Four standing workflows for periodic show discovery, artist research, and file
+maintenance. These are independent of the email routines in `EMAIL_WORKFLOWS.md` —
+they are triggered by calendar reminders or file editing events, not inbox events.
 
 ---
 
@@ -128,3 +128,71 @@ and feeds new discoveries into `new_artist_research.tsv`.
 New artist discoveries go into `live-shows/new_artist_research.tsv`.
 No separate output file — the workflow produces either TSV additions
 or conversation-level recommendations.
+
+---
+
+## Workflow 4 — Fast Track Entry: Follow Coverage Audit
+
+**Cadence:** Ad hoc — run whenever a new artist is added to `fast_track.tsv`
+**Trigger:** Editing `fast_track.tsv` (no calendar event; part of the same session)
+
+### Purpose
+
+When an artist is added to the Fast Track list, they are being elevated to
+pre-authorized buy status — which means the signal pipeline needs to be strong
+enough to actually surface a local show before it sells out. This workflow
+ensures follow coverage is complete at the time of entry, rather than
+discovering a gap after missing a show.
+
+### Process
+
+For each newly added artist, look them up in `follows_master.tsv` and assess:
+
+**1. Bandsintown follow**
+- Is the artist followed on BIT (rhbl account)?
+- If not: recommend adding. BIT is the primary real-time show alert pipeline.
+- If yes and no DC show has surfaced recently: note whether a targeted off-cycle
+  BIT DC Recommends refresh (Workflow 1) or an artist-specific BIT page check
+  might surface current availability.
+
+**2. Songkick / Seated follow**
+- Is the artist tracked on Songkick or Seated?
+- If not: recommend adding if they are likely to be listed on those platforms
+  (Songkick skews well-established; Seated skews smaller/independent venues).
+
+**3. Direct mailing list**
+- Does the artist have a mailing list? Is it subscribed under redhat.bootlegs?
+- If a list exists and isn't subscribed: recommend subscribing, especially for
+  Strong-tier Fast Track artists where tour announcements may come before BIT
+  alert propagation.
+
+**4. HereForTheBands**
+- Will the artist likely appear in HFTB DC region results?
+- HFTB is more useful for artists with consistent mid-size DC bookings;
+  less reliable for debut or rare DC appearances.
+
+**5. Off-cycle refresh recommendation**
+- If the artist has no coverage gap but also no recent DC signal, flag whether
+  an off-cycle run of Workflow 1 (BIT DC Recommends) or Workflow 2 (HFTB)
+  is warranted to check current listings immediately rather than waiting for
+  the monthly cadence.
+
+### Output
+
+Present coverage gaps and recommendations in conversation. No automatic file
+changes — any `follows_master.tsv` updates or service follow actions require
+confirmation before committing.
+
+If a gap is confirmed and filled (e.g., a BIT follow is added), note it in
+the same session log or commit message.
+
+### Example
+
+An artist like Danielle Ponder is added to `fast_track.tsv`. The audit finds:
+- Not in `follows_master.tsv` at all → recommend adding row with BIT + Seated
+- No direct mailing list subscription → recommend checking if one exists
+- HFTB coverage likely (plays the size of rooms HFTB tracks) → no action needed
+- Off-cycle BIT check recommended since she's touring actively
+
+Result: a proposed `follows_master.tsv` row is presented for approval, and a
+note to check her BIT page directly for any current DC-area dates.
