@@ -115,7 +115,7 @@ system and must NOT be added here.
 All three caps default to their most expansive values unless explicitly narrowed in the file:
 
 | Cap | Default | Narrower options |
-|-----|---------|-----------------|
+|-----|---------|-----------------  |
 | Price Cap | $100 all-in | Any lower dollar amount |
 | Distance Cap | Regional (DC/MD/VA + Baltimore, ~60 mi) | Local (DC/MD/VA only) · Extended (~90 mi) |
 | Venue Cap | Mid (Small rooms + 9:30 Club, Wolf Trap Barns, State Theatre, ~500–1200 cap) | Small (Birchmere/Hamilton/Rams Head/Hub City tier only) · Large (adds Wolf Trap Filene, The Anthem) |
@@ -319,14 +319,30 @@ date before removing.
 **If the commit fails:** present the updated `live_shows_potential.tsv` in the
 conversation for download and manual check-in.
 
-**Step 7 — Create activity log draft**
+**Step 7 — Remove from `fast_track.tsv` if present**
+
+Look up the headliner in `fast_track.tsv` by artist name.
+
+- **If found:** remove the row and commit the updated file directly to `main`.
+  The rationale: Fast Track is for artists not yet seen. This ticket purchase means
+  they are now entering the history-based tier system — future shows will be evaluated
+  on the same basis as any other Strong/Medium artist. They no longer need pre-authorized
+  buy treatment. Note the removal in the activity log draft.
+- **If not found:** no action needed — most ticket purchases will not involve Fast Track
+  artists.
+
+**If the commit fails:** present the updated `fast_track.tsv` in the conversation for
+download and manual check-in.
+
+**Step 8 — Create activity log draft**
 
 Create a draft in the redhat.bootlegs inbox with:
 - Subject: `[LOG] Routine 1 — [Artist] ticket — YYYY-MM-DD`
 - Body summarising: email found (sender, subject, date), ticket details parsed,
   autograph book check result, calendar event created (title, date, time, any
   book reminder or merch note), TSV row committed or presented for manual check-in,
-  potential list row removed (or confirmed not present), any notable decisions or caveats
+  potential list row removed (or confirmed not present), Fast Track row removed
+  (or confirmed not present), any notable decisions or caveats
 
 **Final step:** Remind you to apply the `processed` label to the email.
 
