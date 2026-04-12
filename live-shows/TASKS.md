@@ -175,3 +175,12 @@ the YouTube playlists.
 - This is a one-time bulk sync followed by keeping in sync after each show
 - No tooling exists for this yet — manual process or explore Google Photos upload
   options
+
+**⚠️ Google Photos scheduled export behavior — manual cleanup required:**
+
+The automatic scheduled export from Facebook to Google Photos creates a new, complete
+album each time it runs — it does not update the previous album in place. The prior
+album must be deleted manually after each new export to avoid accumulating duplicates.
+
+Current album state: imported 2026-04-11, 85 photos. Previous album (if any) should
+be deleted manually.
