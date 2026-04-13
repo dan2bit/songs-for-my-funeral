@@ -21,17 +21,26 @@ email(s) that were processed.
 
 **`ticket-alert`** — Applied manually (or via a Gmail filter) to incoming venue/artist
 newsletter emails once mailing list subscriptions are in place. Routine 3 searches
-`label:ticket-alert -label:processed` to find unprocessed on-sale alerts.
+`label:ticket-alert -label:processed` to find unprocessed on-sale alerts. **Seated**
+alert emails also go here — Seated sends ticket-sale-style notifications and is treated
+as a venue/service newsletter source, not a follow-relationship source.
 
 **`artist-mail`** — Applied manually (or via Gmail filter) to emails from artist
 newsletter subscriptions. Routine 4 searches `label:artist-mail -label:processed`
 to find unprocessed artist mail. The primary things to mine are: tour announcements,
 artist pre-sale codes, and new music releases.
 
-**`artist-follow`** — Applied manually (or via Gmail filter) to emails that are
-either service notifications about a followed artist (e.g. Bandsintown "new show"
-alerts) or responses from a direct artist mailing list signup (welcome emails,
-confirmation messages). Routine 5 searches `label:artist-follow -label:processed`.
+**`artist-follow`** — Applied automatically by Gmail filter (for Bandsintown and
+Songkick sender addresses) or manually for other sources. Covers service notifications
+about followed artists and direct mailing list signup responses. Routine 5 searches
+`label:artist-follow -label:processed`.
+
+- **Bandsintown** and **Songkick** emails are auto-labeled `artist-follow` via Gmail
+  filter rules on their sender addresses. No manual labeling needed.
+- **Seated** emails go to `ticket-alert` (not `artist-follow`) — Seated sends
+  ticket-sale-style alerts that fit the Routine 3 model.
+- Direct mailing list signup welcome emails and confirmations: label manually as
+  `artist-follow`.
 
 **What I cannot do:** I can read labels and search by them, but I cannot apply, remove,
 or create labels, mark emails as read, or create Gmail filters. All label management
@@ -74,6 +83,9 @@ Examples:
 **One draft per routine invocation.** If Routines 3 and 4 both run in the same
 conversation, two separate drafts are created. Draft creation is non-blocking —
 if it fails, the summary stays in conversation and we move on.
+
+**Pure reminder emails (BIT/Songkick) require no log draft** — see Routine 5 for
+the suppression rule.
 
 **Searching the log:** Use `subject:[LOG]` in Gmail to find all log drafts.
 Use `subject:[LOG] Routine 3` to find on-sale processing history, etc.
@@ -492,7 +504,9 @@ rules above and are not affected by the counting policy change.
 ## Routine 3 — Pre-Sale / On-Sale Notification Email
 
 **Trigger:** An on-sale alert, pre-sale announcement, or venue/artist newsletter
-tagged `ticket-alert` arrives in the redhat.bootlegs inbox.
+tagged `ticket-alert` arrives in the redhat.bootlegs inbox. This includes Seated
+alert emails, which are treated as ticket-sale notifications rather than follow
+service alerts.
 
 ### What I do
 
@@ -533,11 +547,7 @@ link so you can re-subscribe under `redhat.bootlegs@gmail.com`. Common providers
 **IMP newsletter special rule:** When processing an IMP newsletter (9:30 Club,
 The Anthem, Lincoln Theatre, The Atlantis, Merriweather), apply the standard tiering
 above and additionally flag any **The Atlantis** show featuring a local DC artist as a
-gift card opportunity — even for artists below the Strong/Medium threshold. There is a
-$35.50 IMP gift card credit available, redeemable in person at any IMP box office
-(The Anthem has the longest hours and is the closest). Atlantis shows are low-cost
-enough that the gift card can cover them outright, making this a "take a chance"
-budget for supporting the local DC scene.
+gift card opportunity — even for artists below the Strong/Medium threshold.
 
 **Step 2 — Check against `live_shows_potential.tsv` and `fast_track.tsv`**
 
@@ -730,17 +740,36 @@ Create a draft in the redhat.bootlegs inbox with:
 **Trigger:** An email tagged `artist-follow` arrives in the redhat.bootlegs inbox.
 This label covers two source types:
 
-1. **Service notification** — a Bandsintown, Songkick, Seated, or similar
-   "new show alert" or "artist added" email for a followed artist
+1. **Service notification** — a Bandsintown or Songkick "new show" alert for a
+   followed artist. Gmail filters automatically apply `artist-follow` to emails
+   from these senders. Note: Seated alert emails go to `ticket-alert` instead and
+   are handled by Routine 3.
 2. **Direct signup response** — a welcome email, confirmation, or first newsletter
-   from an artist mailing list you just signed up for
+   from an artist mailing list you just signed up for (labeled manually).
+
+### Reminder suppression rule
+
+BIT and Songkick send repeat alerts as show dates approach — the same show may
+trigger multiple emails (on-sale, reminder, "last chance"). Before doing any
+processing, apply this filter:
+
+**If the show is already in `live_shows_current.tsv` or `live_shows_potential.tsv`
+for that artist and date, this is a reminder — skip it entirely.** Mark processed
+and move on. No log draft needed for pure reminder emails.
+
+**If multiple emails arrive in the same session for the same show and it hasn't been
+evaluated yet**, process it once and skip the rest as duplicates.
 
 ### What I do
 
 **Step 1 — Find and read the emails**
 
 Search `label:artist-follow -label:processed`, read each unprocessed email.
-Identify the artist and the type (service notification vs. direct signup response).
+Identify the artist, the service (BIT, Songkick, direct signup), and whether it
+contains new show information not already in the system.
+
+Apply the reminder suppression rule before proceeding — if the show is already
+known, mark processed and stop.
 
 **Step 2 — Check `follows_master.tsv`**
 
@@ -752,7 +781,7 @@ Look up the artist in `live-shows/follows/follows_master.tsv`:
   too if missing. Present proposed row(s) in conversation for approval before committing.
 
 - **Artist present, service not marked** — if this is a service notification from
-  a service (BIT, Songkick, Seated) that isn't already marked Y in the artist's row,
+  a service (BIT, Songkick) that isn't already marked Y in the artist's row,
   note the discrepancy and ask whether to update the file.
 
 - **Artist present, `Direct Mail` not Y** — if this is a direct signup response,
@@ -794,6 +823,9 @@ Create a draft in the redhat.bootlegs inbox with:
   any file changes made or proposed, follow coverage recommendations,
   any show content processed (date, venue, Fast Track evaluation if applicable,
   action taken), manual follow-up items
+
+**No log draft for pure reminders** — if the email was suppressed by the reminder
+rule in Step 1, just apply the `processed` label and move on.
 
 **Final step:** Remind you to apply the `processed` label to each email processed.
 
@@ -852,12 +884,15 @@ each subscription is set up.
 
 **Ticketing platforms:**
 - AXS — axs.com (artist follows)
+- Seated — seated.com (artist follows); alert emails go to `ticket-alert`
 - Eventbrite — follow relevant organizers
 
-**Bandsintown** — redhat.bootlegs account (fresh start; dan2bit account to be retired).
-  Artist follow list managed via `worklist_bandsintown.tsv` and `follows_master.tsv`.
-  BIT sends email alerts for followed artists directly to the registered account email,
-  making redhat.bootlegs the correct home for this. ~120 artists per the worklist.
+**Bandsintown** — redhat.bootlegs account. Gmail filter auto-labels emails from
+BIT sender addresses as `artist-follow`. Artist follow list managed via
+`worklist_bandsintown.tsv` and `follows_master.tsv`. ~120 artists per the worklist.
+
+**Songkick** — Gmail filter auto-labels emails from Songkick sender addresses as
+`artist-follow`.
 
 **Artist newsletters** — see `Direct Mail` column in `follows_master.tsv` for the
 complete subscribed list. Routine 4 subscriber table above is kept in sync.
