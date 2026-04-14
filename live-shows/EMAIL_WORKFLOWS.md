@@ -469,14 +469,58 @@ Commit message format: `post-show: [Artist] [YYYY-MM-DD]`
 **If the commit fails:** present each changed file in the conversation for
 download and manual check-in.
 
-**Step 6 — Create activity log draft**
+**Step 6 — Open a GitHub issue for YouTube playlist creation**
+
+Create a new issue in `dan2bit/songs-for-my-funeral` for the playlist creation task.
+This issue stays open until the playlist is built, linked in `live_shows_current.tsv`,
+and the pipeline has been run.
+
+Issue title format: `🎬 Playlist: [Artist] — [YYYY-MM-DD] ([Venue short name])`
+
+Issue body:
+```
+## Show details
+
+**Artist:** [Artist]
+**Supporting:** [Supporting Artist, or — if none]
+**Date:** [YYYY-MM-DD]
+**Venue:** [Venue Name]
+**Setlist.fm:** [URL, or TBD if not yet available]
+**Artist interaction:** [Photo / Autograph / Both / None]
+
+## Notes / memories
+
+[Full notes from the post-show email, verbatim or lightly cleaned up]
+
+## Workflow
+
+1. Upload show videos to YouTube Studio (`@dan2bit` channel) — arrange in order per setlist.fm
+2. Create playlist titled: `[Artist] — [Venue short name] [M/D/YY]`
+3. Set playlist to Public once complete
+4. Run pipeline:
+   ```bash
+   python3 youtube_fetch.py --force --since [show-date]
+   python3 youtube_correlate.py --merge
+   python3 youtube_create_playlists.py --worklist --update-history
+   ```
+5. Update `Playlist URL` in `live_shows_current.tsv`
+6. Close this issue
+```
+
+Labels: `playlist`
+
+If there is **no footage** from the show (noted in the post-show email or known at
+processing time), skip this step and note it in the activity log draft instead.
+
+**Step 7 — Create activity log draft**
 
 Create a draft in the redhat.bootlegs inbox with:
 - Subject: `[LOG] Routine 2 — [Artist] post-show — YYYY-MM-DD`
 - Body summarising: email found, spending recorded (spending.tsv row appended,
-  show total), calendar event updated, autograph records updated (if applicable),
-  files committed (list which files changed), any manual follow-up items
-  (hat autograph gdoc, `processed` label)
+  show total), calendar event updated (or skipped — past show), autograph records
+  updated (if applicable), files committed (list which files changed), GitHub issue
+  opened for playlist (issue number and link, or noted as skipped if no footage),
+  any manual follow-up items (hat autograph gdoc, `processed` label)
 
 **Final step:** Remind you to apply the `processed` label to the email.
 
@@ -863,9 +907,11 @@ gdoc updates are manual.
 **Google Calendar MCP fails on Android.** Calendar operations only work reliably
 on macOS desktop. If calendar steps fail, switch to desktop before retrying.
 
-**YouTube pipeline is separate.** Neither routine touches `youtube_fetch.py`,
-`youtube_correlate.py`, or `youtube_create_playlists.py`. Those run on your own
-schedule after video uploads — see TASKS.md.
+**YouTube pipeline is separate.** Playlist creation is tracked via GitHub issues
+(label: `playlist`) opened automatically by Routine 2. The pipeline scripts
+(`youtube_fetch.py`, `youtube_correlate.py`, `youtube_create_playlists.py`) run
+manually after videos are uploaded to YouTube Studio — see issue bodies for the
+exact command sequence.
 
 ---
 
