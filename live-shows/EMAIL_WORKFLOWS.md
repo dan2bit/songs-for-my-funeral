@@ -472,8 +472,7 @@ download and manual check-in.
 **Step 6 — Open a GitHub issue for YouTube playlist creation**
 
 Create a new issue in `dan2bit/songs-for-my-funeral` for the playlist creation task.
-This issue stays open until the playlist is built, linked in `live_shows_current.tsv`,
-and the pipeline has been run.
+This issue stays open until the playlist is built and the pipeline has been run.
 
 Issue title format: `🎬 Playlist: [Artist] — [YYYY-MM-DD] ([Venue short name])`
 
@@ -499,14 +498,14 @@ Issue body:
 1. Upload show videos to YouTube Studio (`@dan2bit` channel) — arrange in order per setlist.fm
 2. Create playlist titled: `[Artist] — [Venue short name] [M/D/YY]`
 3. Set playlist to Public once complete
-4. Run pipeline:
+4. Run:
    ```bash
    python3 youtube_fetch.py --force --since [show-date]
    python3 youtube_correlate.py --merge
-   python3 youtube_create_playlists.py --worklist --update-history
    ```
-5. Update `Playlist URL` in `live_shows_current.tsv`
-6. Close this issue
+5. Fill in `Playlist URL` in `live_shows_current.tsv`, then commit and push:
+   `playlist: [Artist] [YYYY-MM-DD] fix #[issue]`
+   (The `fix #N` keyword auto-closes this issue on push.)
 ```
 
 Labels: `playlist`
@@ -911,9 +910,9 @@ on macOS desktop. If calendar steps fail, switch to desktop before retrying.
 
 **YouTube pipeline is separate.** Playlist creation is tracked via GitHub issues
 (label: `playlist`) opened automatically by Routine 2. The pipeline scripts
-(`youtube_fetch.py`, `youtube_correlate.py`, `youtube_create_playlists.py`) run
-manually after videos are uploaded to YouTube Studio — see issue bodies for the
-exact command sequence.
+(`youtube_fetch.py`, `youtube_correlate.py`) run manually after videos are uploaded
+to YouTube Studio — see issue bodies for the exact command sequence. The issue is
+auto-closed by the `fix #N` keyword in the playlist commit message.
 
 ---
 
