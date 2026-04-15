@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Live Shows — songs-for-my-funeral</title>
+<title>live shows</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap');
 
@@ -129,7 +129,6 @@
   .cell-venue a { color: var(--text-muted); text-decoration: none; }
   .cell-venue a:hover { color: var(--amber); }
   .cell-seat { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
-  .cell-cost { font-family: var(--mono); font-size: 12px; color: var(--text-muted); white-space: nowrap; text-align: right; }
   .cell-notes { max-width: 280px; }
   .notes-text { color: var(--text-muted); font-size: 12px; line-height: 1.4; cursor: pointer; }
   .notes-text.collapsed { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
@@ -194,14 +193,15 @@
   .decision-select:focus { border-color: var(--amber-dim); }
 
   .cell-watching { font-size: 12px; color: var(--amber); font-family: var(--mono); white-space: nowrap; }
-  .cell-price    { font-family: var(--mono); font-size: 12px; color: var(--text-muted); white-space: nowrap; text-align: right; }
+  .cell-price    { font-family: var(--mono); font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+  .cell-context  { font-size: 11px; color: var(--text-dim); max-width: 200px; line-height: 1.6; }
   .cell-tier     { font-family: var(--mono); font-size: 10px; white-space: nowrap; }
   .tier-strong        { color: var(--amber); }
   .tier-medium        { color: var(--text-muted); }
   .tier-medium-strong { color: #c09040; }
   .tier-low           { color: var(--text-dim); }
 
-  .cell-pot-notes { font-size: 12px; color: var(--text-muted); max-width: 320px; line-height: 1.4; }
+  .cell-pot-notes { font-size: 12px; color: var(--text-muted); max-width: 280px; line-height: 1.4; }
   .cell-pot-notes.collapsed { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; cursor: pointer; }
 
   .save-indicator { font-family: var(--mono); font-size: 10px; margin-left: 6px; }
@@ -236,9 +236,9 @@
 
   @media (max-width: 768px) {
     .panel { padding: 12px; }
-    .col-support, .col-seat, .col-cost { display: none; }
+    .col-support, .col-seat { display: none; }
     .cell-notes { max-width: 160px; }
-    .col-watching, .col-tier, .col-price { display: none; }
+    .col-watching, .col-tier, .col-price, .col-context { display: none; }
     .cell-pot-notes { max-width: 160px; }
   }
 </style>
@@ -246,7 +246,7 @@
 <body>
 
 <header class="site-header">
-  <div class="site-title">songs-for-my-funeral <span>/</span> live-shows</div>
+  <div class="site-title">live-shows</div>
   <div class="header-actions">
     <span class="fetched-at" id="fetchedAt">—</span>
     <button class="btn" id="refreshBtn" onclick="loadData()">↺ refresh</button>
@@ -304,8 +304,6 @@ async function ghFetch(path, opts = {}) {
   const headers = { 'Accept': 'application/vnd.github.v3+json' };
   if (pat) headers['Authorization'] = `token ${pat}`;
   const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`;
-  // cache: 'no-store' tells the browser not to serve a cached response,
-  // without adding request headers that would trigger a CORS preflight
   const res = await fetch(url, { cache: 'no-store', ...opts, headers: { ...headers, ...(opts.headers || {}) } });
   if (!res.ok) throw new Error(`GitHub API ${res.status}: ${res.statusText}`);
   return res.json();
@@ -384,7 +382,6 @@ function renderUpcomingRow(row, idx) {
     </td>
     <td class="cell-venue col-support">${venueHtml}</td>
     <td class="cell-seat col-seat">${esc(row['Seat Info / GA']||'')}</td>
-    <td class="cell-cost col-cost">${esc(row['Total Cost']||'')}</td>
     <td class="cell-notes">${notes ? `
       <div class="notes-text collapsed" id="n-up-${idx}" onclick="toggleNotes('n-up-${idx}','nt-up-${idx}')">${notes}</div>
       <span class="notes-toggle" id="nt-up-${idx}" onclick="toggleNotes('n-up-${idx}','nt-up-${idx}')">more</span>` : ''}</td>
@@ -399,8 +396,8 @@ function renderAttendedRow(row, idx) {
     <td class="cell-artist">${esc(row['Artist'])}</td>
     <td class="cell-venue col-support">${esc(row['Venue Name'])}</td>
     <td>
-      ${row['Setlist.fm URL'] ? `<a class="icon-link" href="${esc(row['Setlist.fm URL'])}"  target="_blank" title="Setlist.fm">♫</a>` : ''}
-      ${row['Playlist URL']   ? `<a class="icon-link" href="${esc(row['Playlist URL'])}"    target="_blank" title="YouTube playlist">▶</a>` : ''}
+      ${row['Setlist.fm URL'] ? `<a class="icon-link" href="${esc(row['Setlist.fm URL'])}" target="_blank" title="Setlist.fm">♫</a>` : ''}
+      ${row['Playlist URL']   ? `<a class="icon-link" href="${esc(row['Playlist URL'])}" target="_blank" title="YouTube playlist">▶</a>` : ''}
     </td>
     <td class="cell-notes">${notes ? `<div class="notes-text collapsed" id="n-at-${idx}" onclick="toggleNotes('n-at-${idx}',null)">${notes}</div>` : ''}</td>
   </tr>`;
@@ -416,7 +413,7 @@ function renderShows() {
     <span class="section-count">${upcoming.length} shows</span>
   </div>
   <table class="shows-table">
-    <thead><tr><th>Date</th><th>Artist</th><th class="col-support">Venue</th><th class="col-seat">Seat / GA</th><th class="col-cost" style="text-align:right">Cost</th><th>Notes</th></tr></thead>
+    <thead><tr><th>Date</th><th>Artist</th><th class="col-support">Venue</th><th class="col-seat">Seat / GA</th><th>Notes</th></tr></thead>
     <tbody>${upcoming.map((r,i)=>renderUpcomingRow(r,i)).join('')}</tbody>
   </table>
   <details class="attended-details" style="margin-top:28px">
@@ -457,20 +454,24 @@ function renderPotentialGroup(rows, groupKey, label) {
     const venueHtml = venueUrl
       ? `<a href="${esc(venueUrl)}" target="_blank" style="color:var(--text-muted);text-decoration:none">${esc(r['Venue'])}</a>`
       : esc(r['Venue']||'');
+    const prev = esc(r['Prev Show (2026)']||'');
+    const next = esc(r['Next Show (2026)']||'');
+    const contextHtml = [prev, next].filter(Boolean).map(s => `<div>${s}</div>`).join('');
     return `
     <tr class="row-${groupKey}">
+      <td style="white-space:nowrap">${decisionHtml(r,gi)}</td>
       <td class="cell-date">${formatShowDate(r['Date'])}<span class="day-of-week">${dayOfWeek(r['Date'])}</span></td>
       <td><div class="cell-artist">${esc(r['Artist'])}</div>${r['Support']?`<div class="cell-support">w/ ${esc(r['Support'])}</div>`:''}</td>
       <td>${venueHtml}<div style="font-size:11px;color:var(--text-dim);margin-top:2px">${esc(r['Venue City']||'')}</div></td>
       <td class="col-tier">${tierHtml(r['Tier']||'')}</td>
       <td class="col-price cell-price">${esc(r['Face Price']||'')}</td>
       <td class="col-watching">${r['Watching For']?`<span class="cell-watching">⚠ ${esc(r['Watching For'])}</span>`:''}</td>
-      <td style="white-space:nowrap">${decisionHtml(r,gi)}</td>
+      <td class="col-context cell-context">${contextHtml}</td>
       <td class="cell-pot-notes">${notes?`<div class="cell-pot-notes collapsed" onclick="this.classList.toggle('collapsed')">${notes}</div>`:''}</td>
     </tr>`;
   }).join('');
   const table = `<table class="pot-table">
-    <thead><tr><th>Date</th><th>Artist</th><th>Venue</th><th class="col-tier">Tier</th><th class="col-price" style="text-align:right">Face</th><th class="col-watching">Watching For</th><th>Decision</th><th>Notes</th></tr></thead>
+    <thead><tr><th>Decision</th><th>Date</th><th>Artist</th><th>Venue</th><th class="col-tier">Tier</th><th class="col-price">Face</th><th class="col-watching">Watching For</th><th class="col-context">Prev / Next</th><th>Notes</th></tr></thead>
     <tbody>${tbody}</tbody></table>`;
   if (groupKey === 'pass') return `
     <div class="potential-group"><details class="pass-details">
@@ -571,8 +572,7 @@ async function loadData() {
     const now = new Date();
     document.getElementById('fetchedAt').textContent = `fetched ${now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`;
   } catch(e) {
-    const msg = `<div class="error-msg">Error loading data: ${esc(e.message)}<br><br>
-      Rate-limited? <button class="btn" onclick="openAuthModal()" style="display:inline;padding:2px 8px">Add a PAT</button> to raise your limit.</div>`;
+    const msg = `<div class="error-msg">Error: ${esc(e.message)}</div>`;
     document.getElementById('showsContent').innerHTML = msg;
     document.getElementById('potContent').innerHTML   = msg;
   }
