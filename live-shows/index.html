@@ -139,11 +139,12 @@
 
   .badges { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 3px; }
   .badge { font-family: var(--mono); font-size: 10px; padding: 1px 5px; border-radius: 2px; white-space: nowrap; }
-  .badge-ticket { background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border); }
-  .badge-vip    { background: var(--amber-bg); color: var(--amber);      border: 1px solid var(--amber-dim); }
-  .badge-book   { background: #1a1420;         color: #a080c0;           border: 1px solid #4a2a70; }
-  .badge-merch  { background: var(--red-bg);   color: #c07060;           border: 1px solid var(--red-dim); }
-  .badge-paper  { background: var(--surface2); color: #7090a0;           border: 1px solid #2a4050; }
+  .badge-ticket    { background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border); }
+  .badge-vip       { background: var(--amber-bg); color: var(--amber);      border: 1px solid var(--amber-dim); }
+  .badge-book      { background: #1a1420;         color: #a080c0;           border: 1px solid #4a2a70; }
+  .badge-merch     { background: var(--red-bg);   color: #c07060;           border: 1px solid var(--red-dim); }
+  .badge-paper     { background: var(--surface2); color: #7090a0;           border: 1px solid #2a4050; }
+  .badge-boxoffice { background: var(--green-bg); color: var(--green);      border: 1px solid var(--green-dim); }
 
   .attended-details summary {
     font-family: var(--mono); font-size: 11px; color: var(--text-dim); cursor: pointer;
@@ -354,13 +355,27 @@ function ticketLabel(access) {
 }
 
 function buildBadges(row) {
-  const notes = (row['Notes / Memories']||'') + ' ' + (row['Ticket Access']||'');
+  const notes    = (row['Notes / Memories'] || '').toLowerCase();
+  const seat     = (row['Seat Info / GA']   || '').toLowerCase();
+  const access   = (row['Ticket Access']    || '').toLowerCase();
+  const playlist = (row['Playlist URL']     || '').toLowerCase();
+  const allText  = notes + ' ' + seat + ' ' + access + ' ' + playlist;
+
+  const isVip       = allText.includes('vip');
+  const isWolfTrap  = (row['Venue Name'] || '').includes('Wolf Trap Filene');
+  const totalCost   = parseFloat((row['Total Cost'] || '').replace(/[^0-9.]/g, '')) || 0;
+  const isMerch     = !isVip && !isWolfTrap && totalCost >= 100;
+  const isBook      = (row['Notes / Memories'] || '').includes('BRING RHBS') ||
+                      (row['Notes / Memories'] || '').includes('BRING APS');
+  const isBoxOffice = access.includes('box office');
+
   const badges = [];
-  const [label, isPaper] = ticketLabel(row['Ticket Access']||'');
-  if (label) badges.push(`<span class="badge ${isPaper?'badge-paper':'badge-ticket'}">${esc(label)}</span>`);
-  if (notes.toLowerCase().includes('vip'))                          badges.push('<span class="badge badge-vip">⭐ VIP</span>');
-  if (notes.includes('BRING RHBS') || notes.includes('BRING APS')) badges.push('<span class="badge badge-book">📚 BOOK</span>');
-  if (notes.includes('💸'))                                         badges.push('<span class="badge badge-merch">💸 MERCH</span>');
+  const [label, isPaper] = ticketLabel(row['Ticket Access'] || '');
+  if (label) badges.push(`<span class="badge ${isPaper ? 'badge-paper' : 'badge-ticket'}">${esc(label)}</span>`);
+  if (isVip)       badges.push('<span class="badge badge-vip">⭐ VIP</span>');
+  if (isBook)      badges.push('<span class="badge badge-book">📚 BOOK</span>');
+  if (isMerch)     badges.push('<span class="badge badge-merch">💸 MERCH</span>');
+  if (isBoxOffice) badges.push('<span class="badge badge-boxoffice">🎟 BOX OFFICE</span>');
   return badges.length ? `<div class="badges">${badges.join('')}</div>` : '';
 }
 
