@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live Shows — songs-for-my-funeral</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+
+  :root {
+    --bg:        #0f0f0f;
+    --surface:   #1a1a1a;
+    --surface2:  #222222;
+    --border:    #2e2e2e;
+    --border2:   #3a3a3a;
+    --text:      #e8e4dc;
+    --text-muted:#8a8278;
+    --text-dim:  #5a5450;
+    --amber:     #e8a020;
+    --amber-dim: #7a5210;
+    --amber-bg:  #1e1608;
+    --green:     #4a9a5a;
+    --green-dim: #1e4a28;
+    --green-bg:  #0e1e12;
+    --yellow:    #c8a830;
+    --yellow-dim:#5a4a10;
+    --yellow-bg: #181408;
+    --red:       #c04040;
+    --red-dim:   #5a1a1a;
+    --red-bg:    #180e0e;
+    --gray:      #6a6560;
+    --gray-dim:  #3a3530;
+    --gray-bg:   #141414;
+    --today-bg:  #1e0e0e;
+    --soon-bg:   #1a1408;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* ── Header ── */
+  .site-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .site-title {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--amber);
+    letter-spacing: 0.02em;
+    flex: 1;
+    white-space: nowrap;
+  }
+  .site-title span { color: var(--text-muted); }
+  .header-actions { display: flex; align-items: center; gap: 8px; }
+  .fetched-at {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+  .btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 3px;
+    border: 1px solid var(--border2);
+    background: var(--surface2);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+    white-space: nowrap;
+  }
+  .btn:hover { border-color: var(--amber-dim); color: var(--amber); }
+  .btn-auth { position: relative; }
+  .btn-auth.authed { border-color: var(--green-dim); color: var(--green); }
+  .btn-auth.authed::after {
+    content: '●';
+    font-size: 8px;
+    color: var(--green);
+    position: absolute;
+    top: 2px;
+    right: 2px;
+  }
+
+  /* ── Tabs ── */
+  .tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    padding: 0 20px;
+  }
+  .tab {
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 10px 16px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    color: var(--text-muted);
+    transition: color 0.15s, border-color 0.15s;
+    margin-bottom: -1px;
+    user-select: none;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--amber); border-bottom-color: var(--amber); }
+  .tab-badge {
+    display: inline-block;
+    background: var(--surface2);
+    color: var(--text-dim);
+    font-size: 10px;
+    padding: 1px 5px;
+    border-radius: 10px;
+    margin-left: 5px;
+    vertical-align: middle;
+  }
+
+  /* ── Panels ── */
+  .panel { display: none; padding: 20px; max-width: 1400px; margin: 0 auto; }
+  .panel.active { display: block; }
+
+  /* ── Section headers ── */
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 12px;
+    margin-top: 24px;
+  }
+  .section-header:first-child { margin-top: 0; }
+  .section-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--amber);
+  }
+  .section-count {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  /* ── Loading / error states ── */
+  .loading {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    padding: 40px 0;
+    text-align: center;
+  }
+  .loading::after {
+    content: '';
+    display: inline-block;
+    width: 12px;
+    animation: dots 1.2s steps(4, end) infinite;
+  }
+  @keyframes dots {
+    0%   { content: ''; }
+    25%  { content: '.'; }
+    50%  { content: '..'; }
+    75%  { content: '...'; }
+  }
+  .error-msg {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--red);
+    padding: 16px;
+    background: var(--red-bg);
+    border: 1px solid var(--red-dim);
+    border-radius: 4px;
+    margin: 20px 0;
+  }
+
+  /* ── Shows table ── */
+  .shows-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .shows-table th {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    text-align: left;
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    background: var(--surface);
+  }
+  .shows-table td {
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .shows-table tr:hover td { background: var(--surface2); }
+
+  /* Row urgency tints */
+  .row-today td { background: var(--today-bg) !important; }
+  .row-soon td { background: var(--soon-bg) !important; }
+  .row-today:hover td { filter: brightness(1.08); }
+  .row-soon:hover td { filter: brightness(1.08); }
+
+  /* Attended table — compact */
+  .attended-table .shows-table td { padding: 6px 10px; font-size: 12px; }
+  .attended-table .shows-table tr { opacity: 0.75; }
+  .attended-table .shows-table tr:hover { opacity: 1; }
+
+  /* ── Cell styles ── */
+  .cell-date {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--amber);
+    white-space: nowrap;
+  }
+  .cell-date .day-of-week {
+    color: var(--text-dim);
+    font-size: 11px;
+    display: block;
+  }
+  .cell-artist { font-weight: 500; }
+  .cell-support { color: var(--text-muted); font-size: 12px; }
+  .cell-venue { color: var(--text-muted); font-size: 12px; white-space: nowrap; }
+  .cell-venue a { color: var(--text-muted); text-decoration: none; }
+  .cell-venue a:hover { color: var(--amber); }
+  .cell-seat { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+  .cell-cost {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    text-align: right;
+  }
+  .cell-notes { max-width: 280px; }
+  .notes-text {
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.4;
+    cursor: pointer;
+  }
+  .notes-text.collapsed {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .notes-toggle {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    cursor: pointer;
+    margin-top: 2px;
+    display: inline-block;
+  }
+  .notes-toggle:hover { color: var(--amber); }
+
+  /* Badges */
+  .badges { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 3px; }
+  .badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 1px 5px;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+  .badge-ticket {
+    background: var(--surface2);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+  }
+  .badge-vip   { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-dim); }
+  .badge-book  { background: #1a1420; color: #a080c0; border: 1px solid #4a2a70; }
+  .badge-merch { background: var(--red-bg); color: #c07060; border: 1px solid var(--red-dim); }
+  .badge-paper { background: var(--surface2); color: #7090a0; border: 1px solid #2a4050; }
+
+  /* Links */
+  .icon-link {
+    display: inline-block;
+    font-size: 13px;
+    text-decoration: none;
+    opacity: 0.5;
+    transition: opacity 0.15s;
+    margin-left: 4px;
+  }
+  .icon-link:hover { opacity: 1; }
+
+  /* ── Attended collapsed wrapper ── */
+  .attended-details summary {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    cursor: pointer;
+    padding: 10px 0;
+    letter-spacing: 0.04em;
+    list-style: none;
+    user-select: none;
+  }
+  .attended-details summary::before { content: '▶  '; }
+  .attended-details[open] summary::before { content: '▼  '; }
+  .attended-details summary:hover { color: var(--text-muted); }
+
+  /* ── Potential groups ── */
+  .potential-group { margin-bottom: 28px; }
+  .group-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 4px 4px 0 0;
+    border: 1px solid;
+    border-bottom: none;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .group-header-buy   { background: var(--green-bg);  border-color: var(--green-dim);  color: var(--green); }
+  .group-header-choose{ background: var(--yellow-bg); border-color: var(--yellow-dim); color: var(--yellow); }
+  .group-header-pass  { background: var(--gray-bg);   border-color: var(--gray-dim);   color: var(--gray); }
+  .group-count { opacity: 0.6; }
+  .group-table-wrap {
+    border: 1px solid;
+    border-radius: 0 0 4px 4px;
+    overflow: hidden;
+  }
+  .group-table-buy    { border-color: var(--green-dim); }
+  .group-table-choose { border-color: var(--yellow-dim); }
+  .group-table-pass   { border-color: var(--gray-dim); }
+
+  .pot-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .pot-table th {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    text-align: left;
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    background: var(--surface);
+  }
+  .pot-table td {
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .pot-table tr:last-child td { border-bottom: none; }
+  .pot-table tr:hover td { background: var(--surface2); }
+  .pot-table .row-pass td { opacity: 0.55; }
+  .pot-table .row-pass:hover td { opacity: 0.8; }
+
+  .cell-decision-ro {
+    font-family: var(--mono);
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  .cell-decision-ro.buy    { color: var(--green); }
+  .cell-decision-ro.choose { color: var(--yellow); }
+  .cell-decision-ro.pass   { color: var(--gray); }
+
+  .decision-select {
+    font-family: var(--mono);
+    font-size: 11px;
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border2);
+    border-radius: 3px;
+    padding: 3px 6px;
+    cursor: pointer;
+    outline: none;
+  }
+  .decision-select:focus { border-color: var(--amber-dim); }
+
+  .cell-watching {
+    font-size: 12px;
+    color: var(--amber);
+    font-family: var(--mono);
+    white-space: nowrap;
+  }
+  .cell-price {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    text-align: right;
+  }
+  .cell-tier {
+    font-family: var(--mono);
+    font-size: 10px;
+    white-space: nowrap;
+  }
+  .tier-strong       { color: var(--amber); }
+  .tier-medium       { color: var(--text-muted); }
+  .tier-medium-strong{ color: #c09040; }
+  .tier-low          { color: var(--text-dim); }
+
+  .cell-pot-notes {
+    font-size: 12px;
+    color: var(--text-muted);
+    max-width: 320px;
+    line-height: 1.4;
+  }
+  .cell-pot-notes.collapsed {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    cursor: pointer;
+  }
+
+  .save-indicator {
+    font-family: var(--mono);
+    font-size: 10px;
+    margin-left: 6px;
+  }
+  .save-ok  { color: var(--green); }
+  .save-err { color: var(--red); }
+
+  /* Pass collapsed */
+  .pass-details summary {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--gray);
+    cursor: pointer;
+    padding: 10px 12px;
+    list-style: none;
+    user-select: none;
+    background: var(--gray-bg);
+    border: 1px solid var(--gray-dim);
+    border-radius: 4px;
+  }
+  .pass-details summary::before { content: '▶  '; }
+  .pass-details[open] summary::before { content: '▼  '; }
+  .pass-details[open] summary {
+    border-radius: 4px 4px 0 0;
+    border-bottom: none;
+  }
+  .pass-details .group-table-wrap {
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+  }
+
+  /* ── Auth modal ── */
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    padding: 24px;
+    width: 360px;
+    max-width: 90vw;
+  }
+  .modal h3 {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--amber);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .modal p {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
+  .modal p a { color: var(--amber); }
+  .modal input[type="password"] {
+    width: 100%;
+    font-family: var(--mono);
+    font-size: 12px;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    border-radius: 3px;
+    color: var(--text);
+    padding: 8px 10px;
+    margin-bottom: 12px;
+    outline: none;
+  }
+  .modal input[type="password"]:focus { border-color: var(--amber-dim); }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+  .btn-save {
+    background: var(--amber-bg);
+    border-color: var(--amber-dim);
+    color: var(--amber);
+  }
+  .btn-save:hover { background: #2a1c08; }
+  .btn-clear {
+    background: var(--red-bg);
+    border-color: var(--red-dim);
+    color: var(--red);
+  }
+  .btn-cancel { }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .panel { padding: 12px; }
+    .col-support, .col-seat, .col-cost { display: none; }
+    .cell-notes { max-width: 160px; }
+    .col-watching, .col-tier, .col-price { display: none; }
+    .cell-pot-notes { max-width: 160px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="site-header">
+  <div class="site-title">songs-for-my-funeral <span>/</span> live-shows</div>
+  <div class="header-actions">
+    <span class="fetched-at" id="fetchedAt">—</span>
+    <button class="btn" id="refreshBtn" onclick="loadData()">↺ refresh</button>
+    <button class="btn btn-auth" id="authBtn" onclick="openAuthModal()">🔑 auth</button>
+  </div>
+</header>
+
+<!-- Tabs -->
+<nav class="tabs">
+  <div class="tab active" data-tab="shows" onclick="switchTab('shows')">
+    Shows <span class="tab-badge" id="showsBadge">—</span>
+  </div>
+  <div class="tab" data-tab="potential" onclick="switchTab('potential')">
+    Potential <span class="tab-badge" id="potBadge">—</span>
+  </div>
+</nav>
+
+<!-- Shows Panel -->
+<div class="panel active" id="panel-shows">
+  <div id="showsContent"><div class="loading">Loading</div></div>
+</div>
+
+<!-- Potential Panel -->
+<div class="panel" id="panel-potential">
+  <div id="potContent"><div class="loading">Loading</div></div>
+</div>
+
+<!-- Auth Modal -->
+<div class="modal-backdrop" id="authModal">
+  <div class="modal">
+    <h3>GitHub Authentication</h3>
+    <p>
+      Paste a fine-grained Personal Access Token scoped to
+      <code>dan2bit/songs-for-my-funeral</code> with Contents read/write permission.<br><br>
+      See <a href="https://github.com/dan2bit/songs-for-my-funeral/issues" target="_blank">
+      GitHub issue #PAT-SETUP</a> for step-by-step instructions.
+    </p>
+    <input type="password" id="patInput" placeholder="github_pat_…" autocomplete="off">
+    <div class="modal-actions">
+      <button class="btn btn-clear" onclick="clearPat()">Clear saved</button>
+      <button class="btn btn-cancel" onclick="closeAuthModal()">Cancel</button>
+      <button class="btn btn-save" onclick="savePat()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Constants ──────────────────────────────────────────────────────────────
+const OWNER = 'dan2bit';
+const REPO  = 'songs-for-my-funeral';
+const CURRENT_PATH  = 'live-shows/live_shows_current.tsv';
+const POTENTIAL_PATH = 'live-shows/live_shows_potential.tsv';
+const PAT_KEY = 'ghpat_sfmf';
+
+// ── State ──────────────────────────────────────────────────────────────────
+let currentRows = [];
+let potentialRows = [];
+let potentialSha = null;   // latest SHA for write-back
+let authed = false;
+
+// ── Utility: GitHub API fetch ──────────────────────────────────────────────
+async function ghFetch(path, opts = {}) {
+  const pat = localStorage.getItem(PAT_KEY);
+  const headers = { 'Accept': 'application/vnd.github.v3+json' };
+  if (pat) headers['Authorization'] = `token ${pat}`;
+  const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`;
+  const res = await fetch(url, { ...opts, headers: { ...headers, ...(opts.headers || {}) } });
+  if (!res.ok) throw new Error(`GitHub API ${res.status}: ${res.statusText}`);
+  return res.json();
+}
+
+// ── Utility: parse TSV ────────────────────────────────────────────────────
+function parseTsv(text) {
+  const lines = text.trim().split('\n');
+  const headers = lines[0].split('\t').map(h => h.trim());
+  return lines.slice(1).map(line => {
+    const vals = line.split('\t');
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = (vals[i] || '').trim());
+    return obj;
+  });
+}
+
+// ── Utility: serialize TSV back ────────────────────────────────────────────
+function serializeTsv(rows, headers) {
+  const lines = [headers.join('\t')];
+  rows.forEach(r => lines.push(headers.map(h => r[h] || '').join('\t')));
+  return lines.join('\n') + '\n';
+}
+
+// ── Utility: date helpers ─────────────────────────────────────────────────
+const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function parseISODate(s) {
+  // Handles "2026-04-19" or "2026-04-19 Fri" (potential format)
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return null;
+  return new Date(+m[1], +m[2]-1, +m[3]);
+}
+
+function formatShowDate(isoStr) {
+  const d = parseISODate(isoStr);
+  if (!d) return isoStr;
+  return `${MONTHS[d.getMonth()]} ${d.getDate()}`;
+}
+
+function dayOfWeek(isoStr) {
+  const d = parseISODate(isoStr);
+  if (!d) return '';
+  return DAYS[d.getDay()];
+}
+
+function daysFromNow(isoStr) {
+  const d = parseISODate(isoStr);
+  if (!d) return 999;
+  const now = new Date();
+  now.setHours(0,0,0,0);
+  return Math.floor((d - now) / 86400000);
+}
+
+function gcalSearchUrl(artist, date) {
+  const year = date ? date.substring(0, 4) : '';
+  const q = encodeURIComponent(`${artist} ${year}`);
+  return `https://calendar.google.com/calendar/r/search?q=${q}`;
+}
+
+// ── Utility: escape HTML ──────────────────────────────────────────────────
+function esc(s) {
+  return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Utility: ticket access → badge label ─────────────────────────────────
+function ticketBadge(access) {
+  if (!access) return '';
+  const a = access.toLowerCase();
+  if (a.includes('axs'))          return 'AXS';
+  if (a.includes('ticketmaster')) return 'TM';
+  if (a.includes('opendate'))     return 'Opendate';
+  if (a.includes('eventbrite'))   return 'Eventbrite';
+  if (a.includes('eventim') || a.includes('see tickets')) return 'Eventim';
+  if (a.includes('paper'))        return 'PAPER';
+  if (a.includes('freshtix'))     return 'Freshtix';
+  return access.split(' ')[0];
+}
+
+// ── Badges builder ────────────────────────────────────────────────────────
+function buildBadges(row) {
+  const notes = (row['Notes / Memories'] || '') + ' ' + (row['Ticket Access'] || '');
+  const badges = [];
+  const ticket = ticketBadge(row['Ticket Access'] || '');
+  if (ticket) {
+    const isPaper = (row['Ticket Access'] || '').toLowerCase().includes('paper');
+    badges.push(`<span class="badge ${isPaper ? 'badge-paper' : 'badge-ticket'}">${esc(ticket)}</span>`);
+  }
+  if (notes.toLowerCase().includes('vip'))
+    badges.push('<span class="badge badge-vip">⭐ VIP</span>');
+  if (notes.includes('BRING RHBS') || notes.includes('BRING APS'))
+    badges.push('<span class="badge badge-book">📚 BOOK</span>');
+  if (notes.includes('💸'))
+    badges.push('<span class="badge badge-merch">💸 MERCH</span>');
+  return badges.length ? `<div class="badges">${badges.join('')}</div>` : '';
+}
+
+// ── Render upcoming row ───────────────────────────────────────────────────
+function renderUpcomingRow(row, idx) {
+  const days = daysFromNow(row['Show Date']);
+  const rowClass = days <= 1 ? 'row-today' : days <= 7 ? 'row-soon' : '';
+  const notes = esc(row['Notes / Memories'] || '');
+  const hasNotes = notes.length > 0;
+  const venueUrl = row['Venue Event URL'] || '';
+  const venueDisplay = venueUrl
+    ? `<a href="${esc(venueUrl)}" target="_blank">${esc(row['Venue Name'])}</a>`
+    : esc(row['Venue Name']);
+  const gcal = gcalSearchUrl(row['Artist'], row['Show Date']);
+
+  return `
+  <tr class="${rowClass}" data-idx="${idx}">
+    <td class="cell-date">
+      ${formatShowDate(row['Show Date'])}
+      <span class="day-of-week">${dayOfWeek(row['Show Date'])}</span>
+    </td>
+    <td>
+      <div class="cell-artist">${esc(row['Artist'])}
+        <a class="icon-link" href="${gcal}" target="_blank" title="Search Google Calendar">📅</a>
+      </div>
+      ${row['Supporting Artist'] ? `<div class="cell-support">w/ ${esc(row['Supporting Artist'])}</div>` : ''}
+      ${buildBadges(row)}
+    </td>
+    <td class="cell-venue col-support">${venueDisplay}</td>
+    <td class="cell-seat col-seat">${esc(row['Seat Info / GA'] || '')}</td>
+    <td class="cell-cost col-cost">${esc(row['Total Cost'] || '')}</td>
+    <td class="cell-notes">
+      ${hasNotes ? `
+        <div class="notes-text collapsed" id="n-up-${idx}" onclick="toggleNotes('n-up-${idx}','nt-up-${idx}')">${notes}</div>
+        <span class="notes-toggle" id="nt-up-${idx}" onclick="toggleNotes('n-up-${idx}','nt-up-${idx}')">more</span>
+      ` : ''}
+    </td>
+  </tr>`;
+}
+
+// ── Render attended row ───────────────────────────────────────────────────
+function renderAttendedRow(row, idx) {
+  const setlistUrl = row['Setlist.fm URL'] || '';
+  const playlistUrl = row['Playlist URL'] || '';
+  const notes = esc(row['Notes / Memories'] || '');
+  return `
+  <tr>
+    <td class="cell-date">${formatShowDate(row['Show Date'])}<span class="day-of-week">${dayOfWeek(row['Show Date'])}</span></td>
+    <td class="cell-artist">${esc(row['Artist'])}</td>
+    <td class="cell-venue col-support">${esc(row['Venue Name'])}</td>
+    <td>${
+      setlistUrl ? `<a class="icon-link" href="${esc(setlistUrl)}" target="_blank" title="Setlist.fm" style="opacity:0.6">♫</a>` : ''
+    }${
+      playlistUrl ? `<a class="icon-link" href="${esc(playlistUrl)}" target="_blank" title="YouTube playlist" style="opacity:0.6">▶</a>` : ''
+    }</td>
+    <td class="cell-notes">
+      ${notes ? `<div class="notes-text collapsed" id="n-at-${idx}" onclick="toggleNotes('n-at-${idx}',null)">${notes}</div>` : ''}
+    </td>
+  </tr>`;
+}
+
+// ── Render Shows panel ────────────────────────────────────────────────────
+function renderShows() {
+  const upcoming = currentRows.filter(r => r['Status'] === 'upcoming')
+    .sort((a, b) => (a['Show Date'] || '').localeCompare(b['Show Date'] || ''));
+  const attended = currentRows.filter(r => r['Status'] === 'attended')
+    .sort((a, b) => (b['Show Date'] || '').localeCompare(a['Show Date'] || ''));
+
+  document.getElementById('showsBadge').textContent = upcoming.length;
+
+  let html = `
+  <div class="section-header">
+    <span class="section-title">Upcoming</span>
+    <span class="section-count">${upcoming.length} shows</span>
+  </div>
+  <table class="shows-table">
+    <thead><tr>
+      <th>Date</th>
+      <th>Artist</th>
+      <th class="col-support">Venue</th>
+      <th class="col-seat">Seat / GA</th>
+      <th class="col-cost" style="text-align:right">Cost</th>
+      <th>Notes</th>
+    </tr></thead>
+    <tbody>
+      ${upcoming.map((r, i) => renderUpcomingRow(r, i)).join('')}
+    </tbody>
+  </table>
+
+  <details class="attended-details" style="margin-top:28px">
+    <summary>Attended (${attended.length} shows)</summary>
+    <div class="attended-table" style="margin-top:8px">
+      <table class="shows-table">
+        <thead><tr>
+          <th>Date</th>
+          <th>Artist</th>
+          <th class="col-support">Venue</th>
+          <th>Links</th>
+          <th>Notes</th>
+        </tr></thead>
+        <tbody>
+          ${attended.map((r, i) => renderAttendedRow(r, i)).join('')}
+        </tbody>
+      </table>
+    </div>
+  </details>`;
+
+  document.getElementById('showsContent').innerHTML = html;
+}
+
+// ── Tier display ──────────────────────────────────────────────────────────
+function tierHtml(tier) {
+  const t = (tier || '').toLowerCase();
+  let cls = 'tier-medium';
+  if (t.includes('strong') && t.includes('medium')) cls = 'tier-medium-strong';
+  else if (t === 'strong') cls = 'tier-strong';
+  else if (t === 'low') cls = 'tier-low';
+  return `<span class="cell-tier ${cls}">${esc(tier)}</span>`;
+}
+
+// ── Decision select ───────────────────────────────────────────────────────
+function decisionHtml(row, rowIdx) {
+  const d = row['Decision'] || '';
+  const cls = d.toLowerCase().startsWith('buy') ? 'buy'
+    : d.toLowerCase() === 'choose' ? 'choose' : 'pass';
+  if (!authed) {
+    return `<span class="cell-decision-ro ${cls}">${esc(d)}</span>`;
+  }
+  const opts = ['Buy','Choose','Pass'].map(v => {
+    // Match loosely — Buy (paper...) should show Buy selected
+    const sel = d.toLowerCase().startsWith(v.toLowerCase()) ? ' selected' : '';
+    return `<option value="${v}"${sel}>${v}</option>`;
+  }).join('');
+  return `<select class="decision-select" data-row="${rowIdx}" onchange="handleDecisionChange(this)">${opts}</select>
+          <span class="save-indicator" id="save-${rowIdx}"></span>`;
+}
+
+// ── Render potential group ────────────────────────────────────────────────
+function renderPotentialGroup(rows, groupKey, labelText) {
+  if (!rows.length) return '';
+  const tableRows = rows.map((r, i) => {
+    const globalIdx = potentialRows.indexOf(r);
+    const notes = esc(r['Notes'] || '');
+    const venueUrl = r['Event URL'] || r['Purchase URL'] || '';
+    const venueDisplay = venueUrl
+      ? `<a href="${esc(venueUrl)}" target="_blank" style="color:var(--text-muted);text-decoration:none">${esc(r['Venue'])}</a>`
+      : esc(r['Venue'] || '');
+    const watching = r['Watching For'] || '';
+    return `
+    <tr class="row-${groupKey}">
+      <td class="cell-date">
+        ${formatPotDate(r['Date'])}
+        <span class="day-of-week">${potDayOfWeek(r['Date'])}</span>
+      </td>
+      <td>
+        <div class="cell-artist">${esc(r['Artist'])}</div>
+        ${r['Support'] ? `<div class="cell-support">w/ ${esc(r['Support'])}</div>` : ''}
+      </td>
+      <td>${venueDisplay}<div style="font-size:11px;color:var(--text-dim);margin-top:2px">${esc(r['Venue City'] || '')}</div></td>
+      <td class="col-tier">${tierHtml(r['Tier'] || '')}</td>
+      <td class="col-price cell-price">${esc(r['Face Price'] || '')}</td>
+      <td class="col-watching">${watching ? `<span class="cell-watching">⚠ ${esc(watching)}</span>` : ''}</td>
+      <td style="white-space:nowrap">${decisionHtml(r, globalIdx)}</td>
+      <td class="cell-pot-notes">
+        ${notes ? `<div class="cell-pot-notes collapsed" onclick="this.classList.toggle('collapsed')">${notes}</div>` : ''}
+      </td>
+    </tr>`;
+  }).join('');
+
+  const tableHtml = `
+  <table class="pot-table">
+    <thead><tr>
+      <th>Date</th><th>Artist</th><th>Venue</th>
+      <th class="col-tier">Tier</th>
+      <th class="col-price" style="text-align:right">Face</th>
+      <th class="col-watching">Watching For</th>
+      <th>Decision</th>
+      <th>Notes</th>
+    </tr></thead>
+    <tbody>${tableRows}</tbody>
+  </table>`;
+
+  if (groupKey === 'pass') {
+    return `
+    <div class="potential-group">
+      <details class="pass-details">
+        <summary class="group-header group-header-pass">
+          Pass <span class="group-count">(${rows.length})</span>
+        </summary>
+        <div class="group-table-wrap group-table-pass">${tableHtml}</div>
+      </details>
+    </div>`;
+  }
+
+  return `
+  <div class="potential-group">
+    <div class="group-header group-header-${groupKey}">
+      ${labelText} <span class="group-count">(${rows.length})</span>
+    </div>
+    <div class="group-table-wrap group-table-${groupKey}">${tableHtml}</div>
+  </div>`;
+}
+
+// ── Potential date helpers (format: "2026-04-27 Mon") ─────────────────────
+function formatPotDate(s) {
+  if (!s) return '';
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return s;
+  const d = new Date(+m[1], +m[2]-1, +m[3]);
+  return `${MONTHS[d.getMonth()]} ${d.getDate()}`;
+}
+function potDayOfWeek(s) {
+  if (!s) return '';
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return '';
+  const d = new Date(+m[1], +m[2]-1, +m[3]);
+  return DAYS[d.getDay()];
+}
+
+// ── Render Potential panel ────────────────────────────────────────────────
+function renderPotential() {
+  const sorted = [...potentialRows].sort((a, b) => (a['Date'] || '').localeCompare(b['Date'] || ''));
+  const buy    = sorted.filter(r => (r['Decision'] || '').toLowerCase().startsWith('buy'));
+  const choose = sorted.filter(r => (r['Decision'] || '').toLowerCase() === 'choose');
+  const pass   = sorted.filter(r => (r['Decision'] || '').toLowerCase() === 'pass');
+
+  document.getElementById('potBadge').textContent = buy.length + '+' + choose.length;
+
+  const html = renderPotentialGroup(buy, 'buy', '🟢 Buy')
+    + renderPotentialGroup(choose, 'choose', '🟡 Choose')
+    + renderPotentialGroup(pass, 'pass', 'Pass');
+
+  document.getElementById('potContent').innerHTML = html || '<p class="loading" style="animation:none">No data</p>';
+}
+
+// ── Decision change handler ───────────────────────────────────────────────
+async function handleDecisionChange(select) {
+  const rowIdx = parseInt(select.dataset.row);
+  const newDecision = select.value;
+  const indicator = document.getElementById(`save-${rowIdx}`);
+  indicator.textContent = '…';
+  indicator.className = 'save-indicator';
+
+  try {
+    // 1. Fetch fresh SHA + content
+    const fileData = await ghFetch(POTENTIAL_PATH);
+    const freshSha = fileData.sha;
+    const rawText = atob(fileData.content.replace(/\n/g, ''));
+    const rows = parseTsv(rawText);
+    const headers = rawText.split('\n')[0].split('\t').map(h => h.trim());
+
+    // 2. Update decision
+    rows[rowIdx]['Decision'] = newDecision;
+    potentialRows[rowIdx]['Decision'] = newDecision;
+
+    // 3. Re-sort: Buy → Choose → Pass, date asc within
+    const order = {'buy': 0, 'choose': 1, 'pass': 2};
+    rows.sort((a, b) => {
+      const da = (a['Decision'] || '').toLowerCase().startsWith('buy') ? 0
+        : (a['Decision'] || '').toLowerCase() === 'choose' ? 1 : 2;
+      const db = (b['Decision'] || '').toLowerCase().startsWith('buy') ? 0
+        : (b['Decision'] || '').toLowerCase() === 'choose' ? 1 : 2;
+      if (da !== db) return da - db;
+      return (a['Date'] || '').localeCompare(b['Date'] || '');
+    });
+
+    // 4. Serialize and PUT
+    const newContent = serializeTsv(rows, headers);
+    const encoded = btoa(unescape(encodeURIComponent(newContent)));
+    const pat = localStorage.getItem(PAT_KEY);
+    const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${POTENTIAL_PATH}`;
+    const res = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Accept': 'application/vnd.github.v3+json',
+        'Authorization': `token ${pat}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: `potential: update ${potentialRows[rowIdx]['Artist']} decision`,
+        content: encoded,
+        sha: freshSha
+      })
+    });
+    if (!res.ok) throw new Error(await res.text());
+
+    // 5. Update local state and re-render
+    potentialRows = rows;
+    indicator.textContent = '✓';
+    indicator.className = 'save-indicator save-ok';
+    setTimeout(() => renderPotential(), 600);
+  } catch (e) {
+    console.error(e);
+    indicator.textContent = '✗';
+    indicator.className = 'save-indicator save-err';
+  }
+}
+
+// ── Notes toggle ──────────────────────────────────────────────────────────
+function toggleNotes(textId, toggleId) {
+  const el = document.getElementById(textId);
+  if (!el) return;
+  el.classList.toggle('collapsed');
+  if (toggleId) {
+    const tog = document.getElementById(toggleId);
+    if (tog) tog.textContent = el.classList.contains('collapsed') ? 'more' : 'less';
+  }
+}
+
+// ── Tab switching ─────────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === `panel-${name}`));
+}
+
+// ── Auth modal ────────────────────────────────────────────────────────────
+function openAuthModal() {
+  document.getElementById('patInput').value = '';
+  document.getElementById('authModal').classList.add('open');
+}
+function closeAuthModal() {
+  document.getElementById('authModal').classList.remove('open');
+}
+function savePat() {
+  const val = document.getElementById('patInput').value.trim();
+  if (val) {
+    localStorage.setItem(PAT_KEY, val);
+    authed = true;
+    document.getElementById('authBtn').classList.add('authed');
+    closeAuthModal();
+    renderPotential(); // re-render with edit controls
+  }
+}
+function clearPat() {
+  localStorage.removeItem(PAT_KEY);
+  authed = false;
+  document.getElementById('authBtn').classList.remove('authed');
+  closeAuthModal();
+  renderPotential();
+}
+
+// ── Close modal on backdrop click ─────────────────────────────────────────
+document.getElementById('authModal').addEventListener('click', function(e) {
+  if (e.target === this) closeAuthModal();
+});
+
+// ── Load data ─────────────────────────────────────────────────────────────
+async function loadData() {
+  document.getElementById('showsContent').innerHTML = '<div class="loading">Loading</div>';
+  document.getElementById('potContent').innerHTML = '<div class="loading">Loading</div>';
+
+  try {
+    const [curData, potData] = await Promise.all([
+      ghFetch(CURRENT_PATH),
+      ghFetch(POTENTIAL_PATH)
+    ]);
+
+    const curText = atob(curData.content.replace(/\n/g, ''));
+    const potText = atob(potData.content.replace(/\n/g, ''));
+
+    currentRows  = parseTsv(curText);
+    potentialRows = parseTsv(potText);
+    potentialSha  = potData.sha;
+
+    renderShows();
+    renderPotential();
+
+    const now = new Date();
+    document.getElementById('fetchedAt').textContent =
+      `fetched ${now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`;
+  } catch (e) {
+    const msg = `<div class="error-msg">Error loading data: ${esc(e.message)}<br><br>
+      If you're seeing a rate-limit error, <button class="btn btn-auth" onclick="openAuthModal()" style="display:inline;padding:2px 8px">add a PAT</button> to increase your limit.</div>`;
+    document.getElementById('showsContent').innerHTML = msg;
+    document.getElementById('potContent').innerHTML = msg;
+  }
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+if (localStorage.getItem(PAT_KEY)) {
+  authed = true;
+  document.getElementById('authBtn').classList.add('authed');
+}
+
+loadData();
+</script>
+</body>
+</html>
