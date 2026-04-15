@@ -321,6 +321,15 @@ Artist Interaction | Playlist URL | Notes / Memories
 **If the commit fails:** present the full updated `live_shows_current.tsv` in the
 conversation for download and manual check-in.
 
+**Step 5b — Review `Prev Show / Next Show` columns in `live_shows_potential.tsv`**
+
+Adding a new show to `live_shows_current.tsv` may make existing potential rows stale.
+Scan every row in `live_shows_potential.tsv` and update the `Prev Show (2026)` or
+`Next Show (2026)` columns where the newly committed show now falls between the
+recorded dates, or where it is now the furthest-out committed show. Include any
+updates in the same potential list commit as Step 6 (row removal), or as a standalone
+commit if no row is being removed. Note any updates in the activity log draft.
+
 **Step 6 — Remove from `live_shows_potential.tsv` if present**
 
 Look up the artist in `live_shows_potential.tsv` by matching Artist and show date.
@@ -361,6 +370,7 @@ Create a draft in the redhat.bootlegs inbox with:
 - Body summarising: email found (sender, subject, date), ticket details parsed,
   autograph book check result, calendar event created (title, date, time, any
   book reminder or merch note), TSV row committed or presented for manual check-in,
+  potential list Prev/Next Show columns reviewed (any rows updated noted),
   potential list row removed (or confirmed not present), Fast Track row removed
   (or confirmed not present), any notable decisions or caveats
 

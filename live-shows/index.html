@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>live shows</title>
+<title>live-shows</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap');
 
@@ -72,7 +72,7 @@
   .btn:hover { border-color: var(--amber-dim); color: var(--amber); }
   .btn-auth { position: relative; }
   .btn-auth.authed { border-color: var(--green-dim); color: var(--green); }
-  .btn-auth.authed::after { content: '●'; font-size: 8px; color: var(--green); position: absolute; top: 2px; right: 2px; }
+  .btn-auth.authed::after { content: '\u25cf'; font-size: 8px; color: var(--green); position: absolute; top: 2px; right: 2px; }
 
   .tabs { display: flex; border-bottom: 1px solid var(--border); background: var(--surface); padding: 0 20px; }
   .tab {
@@ -150,8 +150,8 @@
     font-family: var(--mono); font-size: 11px; color: var(--text-dim); cursor: pointer;
     padding: 10px 0; letter-spacing: 0.04em; list-style: none; user-select: none;
   }
-  .attended-details summary::before { content: '▶  '; }
-  .attended-details[open] summary::before { content: '▼  '; }
+  .attended-details summary::before { content: '\u25b6  '; }
+  .attended-details[open] summary::before { content: '\u25bc  '; }
   .attended-details summary:hover { color: var(--text-muted); }
 
   .potential-group { margin-bottom: 28px; }
@@ -212,8 +212,8 @@
     font-family: var(--mono); font-size: 11px; color: var(--gray); cursor: pointer; padding: 10px 12px;
     list-style: none; user-select: none; background: var(--gray-bg); border: 1px solid var(--gray-dim); border-radius: 4px;
   }
-  .pass-details summary::before { content: '▶  '; }
-  .pass-details[open] summary::before { content: '▼  '; }
+  .pass-details summary::before { content: '\u25b6  '; }
+  .pass-details[open] summary::before { content: '\u25bc  '; }
   .pass-details[open] summary { border-radius: 4px 4px 0 0; border-bottom: none; }
   .pass-details .group-table-wrap { border-top: none; border-radius: 0 0 4px 4px; }
 
@@ -246,20 +246,20 @@
 <body>
 
 <header class="site-header">
-  <div class="site-title">live-shows</div>
+  <div class="site-title">songs-for-my-funeral <span>/</span> live-shows</div>
   <div class="header-actions">
-    <span class="fetched-at" id="fetchedAt">—</span>
-    <button class="btn" id="refreshBtn" onclick="loadData()">↺ refresh</button>
-    <button class="btn btn-auth" id="authBtn" onclick="openAuthModal()">🔑 auth</button>
+    <span class="fetched-at" id="fetchedAt">\u2014</span>
+    <button class="btn" id="refreshBtn" onclick="loadData()">\u21ba refresh</button>
+    <button class="btn btn-auth" id="authBtn" onclick="openAuthModal()">\ud83d\udd11 auth</button>
   </div>
 </header>
 
 <nav class="tabs">
   <div class="tab active" data-tab="shows" onclick="switchTab('shows')">
-    Shows <span class="tab-badge" id="showsBadge">—</span>
+    Shows <span class="tab-badge" id="showsBadge">\u2014</span>
   </div>
   <div class="tab" data-tab="potential" onclick="switchTab('potential')">
-    Potential <span class="tab-badge" id="potBadge">—</span>
+    Potential <span class="tab-badge" id="potBadge">\u2014</span>
   </div>
 </nav>
 
@@ -279,7 +279,7 @@
       See <a href="https://github.com/dan2bit/songs-for-my-funeral/issues/29" target="_blank">
       issue #29</a> for step-by-step setup instructions.
     </p>
-    <input type="password" id="patInput" placeholder="github_pat_…" autocomplete="off">
+    <input type="password" id="patInput" placeholder="github_pat_\u2026" autocomplete="off">
     <div class="modal-actions">
       <button class="btn btn-clear" onclick="clearPat()">Clear saved</button>
       <button class="btn" onclick="closeAuthModal()">Cancel</button>
@@ -359,9 +359,9 @@ function buildBadges(row) {
   const badges = [];
   const [label, isPaper] = ticketLabel(row['Ticket Access']||'');
   if (label) badges.push(`<span class="badge ${isPaper?'badge-paper':'badge-ticket'}">${esc(label)}</span>`);
-  if (notes.toLowerCase().includes('vip'))                          badges.push('<span class="badge badge-vip">⭐ VIP</span>');
-  if (notes.includes('BRING RHBS') || notes.includes('BRING APS')) badges.push('<span class="badge badge-book">📚 BOOK</span>');
-  if (notes.includes('💸'))                                         badges.push('<span class="badge badge-merch">💸 MERCH</span>');
+  if (notes.toLowerCase().includes('vip'))                          badges.push('<span class="badge badge-vip">\u2b50 VIP</span>');
+  if (notes.includes('BRING RHBS') || notes.includes('BRING APS')) badges.push('<span class="badge badge-book">\ud83d\udcda BOOK</span>');
+  if (notes.includes('\ud83d\udcb8'))                                         badges.push('<span class="badge badge-merch">\ud83d\udcb8 MERCH</span>');
   return badges.length ? `<div class="badges">${badges.join('')}</div>` : '';
 }
 
@@ -376,7 +376,7 @@ function renderUpcomingRow(row, idx) {
   <tr class="${cls}">
     <td class="cell-date">${formatShowDate(row['Show Date'])}<span class="day-of-week">${dayOfWeek(row['Show Date'])}</span></td>
     <td>
-      <div class="cell-artist">${esc(row['Artist'])}<a class="icon-link" href="${gcalUrl(row['Artist'],row['Show Date'])}" target="_blank" title="Search Google Calendar">📅</a></div>
+      <div class="cell-artist">${esc(row['Artist'])}<a class="icon-link" href="${gcalUrl(row['Artist'],row['Show Date'])}" target="_blank" title="Search Google Calendar">\ud83d\udcc5</a></div>
       ${row['Supporting Artist'] ? `<div class="cell-support">w/ ${esc(row['Supporting Artist'])}</div>` : ''}
       ${buildBadges(row)}
     </td>
@@ -396,8 +396,8 @@ function renderAttendedRow(row, idx) {
     <td class="cell-artist">${esc(row['Artist'])}</td>
     <td class="cell-venue col-support">${esc(row['Venue Name'])}</td>
     <td>
-      ${row['Setlist.fm URL'] ? `<a class="icon-link" href="${esc(row['Setlist.fm URL'])}" target="_blank" title="Setlist.fm">♫</a>` : ''}
-      ${row['Playlist URL']   ? `<a class="icon-link" href="${esc(row['Playlist URL'])}" target="_blank" title="YouTube playlist">▶</a>` : ''}
+      ${row['Setlist.fm URL'] ? `<a class="icon-link" href="${esc(row['Setlist.fm URL'])}" target="_blank" title="Setlist.fm">\u266b</a>` : ''}
+      ${row['Playlist URL']   ? `<a class="icon-link" href="${esc(row['Playlist URL'])}" target="_blank" title="YouTube playlist">\u25b6</a>` : ''}
     </td>
     <td class="cell-notes">${notes ? `<div class="notes-text collapsed" id="n-at-${idx}" onclick="toggleNotes('n-at-${idx}',null)">${notes}</div>` : ''}</td>
   </tr>`;
@@ -465,7 +465,7 @@ function renderPotentialGroup(rows, groupKey, label) {
       <td>${venueHtml}<div style="font-size:11px;color:var(--text-dim);margin-top:2px">${esc(r['Venue City']||'')}</div></td>
       <td class="col-tier">${tierHtml(r['Tier']||'')}</td>
       <td class="col-price cell-price">${esc(r['Face Price']||'')}</td>
-      <td class="col-watching">${r['Watching For']?`<span class="cell-watching">⚠ ${esc(r['Watching For'])}</span>`:''}</td>
+      <td class="col-watching">${r['Watching For']?`<span class="cell-watching">\u26a0 ${esc(r['Watching For'])}</span>`:''}</td>
       <td class="col-context cell-context">${contextHtml}</td>
       <td class="cell-pot-notes">${notes?`<div class="cell-pot-notes collapsed" onclick="this.classList.toggle('collapsed')">${notes}</div>`:''}</td>
     </tr>`;
@@ -492,8 +492,8 @@ function renderPotential() {
   const pass   = s.filter(r=>(r['Decision']||'').toLowerCase()==='pass');
   document.getElementById('potBadge').textContent = buy.length + '+' + choose.length;
   document.getElementById('potContent').innerHTML =
-    renderPotentialGroup(buy,'buy','🟢 Buy') +
-    renderPotentialGroup(choose,'choose','🟡 Choose') +
+    renderPotentialGroup(buy,'buy','\ud83d\udfe2 Buy') +
+    renderPotentialGroup(choose,'choose','\ud83d\udfe1 Choose') +
     renderPotentialGroup(pass,'pass','Pass') ||
     '<p class="loading" style="animation:none">No data</p>';
 }
@@ -502,7 +502,7 @@ async function handleDecisionChange(select) {
   const idx    = parseInt(select.dataset.row);
   const newVal = select.value;
   const ind    = document.getElementById(`save-${idx}`);
-  ind.textContent = '…'; ind.className = 'save-indicator';
+  ind.textContent = '\u2026'; ind.className = 'save-indicator';
   try {
     const fileData = await ghFetch(POTENTIAL_PATH);
     const rawText  = atob(fileData.content.replace(/\n/g,''));
@@ -527,10 +527,10 @@ async function handleDecisionChange(select) {
     });
     if (!res.ok) throw new Error(await res.text());
     potentialRows = rows;
-    ind.textContent = '✓'; ind.className = 'save-indicator save-ok';
+    ind.textContent = '\u2713'; ind.className = 'save-indicator save-ok';
     setTimeout(() => renderPotential(), 600);
   } catch(e) {
-    console.error(e); ind.textContent = '✗'; ind.className = 'save-indicator save-err';
+    console.error(e); ind.textContent = '\u2717'; ind.className = 'save-indicator save-err';
   }
 }
 
