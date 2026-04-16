@@ -337,8 +337,9 @@ function daysFromNow(s) {
   const now = new Date(); now.setHours(0,0,0,0);
   return Math.floor((d - now) / 86400000);
 }
-function gcalUrl(artist, date) {
-  return `https://calendar.google.com/calendar/r/search?q=${encodeURIComponent(artist + ' ' + (date||'').slice(0,4))}`;
+function gcalUrl(artist) {
+  // Year omitted — adding it causes empty results in Google Calendar search
+  return `https://calendar.google.com/calendar/r/search?q=${encodeURIComponent(artist)}`;
 }
 function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
@@ -361,17 +362,20 @@ function buildBadges(row) {
   const playlist = (row['Playlist URL']     || '').toLowerCase();
   const allText  = notes + ' ' + seat + ' ' + access + ' ' + playlist;
 
-  const isVip       = allText.includes('vip');
-  const isWolfTrap  = (row['Venue Name'] || '').includes('Wolf Trap Filene');
-  const totalCost   = parseFloat((row['Total Cost'] || '').replace(/[^0-9.]/g, '')) || 0;
-  const isMerch     = !isVip && !isWolfTrap && totalCost >= 100;
-  const isBook      = (row['Notes / Memories'] || '').includes('BRING RHBS') ||
-                      (row['Notes / Memories'] || '').includes('BRING APS');
-  const isBoxOffice = access.includes('box office');
+  const isVip      = allText.includes('vip');
+  const isWolfTrap = (row['Venue Name'] || '').includes('Wolf Trap Filene');
+  const totalCost  = parseFloat((row['Total Cost'] || '').replace(/[^0-9.]/g, '')) || 0;
+  const isMerch    = !isVip && !isWolfTrap && totalCost >= 100;
+  const isBook     = (row['Notes / Memories'] || '').includes('BRING RHBS') ||
+                     (row['Notes / Memories'] || '').includes('BRING APS');
+  // Box office badge = there is a ticket to buy at the venue box office on show day
+  // (i.e. the Notes/Memories field mentions "box office", not just the Ticket Access field,
+  //  because the Ticket Access field records how the already-purchased ticket was obtained)
+  const isBoxOffice = (row['Notes / Memories'] || '').toLowerCase().includes('box office');
 
   const badges = [];
   const [label, isPaper] = ticketLabel(row['Ticket Access'] || '');
-  if (label) badges.push(`<span class="badge ${isPaper ? 'badge-paper' : 'badge-ticket'}">${esc(label)}</span>`);
+  if (label)       badges.push(`<span class="badge ${isPaper ? 'badge-paper' : 'badge-ticket'}">${esc(label)}</span>`);
   if (isVip)       badges.push('<span class="badge badge-vip">⭐ VIP</span>');
   if (isBook)      badges.push('<span class="badge badge-book">📚 BOOK</span>');
   if (isMerch)     badges.push('<span class="badge badge-merch">💸 MERCH</span>');
@@ -390,7 +394,7 @@ function renderUpcomingRow(row, idx) {
   <tr class="${cls}">
     <td class="cell-date">${formatShowDate(row['Show Date'])}<span class="day-of-week">${dayOfWeek(row['Show Date'])}</span></td>
     <td>
-      <div class="cell-artist">${esc(row['Artist'])}<a class="icon-link" href="${gcalUrl(row['Artist'],row['Show Date'])}" target="_blank" title="Search Google Calendar">📅</a></div>
+      <div class="cell-artist">${esc(row['Artist'])}<a class="icon-link" href="${gcalUrl(row['Artist'])}" target="_blank" title="Search Google Calendar">📅</a></div>
       ${row['Supporting Artist'] ? `<div class="cell-support">w/ ${esc(row['Supporting Artist'])}</div>` : ''}
       ${buildBadges(row)}
     </td>
