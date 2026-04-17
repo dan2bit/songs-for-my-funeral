@@ -111,6 +111,15 @@ Do not recommend a ticket purchase or create a show event on a date blocked by e
 etc.) only apply to upcoming events. Past events are read-only — their content is the
 permanent record as captured at show time.
 
+**Prev/Next Show belongs in `live_shows_potential.tsv` only.** The Prev Show and Next
+Show columns exist to aid purchase decisions. Do not include Prev/Next Show information
+in calendar event descriptions or in `live_shows_current.tsv` rows — the calendar's
+own week and month views already provide that context.
+
+**Confirm before creating a calendar event for an unpurchased show.** If a show has
+not yet been purchased (e.g. a potential show added to the calendar as a reminder),
+always confirm with Dan that a calendar event is wanted before creating one.
+
 ---
 
 ## Fast Track Protocol
@@ -283,8 +292,11 @@ Payment: [card/method] · Face $X.XX · Fees $X.XX · Total $X.XX
 [Seat / GA info]
 Doors: [time] · Show: [time]
 
-💸 High ticket cost — cool it on merch tonight   ← only if total ≥ $100, NOT a VIP ticket, and NOT Wolf Trap Filene Center
+💸 High ticket cost — cool it on merch tonight   ← only if face value per ticket ≥ $100, NOT VIP, NOT Wolf Trap Filene Center
 ```
+
+Do **not** include Prev/Next Show in the description — the calendar's week and month
+views already provide that context. Prev/Next belongs in `live_shows_potential.tsv` only.
 
 Location field: use the **parking address** for the venue, not the venue street address.
 Refer to `venues.tsv` for the correct parking address per venue. For venues where
@@ -292,11 +304,12 @@ parking is on site (Birchmere, Wolf Trap, etc.), use the venue address itself.
 
 Reminders: 24 hours (1440 min) and 3 hours (180 min) popup.
 
-**Merch caution rule:** If the ticket total is ≥ $100 and the ticket is **not** a VIP
-package, append `💸 High ticket cost — cool it on merch tonight` to the event
-description. Two exceptions — do **not** add this note for:
+**Merch caution rule:** If the **face value per ticket** is ≥ $100 and the ticket is
+**not** a VIP package, append `💸 High ticket cost — cool it on merch tonight` to the
+event description. Three exceptions — do **not** add this note for:
 - **VIP tickets** — the premium is expected and factored in at purchase time
 - **Wolf Trap Filene Center** — venue/lawn context makes merch spend a different calculus
+- **Multi-ticket orders** — evaluate per-ticket face value only, not the order total
 
 **Step 5 — Commit new row to `live_shows_current.tsv`**
 
@@ -317,11 +330,12 @@ Artist Interaction | Playlist URL | Notes / Memories
 - Spending columns (Food & Bev, Parking, Merch, Artist Interaction) = blank
 - `Setlist.fm URL` = blank
 - `Notes / Memories` = any pre-show notes from the ticket (order #, seat notes, etc.)
+- Do **not** include Prev/Next Show — that belongs in `live_shows_potential.tsv` only
 
 **If the commit fails:** present the full updated `live_shows_current.tsv` in the
 conversation for download and manual check-in.
 
-**Step 5b — Review `Prev Show / Next Show` columns in `live_shows_potential.tsv`**
+**Step 5b — Update `Prev Show / Next Show` columns in `live_shows_potential.tsv`**
 
 Adding a new show to `live_shows_current.tsv` may make existing potential rows stale.
 Scan every row in `live_shows_potential.tsv` and update the `Prev Show (2026)` or
