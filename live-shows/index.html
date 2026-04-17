@@ -366,8 +366,8 @@ function buildBadges(row) {
 
   const isVip      = allText.includes('vip');
   const isWolfTrap = (row['Venue Name'] || '').includes('Wolf Trap Filene');
-  const totalCost  = parseFloat((row['Total Cost'] || '').replace(/[^0-9.]/g, '')) || 0;
-  const isMerch    = !isVip && !isWolfTrap && totalCost >= 100;
+  const faceValue  = parseFloat((row['Face Value (per ticket)'] || '').replace(/[^0-9.]/g, '')) || 0;
+  const isMerch    = !isVip && !isWolfTrap && faceValue >= 100;
   const isBook     = (row['Notes / Memories'] || '').includes('BRING RHBS') ||
                      (row['Notes / Memories'] || '').includes('BRING APS');
   // Box office badge = there is a ticket to buy at the venue box office on show day
