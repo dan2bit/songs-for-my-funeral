@@ -75,7 +75,15 @@
   .btn-auth.authed { border-color: var(--green-dim); color: var(--green); }
   .btn-auth.authed::after { content: '●'; font-size: 8px; color: var(--green); position: absolute; top: 2px; right: 2px; }
 
-  .tabs { display: flex; border-bottom: 1px solid var(--border); background: var(--surface); padding: 0 20px; }
+  .tab-row {
+    display: flex;
+    align-items: stretch;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    padding: 0 20px;
+    gap: 0;
+  }
+  .tabs { display: flex; flex: 0 0 auto; }
   .tab {
     font-family: var(--mono); font-size: 12px; padding: 10px 16px; cursor: pointer;
     border-bottom: 2px solid transparent; color: var(--text-muted);
@@ -86,6 +94,70 @@
   .tab-badge {
     display: inline-block; background: var(--surface2); color: var(--text-dim);
     font-size: 10px; padding: 1px 5px; border-radius: 10px; margin-left: 5px; vertical-align: middle;
+  }
+
+  /* On This Day — fills the right space in the tab row */
+  .on-this-day {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 0 6px 20px;
+    border-left: 1px solid var(--border);
+    min-width: 0;
+    overflow: hidden;
+  }
+  .otd-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .otd-items {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: nowrap;
+    overflow: hidden;
+    min-width: 0;
+  }
+  .otd-item {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+    min-width: 0;
+    overflow: hidden;
+  }
+  .otd-year {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    flex-shrink: 0;
+  }
+  .otd-artist {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .otd-venue {
+    font-size: 11px;
+    color: var(--text-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .otd-sep { color: var(--border2); font-size: 11px; flex-shrink: 0; }
+  .otd-links { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
+  .otd-none { font-size: 12px; color: var(--text-dim); font-style: italic; }
+
+  @media (max-width: 900px) {
+    .on-this-day { display: none; }
   }
 
   .panel { display: none; padding: 20px; max-width: 1400px; margin: 0 auto; }
@@ -256,14 +328,20 @@
   </div>
 </header>
 
-<nav class="tabs">
-  <div class="tab active" data-tab="shows" onclick="switchTab('shows')">
-    Shows <span class="tab-badge" id="showsBadge">—</span>
+<div class="tab-row">
+  <nav class="tabs">
+    <div class="tab active" data-tab="shows" onclick="switchTab('shows')">
+      Shows <span class="tab-badge" id="showsBadge">—</span>
+    </div>
+    <div class="tab" data-tab="potential" onclick="switchTab('potential')">
+      Potential <span class="tab-badge" id="potBadge">—</span>
+    </div>
+  </nav>
+  <div class="on-this-day">
+    <span class="otd-label">On this day</span>
+    <div class="otd-items" id="otdItems"><span class="otd-none">—</span></div>
   </div>
-  <div class="tab" data-tab="potential" onclick="switchTab('potential')">
-    Potential <span class="tab-badge" id="potBadge">—</span>
-  </div>
-</nav>
+</div>
 
 <div class="panel active" id="panel-shows">
   <div id="showsContent"><div class="loading">Loading</div></div>
@@ -295,6 +373,7 @@ const OWNER = 'dan2bit';
 const REPO  = 'songs-for-my-funeral';
 const CURRENT_PATH   = 'live-shows/live_shows_current.tsv';
 const POTENTIAL_PATH = 'live-shows/live_shows_potential.tsv';
+const HISTORY_YEARS  = [2021, 2022, 2023, 2024, 2025];
 const PAT_KEY = 'ghpat_sfmf';
 
 let currentRows   = [];
@@ -340,10 +419,66 @@ function daysFromNow(s) {
   return Math.floor((d - now) / 86400000);
 }
 function gcalUrl(artist) {
-  // Year omitted — adding it causes empty results in Google Calendar search
   return `https://calendar.google.com/calendar/r/search?q=${encodeURIComponent(artist)}`;
 }
 function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ── On This Day ──────────────────────────────────────────────────────────────
+
+async function loadOnThisDay() {
+  const now   = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day   = String(now.getDate()).padStart(2, '0');
+  const mmdd  = `${month}-${day}`;
+
+  // Fetch all history files in parallel; ignore failures for missing years
+  const results = await Promise.allSettled(
+    HISTORY_YEARS.map(yr => ghFetch(`live-shows/history/${yr}.tsv`))
+  );
+
+  const matches = [];
+  results.forEach((res, i) => {
+    if (res.status !== 'fulfilled') return;
+    const raw  = atob(res.value.content.replace(/\n/g, ''));
+    const rows = parseTsv(raw);
+    rows.forEach(r => {
+      const date = (r['Show Date'] || '').trim();
+      if (date.endsWith(mmdd)) matches.push(r);
+    });
+  });
+
+  // Sort chronologically (oldest year first)
+  matches.sort((a, b) => (a['Show Date'] || '').localeCompare(b['Show Date'] || ''));
+
+  const el = document.getElementById('otdItems');
+  if (!matches.length) {
+    el.innerHTML = '<span class="otd-none">no shows on this day</span>';
+    return;
+  }
+
+  el.innerHTML = matches.map(r => {
+    const year     = (r['Show Date'] || '').slice(0, 4);
+    const artist   = esc(r['Artist'] || '');
+    // Trim verbose venue strings: take everything up to the first comma
+    const rawVenue = (r['Venue'] || '');
+    const venue    = esc(rawVenue.split(',')[0].trim());
+    const setlist  = r['Setlist.fm URL'] || '';
+    const playlist = r['Playlist URL']   || '';
+    const links = [
+      setlist  ? `<a class="icon-link" href="${esc(setlist)}"  target="_blank" title="Setlist.fm">♫</a>` : '',
+      playlist ? `<a class="icon-link" href="${esc(playlist)}" target="_blank" title="YouTube playlist">▶</a>` : '',
+    ].join('');
+    return `<span class="otd-item">
+      <span class="otd-year">${year}</span>
+      <span class="otd-artist">${artist}</span>
+      <span class="otd-sep">·</span>
+      <span class="otd-venue">${venue}</span>
+      ${links ? `<span class="otd-links">${links}</span>` : ''}
+    </span>`;
+  }).join('<span class="otd-sep" style="margin:0 4px">|</span>');
+}
+
+// ── Badges ───────────────────────────────────────────────────────────────────
 
 function ticketLabel(access) {
   const a = (access||'').toLowerCase();
@@ -370,9 +505,6 @@ function buildBadges(row) {
   const isMerch    = !isVip && !isWolfTrap && faceValue >= 100;
   const isBook     = (row['Notes / Memories'] || '').includes('BRING RHBS') ||
                      (row['Notes / Memories'] || '').includes('BRING APS');
-  // Box office badge = there is a ticket to buy at the venue box office on show day
-  // (i.e. the Notes/Memories field mentions "box office", not just the Ticket Access field,
-  //  because the Ticket Access field records how the already-purchased ticket was obtained)
   const isBoxOffice = (row['Notes / Memories'] || '').toLowerCase().includes('box office');
 
   const badges = [];
@@ -384,6 +516,8 @@ function buildBadges(row) {
   if (isBoxOffice) badges.push('<span class="badge badge-boxoffice">🎟 BOX OFFICE</span>');
   return badges.length ? `<div class="badges">${badges.join('')}</div>` : '';
 }
+
+// ── Shows tab ────────────────────────────────────────────────────────────────
 
 function renderUpcomingRow(row, idx) {
   const days = daysFromNow(row['Show Date']);
@@ -446,6 +580,8 @@ function renderShows() {
     </div>
   </details>`;
 }
+
+// ── Potential tab ─────────────────────────────────────────────────────────────
 
 function tierHtml(tier) {
   const t = (tier||'').toLowerCase();
@@ -518,6 +654,8 @@ function renderPotential() {
     '<p class="loading" style="animation:none">No data</p>';
 }
 
+// ── Decision editing ──────────────────────────────────────────────────────────
+
 async function handleDecisionChange(select) {
   const idx    = parseInt(select.dataset.row);
   const newVal = select.value;
@@ -554,6 +692,8 @@ async function handleDecisionChange(select) {
   }
 }
 
+// ── Utilities ─────────────────────────────────────────────────────────────────
+
 function toggleNotes(textId, toggleId) {
   const el = document.getElementById(textId); if (!el) return;
   el.classList.toggle('collapsed');
@@ -581,6 +721,8 @@ function clearPat() {
 }
 document.getElementById('authModal').addEventListener('click', e => { if (e.target===e.currentTarget) closeAuthModal(); });
 
+// ── Boot ──────────────────────────────────────────────────────────────────────
+
 async function loadData() {
   document.getElementById('showsContent').innerHTML = '<div class="loading">Loading</div>';
   document.getElementById('potContent').innerHTML   = '<div class="loading">Loading</div>';
@@ -600,6 +742,7 @@ async function loadData() {
 
 if (localStorage.getItem(PAT_KEY)) { authed = true; document.getElementById('authBtn').classList.add('authed'); }
 loadData();
+loadOnThisDay(); // runs independently — doesn't block the main data load
 </script>
 </body>
 </html>
