@@ -431,7 +431,6 @@ async function loadOnThisDay() {
   const day   = String(now.getDate()).padStart(2, '0');
   const mmdd  = `${month}-${day}`;
 
-  // Fetch all history files in parallel; ignore failures for missing years
   const results = await Promise.allSettled(
     HISTORY_YEARS.map(yr => ghFetch(`live-shows/history/${yr}.tsv`))
   );
@@ -447,7 +446,6 @@ async function loadOnThisDay() {
     });
   });
 
-  // Sort chronologically (oldest year first)
   matches.sort((a, b) => (a['Show Date'] || '').localeCompare(b['Show Date'] || ''));
 
   const el = document.getElementById('otdItems');
@@ -459,7 +457,6 @@ async function loadOnThisDay() {
   el.innerHTML = matches.map(r => {
     const year     = (r['Show Date'] || '').slice(0, 4);
     const artist   = esc(r['Artist'] || '');
-    // Trim verbose venue strings: take everything up to the first comma
     const rawVenue = (r['Venue'] || '');
     const venue    = esc(rawVenue.split(',')[0].trim());
     const setlist  = r['Setlist.fm URL'] || '';
@@ -601,6 +598,16 @@ function decisionHtml(row, idx) {
           <span class="save-indicator" id="save-${idx}"></span>`;
 }
 
+function faceCellHtml(r) {
+  const price = esc(r['Face Price'] || '');
+  const isBuy = (r['Decision'] || '').toLowerCase().startsWith('buy');
+  const purchaseUrl = r['Purchase URL'] || '';
+  const buyLink = authed && isBuy && purchaseUrl
+    ? `<a class="icon-link" href="${esc(purchaseUrl)}" target="_blank" title="Buy tickets">🎟</a>`
+    : '';
+  return `${price}${buyLink}`;
+}
+
 function renderPotentialGroup(rows, groupKey, label) {
   if (!rows.length) return '';
   const tbody = rows.map(r => {
@@ -620,7 +627,7 @@ function renderPotentialGroup(rows, groupKey, label) {
       <td><div class="cell-artist">${esc(r['Artist'])}</div>${r['Support']?`<div class="cell-support">w/ ${esc(r['Support'])}</div>`:''}</td>
       <td>${venueHtml}<div style="font-size:11px;color:var(--text-dim);margin-top:2px">${esc(r['Venue City']||'')}</div></td>
       <td class="col-tier">${tierHtml(r['Tier']||'')}</td>
-      <td class="col-price cell-price">${esc(r['Face Price']||'')}</td>
+      <td class="col-price cell-price">${faceCellHtml(r)}</td>
       <td class="col-watching">${r['Watching For']?`<span class="cell-watching">⚠ ${esc(r['Watching For'])}</span>`:''}</td>
       <td class="col-context cell-context">${contextHtml}</td>
       <td class="cell-pot-notes">${notes?`<div class="cell-pot-notes collapsed" onclick="this.classList.toggle('collapsed')">${notes}</div>`:''}</td>
