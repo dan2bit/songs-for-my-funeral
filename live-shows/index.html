@@ -419,11 +419,15 @@ function daysFromNow(s) {
   return Math.floor((d - now) / 86400000);
 }
 function gcalUrl(artist) {
-  return `https://calendar.google.com/calendar/r/search?q=${encodeURIComponent(artist)}`;
+  const now   = new Date();
+  const pad   = n => String(n).padStart(2, '0');
+  const start = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}`;
+  const end   = `${now.getFullYear()+1}${pad(now.getMonth()+1)}${pad(now.getDate())}`;
+  return `https://calendar.google.com/calendar/r/search?q=${encodeURIComponent(artist)}&start=${start}&end=${end}`;
 }
 function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-// ── On This Day ──────────────────────────────────────────────────────────────
+// ── On This Day ────────────────────────────────────────────
 
 async function loadOnThisDay() {
   const now   = new Date();
@@ -475,7 +479,7 @@ async function loadOnThisDay() {
   }).join('<span class="otd-sep" style="margin:0 4px">|</span>');
 }
 
-// ── Badges ───────────────────────────────────────────────────────────────────
+// ── Badges ───────────────────────────────────────────────────
 
 function ticketLabel(access) {
   const a = (access||'').toLowerCase();
@@ -514,7 +518,7 @@ function buildBadges(row) {
   return badges.length ? `<div class="badges">${badges.join('')}</div>` : '';
 }
 
-// ── Shows tab ────────────────────────────────────────────────────────────────
+// ── Shows tab ────────────────────────────────────────────────
 
 function renderUpcomingRow(row, idx) {
   const days = daysFromNow(row['Show Date']);
@@ -578,7 +582,7 @@ function renderShows() {
   </details>`;
 }
 
-// ── Potential tab ─────────────────────────────────────────────────────────────
+// ── Potential tab ─────────────────────────────────────────────────
 
 function tierHtml(tier) {
   const t = (tier||'').toLowerCase();
@@ -661,7 +665,7 @@ function renderPotential() {
     '<p class="loading" style="animation:none">No data</p>';
 }
 
-// ── Decision editing ──────────────────────────────────────────────────────────
+// ── Decision editing ────────────────────────────────────────────────────
 
 async function handleDecisionChange(select) {
   const idx    = parseInt(select.dataset.row);
@@ -699,7 +703,7 @@ async function handleDecisionChange(select) {
   }
 }
 
-// ── Utilities ─────────────────────────────────────────────────────────────────
+// ── Utilities ─────────────────────────────────────────────────────────
 
 function toggleNotes(textId, toggleId) {
   const el = document.getElementById(textId); if (!el) return;
@@ -728,7 +732,7 @@ function clearPat() {
 }
 document.getElementById('authModal').addEventListener('click', e => { if (e.target===e.currentTarget) closeAuthModal(); });
 
-// ── Boot ──────────────────────────────────────────────────────────────────────
+// ── Boot ────────────────────────────────────────────────────────────────
 
 async function loadData() {
   document.getElementById('showsContent').innerHTML = '<div class="loading">Loading</div>';
