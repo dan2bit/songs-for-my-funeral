@@ -60,6 +60,12 @@ is manual. I can compose draft emails but cannot send them — sending is always
 
 ## Draft Activity Log
 
+**The activity log draft is mandatory. It must be created at the end of every routine
+invocation, without exception. It is never optional, never skippable, and must not be
+omitted even when a routine is simple, quick, or partially overlaps with another routine
+run in the same session. If the draft creation fails, note the failure in conversation
+and include the full log text so it is preserved there.**
+
 At the end of every routine, I create a draft email in the redhat.bootlegs inbox
 as a persistent log of what was processed and what actions were taken. This gives
 you a searchable history in Gmail alongside the source emails.
@@ -377,7 +383,10 @@ Look up the headliner in `fast_track.tsv` by artist name.
 **If the commit fails:** present the updated `fast_track.tsv` in the conversation for
 download and manual check-in.
 
-**Step 8 — Create activity log draft**
+**Step 8 — Create activity log draft ⚠️ MANDATORY**
+
+This step is required for every Routine 1 invocation without exception — including
+same-day/impromptu shows where the ticket and show notes arrive together.
 
 Create a draft in the redhat.bootlegs inbox with:
 - Subject: `[LOG] Routine 1 — [Artist] ticket — YYYY-MM-DD`
@@ -537,7 +546,9 @@ Labels: `playlist`
 If there is **no footage** from the show (noted in the post-show email or known at
 processing time), skip this step and note it in the activity log draft instead.
 
-**Step 7 — Create activity log draft**
+**Step 7 — Create activity log draft ⚠️ MANDATORY**
+
+This step is required for every Routine 2 invocation without exception.
 
 Create a draft in the redhat.bootlegs inbox with:
 - Subject: `[LOG] Routine 2 — [Artist] post-show — YYYY-MM-DD`
@@ -700,7 +711,9 @@ Reminders:
 **No TSV row is created** — that comes when the ticket is actually purchased
 and processed via Routine 1.
 
-**Step 5 — Create activity log draft**
+**Step 5 — Create activity log draft ⚠️ MANDATORY**
+
+This step is required for every Routine 3 invocation without exception.
 
 Create a draft in the redhat.bootlegs inbox with:
 - Subject: `[LOG] Routine 3 — [source newsletter/venue] — YYYY-MM-DD`
@@ -801,7 +814,9 @@ For each email, look for three things:
 For any DC/MD/VA show recommendation, check `autograph_books_combined.tsv` and
 include the book reminder in the recommendation exactly as in Routine 1.
 
-**Step 4 — Create activity log draft**
+**Step 4 — Create activity log draft ⚠️ MANDATORY**
+
+This step is required for every Routine 4 invocation without exception.
 
 Create a draft in the redhat.bootlegs inbox with:
 - Subject: `[LOG] Routine 4 — [Artist] newsletter — YYYY-MM-DD`
@@ -896,7 +911,10 @@ If the email contains a show announcement or pre-sale code:
 2. **Otherwise** — handle exactly as Routine 4 Step 2 would: calendar check, autograph
    book lookup, buy recommendation or on-sale reminder event as appropriate.
 
-**Step 5 — Create activity log draft**
+**Step 5 — Create activity log draft ⚠️ MANDATORY**
+
+This step is required for every Routine 5 invocation without exception, unless
+suppressed by the reminder rule in Step 1.
 
 Create a draft in the redhat.bootlegs inbox with:
 - Subject: `[LOG] Routine 5 — [Artist] [BIT/Songkick/signup/etc.] — YYYY-MM-DD`
