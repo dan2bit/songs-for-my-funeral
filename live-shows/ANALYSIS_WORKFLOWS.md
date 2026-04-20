@@ -1,8 +1,9 @@
 # Analysis Workflows — Live Show Archive
 
-Four standing workflows for periodic show discovery, artist research, and file
+Five standing workflows for periodic show discovery, artist research, and file
 maintenance. These are independent of the email routines in `EMAIL_WORKFLOWS.md` —
-they are triggered by calendar reminders or file editing events, not inbox events.
+they are triggered by calendar reminders, file editing events, or on-demand requests,
+not inbox events.
 
 ---
 
@@ -196,3 +197,41 @@ An artist like Danielle Ponder is added to `fast_track.tsv`. The audit finds:
 
 Result: a proposed `follows_master.tsv` row is presented for approval, and a
 note to check her BIT page directly for any current DC-area dates.
+
+---
+
+## Workflow 5 — Potentials Availability Check
+
+**Cadence:** On demand
+**Trigger:** Say "check availability" or "availability check" in a project conversation
+**Requires:** Claude in Chrome
+
+### Purpose
+
+Ticket availability for Buy and Choose rows can change between when a show is
+added to the potential list and when a purchase decision is made. This workflow
+proactively checks current availability against what was recorded, so that
+decisions aren't forced by a sold-out situation rather than made deliberately.
+The Anthony Gomes front-row situation (Apr 2026) is the reference case: a Choose
+row where a preferred ticket tier sold out before a decision was reached.
+
+### What to do
+
+1. Fetch `live-shows/live_shows_potential.tsv` from the repo
+2. For every **Buy** and **Choose** row that has a `Purchase URL` or `Event URL`:
+   open the page in Claude in Chrome and check current ticket availability
+3. **Opendate venues (Jammin' Java, Union Stage, Pearl Street, Howard):** read
+   text only — never infer sold out from an SVG badge; badge state is unreliable
+4. Compare findings against the `Watching For` field for that row
+5. Report a summary in conversation: what has changed, what is newly concerning
+   (low inventory, a ticket tier gone, sold out), what is unchanged
+6. For any row where availability has materially changed:
+   - Propose an update to `Watching For` and/or `Availability Notes` in the TSV
+   - Flag explicitly whether a decision is now urgent
+
+### Out of scope
+
+- Pass rows — no action needed
+- Rows with no `Purchase URL` and no `Event URL` — nothing to check
+- Rows where the `Watching For` field is already "sold out" or the show is free
+  (e.g. NGA lottery) — note but do not re-check unless specifically asked
