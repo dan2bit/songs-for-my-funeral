@@ -408,10 +408,13 @@ async function ghFetch(path, opts = {}) {
 }
 
 function parseTsv(text) {
-  const lines = text.trim().split('\n');
+  const lines = text.trim().replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
   const headers = lines[0].split('\t').map(h => h.trim());
   return lines.slice(1).map(line => {
-    const vals = line.split('\t'), obj = {};
+    const vals = line.split('\t');
+    // Pad to header length so trailing empty columns aren't lost
+    while (vals.length < headers.length) vals.push('');
+    const obj = {};
     headers.forEach((h, i) => obj[h] = (vals[i] || '').trim());
     return obj;
   });
