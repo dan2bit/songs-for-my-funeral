@@ -436,6 +436,18 @@ function gcalUrl(artist) {
 }
 function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
+const VENUE_SHORT = {
+  'Wolf Trap Filene Center': 'Wolf Trap',
+  'Rams Head On Stage':      'Rams Head',
+  'Barns at Wolf Trap':      'Barns',
+  'The State Theatre':       'State Theatre',
+  'The Birchmere':           'Birchmere',
+  'Live at Hub City Vinyl':  'Hub City',
+};
+function shortVenueName(full) {
+  return VENUE_SHORT[full] || (full||'').split(',')[0].trim();
+}
+
 // ── On This Day ────────────────────────────────────────────
 
 async function loadOnThisDay() {
@@ -539,7 +551,7 @@ function renderUpcomingRow(row, idx) {
   const seat = esc(row['Seat Info / GA']||'');
   // Mobile-only subtitle: venue + seat folded under artist name
   const mobileVenueLine = row['Venue Name']
-    ? `<div class="cell-venue-mobile">${venueHtml}${seat ? ` · ${seat}` : ''}</div>`
+    ? `<div class="cell-venue-mobile">${esc(shortVenueName(row['Venue Name']))}${seat ? ` · ${seat}` : ''}</div>`
     : '';
   return `
   <tr class="${cls}">
@@ -561,7 +573,7 @@ function renderUpcomingRow(row, idx) {
 function renderAttendedRow(row, idx) {
   const notes = esc(row['Notes / Memories']||'');
   // Show short venue name (first comma-segment) under date instead of day-of-week
-  const shortVenue = esc((row['Venue Name']||'').split(',')[0].trim());
+  const shortVenue = esc(shortVenueName(row['Venue Name']||''));
   return `
   <tr>
     <td class="cell-date">${formatShowDate(row['Show Date'])}<span class="day-of-week">${shortVenue}</span></td>
