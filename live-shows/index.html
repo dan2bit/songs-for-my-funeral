@@ -324,6 +324,14 @@
     }
     .cell-venue-mobile a { color: var(--text-muted); text-decoration: none; }
   }
+
+  /* Portrait phones: collapse Notes column into Artist cell */
+  @media (max-width: 480px) {
+    .col-notes-upcoming { display: none; }
+    .cell-notes-inline { display: block; margin-top: 4px; }
+    .shows-table { table-layout: fixed; }
+    .shows-table td:first-child { width: 52px; }
+  }
 </style>
 </head>
 <body>
@@ -443,6 +451,7 @@ const VENUE_SHORT = {
   'The State Theatre':       'State Theatre',
   'The Birchmere':           'Birchmere',
   'Live at Hub City Vinyl':  'Hub City',
+  'The Anthem':              'Anthem',
 };
 function shortVenueName(full) {
   return VENUE_SHORT[full] || (full||'').split(',')[0].trim();
@@ -561,10 +570,11 @@ function renderUpcomingRow(row, idx) {
       ${row['Supporting Artist'] ? `<div class="cell-support">w/ ${esc(row['Supporting Artist'])}</div>` : ''}
       ${mobileVenueLine}
       ${buildBadges(row)}
+      ${notes ? `<div class="cell-notes-inline notes-text collapsed" id="n-up-m-${idx}" onclick="toggleNotes('n-up-m-${idx}',null)">${notes}</div>` : ''}
     </td>
     <td class="cell-venue col-support">${venueHtml}</td>
     <td class="cell-seat col-seat">${seat}</td>
-    <td class="cell-notes">${notes ? `
+    <td class="cell-notes col-notes-upcoming">${notes ? `
       <div class="notes-text collapsed" id="n-up-${idx}" onclick="toggleNotes('n-up-${idx}','nt-up-${idx}')">${notes}</div>
       <span class="notes-toggle" id="nt-up-${idx}" onclick="toggleNotes('n-up-${idx}','nt-up-${idx}')">more</span>` : ''}</td>
   </tr>`;
@@ -597,7 +607,7 @@ function renderShows() {
     <span class="section-count">${upcoming.length} shows</span>
   </div>
   <table class="shows-table">
-    <thead><tr><th>Date</th><th>Artist</th><th class="col-support">Venue</th><th class="col-seat">Seat / GA</th><th>Notes</th></tr></thead>
+    <thead><tr><th>Date</th><th>Artist</th><th class="col-support">Venue</th><th class="col-seat">Seat / GA</th><th class="col-notes-upcoming">Notes</th></tr></thead>
     <tbody>${upcoming.map((r,i)=>renderUpcomingRow(r,i)).join('')}</tbody>
   </table>
   <details class="attended-details" style="margin-top:28px">
@@ -647,9 +657,10 @@ function renderPotentialGroup(rows, groupKey, label) {
     const gi = potentialRows.indexOf(r);
     const notes = esc(r['Notes']||'');
     const venueUrl = r['Event URL'] || r['Purchase URL'] || '';
+    const venueShort = shortVenueName(r['Venue']||'');
     const venueHtml = venueUrl
-      ? `<a href="${esc(venueUrl)}" target="_blank" style="color:var(--text-muted);text-decoration:none">${esc(r['Venue'])}</a>`
-      : esc(r['Venue']||'');
+      ? `<a href="${esc(venueUrl)}" target="_blank" style="color:var(--text-muted);text-decoration:none">${esc(venueShort)}</a>`
+      : esc(venueShort);
     const prev = esc(r['Prev Show (2026)']||'');
     const next = esc(r['Next Show (2026)']||'');
     const contextHtml = [prev, next].filter(Boolean).map(s => `<div>${s}</div>`).join('');
