@@ -590,7 +590,7 @@ function renderUpcomingRow(row, idx) {
   <tr class="${cls}">
     <td class="cell-date">${formatShowDate(row['Show Date'])}<span class="day-of-week">${dayOfWeek(row['Show Date'])}</span></td>
     <td>
-      <div class="cell-artist">${esc(row['Artist'])}<a class="icon-link" href="${gcalUrl(row['Artist'])}" target="_blank" title="Search Google Calendar">📅</a></div>
+      <div class="cell-artist">${esc(row['Artist'])}${parseInt(row['Ticket Quantity']||'1',10) > 1 ? ` <span style="font-size:11px;color:var(--text-dim);font-family:var(--mono)">(${row['Ticket Quantity']})</span>` : ''}<a class="icon-link" href="${gcalUrl(row['Artist'])}" target="_blank" title="Search Google Calendar">📅</a></div>
       ${row['Supporting Artist'] ? `<div class="cell-support">w/ ${esc(row['Supporting Artist'])}</div>` : ''}
       ${mobileVenueLine}
       ${buildBadges(row)}
