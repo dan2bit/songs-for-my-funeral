@@ -237,11 +237,13 @@
   }
   .group-header-buy    { background: var(--green-bg);  border-color: var(--green-dim);  color: var(--green); }
   .group-header-choose { background: var(--yellow-bg); border-color: var(--yellow-dim); color: var(--yellow); }
+  .group-header-sell   { background: #0e1a1a;          border-color: #1a4a4a;           color: #40a0a0; }
   .group-header-pass   { background: var(--gray-bg);   border-color: var(--gray-dim);   color: var(--gray); }
   .group-count { opacity: 0.6; }
   .group-table-wrap { border: 1px solid; border-radius: 0 0 4px 4px; overflow: hidden; }
   .group-table-buy    { border-color: var(--green-dim); }
   .group-table-choose { border-color: var(--yellow-dim); }
+  .group-table-sell   { border-color: #1a4a4a; }
   .group-table-pass   { border-color: var(--gray-dim); }
 
   .pot-table { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -253,12 +255,15 @@
   .pot-table td { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
   .pot-table tr:last-child td { border-bottom: none; }
   .pot-table tr:hover td { background: var(--surface2); }
+  .pot-table .row-sell td { color: #40a0a0; }
+  .pot-table .row-sell:hover td { color: #60c0c0; }
   .pot-table .row-pass td { color: #8a8480; }
   .pot-table .row-pass:hover td { color: var(--text-muted); }
 
   .cell-decision-ro { font-family: var(--mono); font-size: 11px; white-space: nowrap; }
   .cell-decision-ro.buy    { color: var(--green); }
   .cell-decision-ro.choose { color: var(--yellow); }
+  .cell-decision-ro.sell   { color: #40a0a0; }
   .cell-decision-ro.pass   { color: var(--gray); }
 
   .decision-select {
@@ -651,8 +656,8 @@ function tierHtml(tier) {
 
 function decisionHtml(row, idx) {
   const d   = row['Decision']||'';
-  const cls = d.toLowerCase().startsWith('buy') ? 'buy' : d.toLowerCase()==='choose' ? 'choose' : 'pass';
-  if (!authed) return `<span class="cell-decision-ro ${cls}">${esc(d)}</span>`;
+  const cls = d.toLowerCase().startsWith('buy') ? 'buy' : d.toLowerCase()==='choose' ? 'choose' : d.toLowerCase()==='sell' ? 'sell' : 'pass';
+  if (d.toLowerCase()==='sell' || !authed) return `<span class="cell-decision-ro ${cls}">${esc(d)}</span>`;
   const opts = ['Buy','Choose','Pass'].map(v =>
     `<option value="${v}"${d.toLowerCase().startsWith(v.toLowerCase())?' selected':''}>${v}</option>`
   ).join('');
@@ -718,11 +723,13 @@ function renderPotential() {
   const s = [...potentialRows].sort((a,b)=>(a['Date']||'').localeCompare(b['Date']||''));
   const buy    = s.filter(r=>(r['Decision']||'').toLowerCase().startsWith('buy'));
   const choose = s.filter(r=>(r['Decision']||'').toLowerCase()==='choose');
+  const sell   = s.filter(r=>(r['Decision']||'').toLowerCase()==='sell');
   const pass   = s.filter(r=>(r['Decision']||'').toLowerCase()==='pass');
   document.getElementById('potBadge').textContent = buy.length + '+' + choose.length;
   document.getElementById('potContent').innerHTML =
     renderPotentialGroup(buy,'buy','🟢 Buy') +
     renderPotentialGroup(choose,'choose','🟡 Choose') +
+    renderPotentialGroup(sell,'sell','🏷 Sell') +
     renderPotentialGroup(pass,'pass','Pass') ||
     '<p class="loading" style="animation:none">No data</p>';
 }
@@ -743,7 +750,8 @@ async function handleDecisionChange(select) {
     potentialRows[idx]['Decision'] = newVal;
     rows.sort((a,b) => {
       const rank = r => (r['Decision']||'').toLowerCase().startsWith('buy') ? 0
-        : (r['Decision']||'').toLowerCase()==='choose' ? 1 : 2;
+        : (r['Decision']||'').toLowerCase()==='choose' ? 1
+        : (r['Decision']||'').toLowerCase()==='sell' ? 2 : 3;
       return rank(a) - rank(b) || (a['Date']||'').localeCompare(b['Date']||'');
     });
     const pat = localStorage.getItem(PAT_KEY);
